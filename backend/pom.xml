@@ -9,22 +9,48 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.g4</groupId>
-	<artifactId>game-tracker-backend</artifactId>
+	<artifactId>backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
-	<url/>
+	<name>game-tracker-backend</name>
+    <description>Backend do sistema de tracking e review de jogos (estilo Letterboxd), desenvolvido em Spring Boot com DDD e arquitetura limpa</description>
+    <url>https://github.com/marinaghoffmann/ProjetoRequisitos</url>
 	<licenses>
-		<license/>
+		<license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+        </license>
 	</licenses>
 	<developers>
-		<developer/>
+		<developer>
+            <name>Marina Hoffmann</name>
+            <email>mhg@cesar.school</email>
+        </developer>
+				<developer>
+            <name>Lavínia Maranhão</name>
+            <email>lmfs@cesar.school</email>
+        </developer>
+				<developer>
+            <name>Davi Marques</name>
+            <email>email@exemplo.com</email>
+        </developer>
+				<developer>
+            <name>Henrique Brito</name>
+            <email>email@exemplo.com</email>
+        </developer>
+				<developer>
+            <name>Caio Ferreira</name>
+            <email>email@exemplo.com</email>
+        </developer>
+				<developer>
+            <name>Bruno Mayer</name>
+            <email>bbm@cesar.school</email>
+        </developer>
 	</developers>
 	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
+        <connection>scm:git:git://github.com/marinaghoffmann/ProjetoRequisitos.git</connection>
+    	<developerConnection>scm:git:ssh://git@github.com/marinaghoffmann/ProjetoRequisitos.git</developerConnection>
+    	<url>https://github.com/marinaghoffmann/ProjetoRequisitos</url>
+    	<tag>HEAD</tag>
 	</scm>
 	<properties>
 		<java.version>21</java.version>
