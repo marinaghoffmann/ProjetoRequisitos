@@ -1,0 +1,474 @@
+Funcionalidade 1
+Título
+Importação, cadastramento manual e gerenciamento do catálogo de jogos e desenvolvedoras
+Descrição
+Permite integrar o catálogo de jogos por duas origens: via busca/importação automatizada de uma API externa (ex: IGDB ou RAWG) e via cadastramento manual feito por perfis com permissão de Desenvolvedor/Criador de Jogos. Permite também criar e gerenciar o perfil institucional da desenvolvedora (biografia, site, redes, país) e que administradores realizem a edição de metadados ou remoção de jogos do catálogo local.
+Entidades envolvidas
+Jogo, Desenvolvedora, Genero, Usuario (com papel de Desenvolvedor ou Administrador)
+RN 1
+Título
+evitar duplicidade por API e vínculo de origem
+Descrição
+Antes de persistir um jogo vindo da API externa, o sistema deve verificar se o identificador externo já existe no banco local. Se existir, executa uma atualização (update). Caso o jogo esteja sendo cadastrado manualmente por um desenvolvedor, o sistema deve validar a unicidade do título combinado com a desenvolvedora e registrar a origem do cadastro como "Manual/Criador".
+RN 2
+Título
+vínculo obrigatório com perfil de desenvolvedora existente
+Descrição
+Para cadastrar um jogo manualmente sem depender de API externa, o usuário deve possuir a permissão de Desenvolvedor e estar associado a um perfil de Desenvolvedora ativo no banco. O jogo cadastrado fica automaticamente vinculado a essa desenvolvedora.
+RN 3
+Título
+exclusão lógica e manutenção da integridade de vínculos
+Descrição
+A remoção de um jogo ou de um perfil de desenvolvedora realizada por um Administrador deve ser obrigatoriamente do tipo lógica (soft delete) caso existam dados vinculados (reviews, histórico no journal ou presenças em listas), preservando a integridade referencial do banco de dados relacional.
+Consultas
+consultar jogos do catálogo local filtrando por título, gênero, desenvolvedora, origem (API vs. Criador) ou status de ativação
+
+
+Funcionalidade 2
+Título
+Gerenciamento completo de reviews e avaliações categoriais
+Descrição
+Permite que o usuário publique uma avaliação de um jogo cadastrado (com nota geral de 1 a 5, notas por categorias de Gráficos, Som, Jogabilidade, Diversão e Inovação, e texto descritivo), além de permitir que o próprio autor edite as notas e o texto da sua avaliação ou a exclua definitivamente do sistema.
+Entidades envolvidas
+Usuário, Jogo, Review, NotaPorCategoria
+RN 1
+Título
+unicidade de review ativa por usuário e jogo
+Descrição
+Cada usuário só pode ter uma review registrada por jogo. Se o usuário tentar criar uma nova avaliação para um jogo já avaliado por ele, o sistema deve redirecioná-lo para o fluxo de edição.
+RN 2
+Título
+restrição estrita de propriedade
+Descrição
+O sistema deve validar no backend se o ID do usuário autenticado é exatamente igual ao ID do autor registrado na review antes de permitir qualquer modificação ou exclusão do registro.
+RN 3
+Título
+exclusão em cascata das notas categoriais
+Descrição
+Ao excluir uma review, o sistema deve remover automaticamente em cascata todas as notas por categoria vinculadas a ela (NotaPorCategoria), mantendo a integridade referencial do banco.
+Consultas
+consultar todas as reviews de um jogo com médias categoriais, ou consultar as reviews criadas pelo próprio usuário autenticado
+
+Funcionalidade 4
+Título
+Gerenciamento completo de listas personalizadas e seus itens
+Descrição
+Permite que o usuário crie, edite e exclua listas temáticas (ex: "Melhores RPGs"), além de adicionar novos jogos, remover jogos existentes ou adicionar notas explicativas para cada item contido na lista.
+Entidades envolvidas
+Usuário, Lista, Jogo, ItemDaLista
+RN 1
+Título
+nome de lista único por usuário
+Descrição
+O sistema não permite que um mesmo usuário crie duas ou mais listas com o mesmo título exato (insensível a maiúsculas e minúsculas).
+RN 2
+Título
+impedir duplicação de jogo na mesma lista
+Descrição
+O sistema deve barrar qualquer tentativa de adicionar o mesmo jogo mais de uma vez dentro da mesma lista personalizada.
+RN 3
+Título
+limite máximo de itens por lista
+Descrição
+Uma lista personalizada pode conter no máximo 100 jogos cadastrados. Tentativas de adicionar além desse limite devem ser bloqueadas pelo sistema.
+Consultas
+consultar todas as listas de um usuário com o total e a listagem detalhada dos jogos contidos em cada uma
+
+
+Funcionalidade 6
+Título
+Gerenciamento da wishlist (playlist de desejados)
+
+Descrição
+Permite que o usuário adicione jogos à sua lista oficial de desejos (wishlist), defina um nível de prioridade (Alta, Média, Baixa) para cada jogo desejado e remova jogos da lista.
+
+Entidades envolvidas
+Usuário, Jogo, Wishlist, ItemWishlist
+
+RN 1
+Título
+unicidade e criação automática da wishlist
+
+Descrição
+Cada usuário possui exatamente uma wishlist associada à sua conta. Se a wishlist do usuário ainda não existir no banco de dados, ela deve ser instanciada automaticamente na primeira tentativa de adição de um jogo.
+
+RN 2
+Título
+bloqueio de jogo duplicado na wishlist
+
+Descrição
+O mesmo jogo não pode ser inserido mais de uma vez na wishlist do mesmo usuário.
+
+RN 3
+Título
+atribuição de prioridade padrão
+
+Descrição
+Caso o usuário não especifique a prioridade ao adicionar um jogo à wishlist, o sistema deve registrar a prioridade como "Média" por padrão.
+
+Consultas
+consultar os jogos contidos na wishlist do usuário autenticado ou de outro usuário, ordenando por nível de prioridade
+
+
+Funcionalidade 7
+Título
+Marcação de "Currently Playing"
+
+Descrição
+Permite que o usuário marque jogos que está jogando no momento para serem exibidos em destaque no seu perfil, altere o status de progresso (ex: "No início", "Na metade", "Perto do fim") e os remova do destaque ao concluir.
+
+Entidades envolvidas
+Usuário, Jogo, CurrentlyPlaying
+
+RN 1
+Título
+limite de jogos simultâneos no "Currently Playing"
+
+Descrição
+O sistema deve limitar a no máximo 5 o número de jogos marcados ativamente como "Currently Playing" ao mesmo tempo por um usuário.
+
+RN 2
+Título
+atualização automática de status concorrente
+
+Descrição
+Se o usuário tentar adicionar um 6º jogo e o limite tiver sido atingido, o sistema deve solicitar a remoção ou substituição de um dos jogos existentes antes de prosseguir com a gravação.
+
+RN 3
+Título
+registro de data de início da jogatina
+
+Descrição
+Ao marcar um jogo como "Currently Playing", o sistema deve salvar a data e a hora em que o registro foi realizado.
+
+Consultas
+consultar a lista de jogos atualmente sendo jogados por um usuário para exibição em seu perfil público
+
+Funcionalidade 8
+Título
+Gerenciamento completo de jogos favoritos e personalização do perfil público
+Descrição
+Permite que o usuário selecione, organize e altere a ordem dos seus jogos favoritos fixados no perfil público (slots de 1 a 4), defina uma capa de perfil personalizada e edite a biografia. Permite a remoção, substituição e reordenação dos itens a qualquer momento.
+Entidades envolvidas
+Usuário, Jogo, JogoFavorito, PerfilPublico
+RN 1
+Título
+limite e reordenação dos slots de favoritos
+Descrição
+O sistema limita a exibição a no máximo 4 jogos favoritos simultâneos. Ao adicionar ou mover um jogo favorito, o sistema deve atualizar a posição exata (slots 1 a 4) e reordenar automaticamente os demais.
+RN 2
+Título
+unicidade de jogo por slot
+Descrição
+O sistema deve impedir que um mesmo jogo seja inserido em mais de um slot de favorito na conta do mesmo usuário.
+RN 3
+Título
+sanitização da biografia e mídias do perfil
+Descrição
+A edição de biografia possui limite de 500 caracteres, e as URLs de imagens de capa personalizadas passam por validação de formato e extensão de mídia permitida (.png, .jpg, .webp).
+Consultas
+consultar os dados públicos do perfil do usuário, incluindo biografia, capa e os favoritos ordenados do slot 1 ao 4
+Funcionalidade 10
+Título
+Engine completa de sugestão de similares e central de feedback de relevância
+Descrição
+Calcula e gerencia os relacionamentos de similaridade entre jogos no banco de dados com base em gêneros, tags e estúdios. Permite que usuários registrem, editem e removam seus feedbacks de relevância sobre as sugestões (ex: "Útil" ou "Não relevante") e permite que administradores ajustem manualmente o peso de pontuação das sugestões.
+Entidades envolvidas
+Jogo, SimilaridadeJogo, FeedbackDeSugestao, Usuário
+RN 1
+Título
+impedir auto-similaridade e simetria de pontuação
+Descrição
+O sistema impede que um jogo seja sugerido a ele mesmo. A relação de similaridade é calculada de forma bidirecional no banco de dados.
+RN 2
+Título
+recalculo dinâmico baseado no feedback da comunidade
+Descrição
+Cada usuário possui um único feedback por par de jogos. Se a taxa de rejeição de uma sugestão ultrapassar 15 feedbacks negativos, o algoritmo rebaixa o grau de relevância automaticamente no banco.
+RN 3
+Título
+moderação e override manual de similaridade
+Descrição
+Usuários administradores podem criar ou remover manualmente conexões de similaridade direta entre dois jogos, sobrepondo o cálculo automático da engine.
+Consultas
+consultar os jogos similares de um determinado jogo ordenados pelo grau de pontuação de relevância e filtrar por avaliações da comunidade
+
+
+Funcionalidade 11
+Título
+Gerenciamento completo de registros de "zerado" e contagem de conclusões
+Descrição
+Permite que o usuário registre que concluiu um jogo (com data de conclusão, plataforma, tempo jogado em horas e tag de "100%/Platina"), edite as informações de um registro de conclusão existente ou exclua um registro de "zerado" do seu histórico. O sistema contabiliza e atualiza automaticamente o total de conclusões do usuário para aquele jogo.
+Entidades envolvidas
+Usuário, Jogo, RegistroDeConclusao
+RN 1
+Título
+obrigatoriedade de data válida e limite temporal
+Descrição
+Todo registro de "zerado" exige a inclusão de uma data de conclusão válida, que não pode ser superior à data e hora atual do servidor (data futura proibida).
+RN 2
+Título
+restrição de propriedade para alteração e exclusão
+Descrição
+O usuário só pode editar ou excluir registros de "zerado" vinculados ao seu próprio ID de usuário autenticado. Ao excluir um registro, o sistema deve decrementar o contador total de conclusões daquele jogo para o usuário.
+RN 3
+Título
+validação do tempo de jogo e modo de conclusão
+Descrição
+O campo de horas jogadas é opcional, mas, se informado, deve ser um valor numérico positivo. A marcação de "100%/Platina" deve exigir que a flag de conclusão principal esteja ativa.
+Consultas
+consultar o histórico completo de conclusões de um jogo por um determinado usuário, ordenado pela data de conclusão mais recente
+
+
+Funcionalidade 12
+Título
+Gerenciamento de lançamentos futuros, agenda de alertas e pré-cadastros
+Descrição
+Módulo completo para cadastro, edição e exclusão de lançamentos futuros de jogos. Permite que usuários ativem ou desativem alertas de acompanhamento ("Quero jogar no lançamento"), configurem notificações e acompanhem a contagem regressiva.
+Entidades envolvidas
+Jogo, Usuário, InteresseEmLancamento, NotificacaoLancamento
+RN 1
+Título
+validação de data e transição automática de status
+Descrição
+A inclusão de um jogo nesta categoria exige que a data prevista de lançamento seja maior que a data atual. Quando o sistema atinge a data do lançamento, o status é alterado automaticamente para "Lançado".
+RN 2
+Título
+gestão do interesse e envio de alertas
+Descrição
+O usuário pode marcar ou desmarcar seu interesse no lançamento a qualquer momento. O sistema agenda notificações no banco relacional para serem disparadas 24h antes da data oficial do lançamento para os usuários inscritos.
+RN 3
+Título
+edição de cronograma por administradores ou criadores
+Descrição
+Caso a data de lançamento seja adiada ou alterada, o registro no banco deve ser atualizado e gerar um log no histórico de alterações para avisar os usuários interessados.
+Consultas
+consultar todos os lançamentos futuros ordenados por data de lançamento, destacando o status de alerta do usuário autenticado
+Complexidade
+média
+Funcionalidade 13
+Título
+Gerenciamento completo do fórum de discussões (CRUD de Tópicos e Respostas Encadeadas)
+Descrição
+Permite que usuários criem, editem e excluam seus próprios tópicos de discussão (gerais ou atrelados a jogos) e publiquem, editem ou removam respostas dentro das threads. Inclui suporte a formatação de texto, status de tópico (Aberto, Resolvido, Encerrado) e contagem de interações.
+Entidades envolvidas
+Usuário, TopicoDeForum, RespostaForum, Jogo
+RN 1
+Título
+bloqueio de alterações em tópicos encerrados
+Descrição
+Tópicos com status Encerrado não permitem novas respostas, edições de conteúdo existente nem exclusões de respostas por usuários comuns.
+RN 2
+Título
+restrição de propriedade para edição e remoção
+Descrição
+O usuário só pode editar ou excluir os tópicos e respostas que ele próprio publicou, com limite de tempo de até 48 horas após a publicação para edições.
+RN 3
+Título
+atualização do histórico de atividade
+Descrição
+A criação, alteração ou exclusão de uma resposta atualiza automaticamente o contador total de respostas do tópico e ajusta a data da última atividade da thread.
+Consultas
+consultar tópicos de fórum paginados por jogo ou categoria geral, exibindo o número de respostas e a última interação
+Complexidade
+alta
+Funcionalidade 14
+Título
+Central de moderação, auditoria e denúncias do fórum e comentários
+Descrição
+Permite que moderadores e administradores analisem conteúdos denunciados, apliquem ações moderativas (ocultar, editar, mover ou excluir tópicos e respostas), encerrem discussões e registrem punições/advertências a usuários no banco.
+Entidades envolvidas
+Usuário, TopicoDeForum, RespostaForum, DenunciaConteudo, LogDeModeracao
+RN 1
+Título
+permissão exclusiva de moderação e justificativa obrigatória
+Descrição
+Apenas usuários com papel de "Moderador" ou "Admin" podem acessar a central de moderação. Todas as ações de remoção ou ocultação exigem o preenchimento de uma justificativa textual.
+RN 2
+Título
+auditoria e registro imutável em log
+Descrição
+Toda ação tomada por um moderador cria um registro imutável na tabela LogDeModeracao, registrando o ID do moderador, tipo de ação, ID do conteúdo afetado, justificativa e carimbo de data/hora.
+RN 3
+Título
+exclusão lógica com preservação do fluxo
+Descrição
+A remoção de postagens por moderadores utiliza exclusão lógica (soft delete), substituindo o texto por uma mensagem de sistema (ex: "Esta postagem foi removida por violar as diretrizes"), mantendo a árvore de respostas coesa.
+Consultas
+consultar a fila de denúncias pendentes e o histórico do log de moderação do sistema
+Complexidade
+alta
+Funcionalidade 15
+Título
+Gerenciamento completo do Journal individual (Diário de Bordo do Jogador)
+Descrição
+Permite ao usuário criar, consultar, editar e excluir anotações pessoais do seu diário de jogo (journal). O usuário pode associar a anotação a um jogo, anexar imagens da sessão, atribuir tags personalizadas, definir a data da jogatina e marcar sinalizações de spoiler.
+Entidades envolvidas
+Usuário, Jogo, EntradaDeJournal, AnexoJournal
+RN 1
+Título
+restrição de propriedade do diário
+Descrição
+O usuário possui acesso exclusivo para alterar ou excluir as entradas registradas no seu próprio journal.
+RN 2
+Título
+gerenciamento de anexos e mídias
+Descrição
+Cada entrada de journal pode conter no máximo 3 imagens anexadas. Ao editar ou excluir uma entrada, o sistema deve atualizar ou apagar os arquivos vinculados na tabela AnexoJournal.
+RN 3
+Título
+controle e mascaramento de spoilers
+Descrição
+Entradas marcadas com a tag contem_spoiler = true são salvas com sinalização específica no banco e exigem ação explícita de clique do leitor para exibição no perfil público.
+Consultas
+consultar as entradas de journal do usuário filtrando por jogo, tag ou intervalo de datas
+Complexidade
+média
+Funcionalidade 16
+Título
+Módulo de automação de linha do tempo e integração de eventos no Journal
+Descrição
+Atua como um barramento de eventos interno no banco de dados para gerar, atualizar ou cancelar automaticamente entradas no Journal do usuário com base nas suas ações na plataforma (avaliações criadas, compras concluídas no marketplace ou jogos zerados).
+Entidades envolvidas
+Usuário, EntradaDeJournal, EventoPlataforma, Review, RegistroDeConclusao, AnuncioMarketplace
+RN 1
+Título
+atomicidade na gravação de eventos
+Descrição
+A geração da entrada automática de journal ocorre dentro da mesma transação de banco de dados da ação geradora. Em caso de erro na ação principal, o registro automático do journal sofre rollback.
+RN 2
+Título
+sincronização de alterações e exclusões
+Descrição
+Se o usuário excluir a ação de origem (ex: excluir um registro de "zerado"), a entrada automática correspondente gerada no journal deve ser removida ou atualizada em cascata pelo sistema.
+RN 3
+Título
+bloqueio de edição manual em entradas de sistema
+Descrição
+Entradas marcadas com tipo_origem = AUTOMATICO não podem ter seu texto principal alterado manualmente pelo usuário no journal.
+Consultas
+consultar a linha do tempo unificada do usuário integrando entradas manuais e eventos automáticos de sistema
+
+Funcionalidade 17
+Título
+Engine de agregação de estatísticas e métricas da comunidade para jogos
+Descrição
+Calcula, atualiza e consolida dinamicamente no banco de dados os indicadores estatísticos globais de cada jogo: médias gerais, notas por categoria (Gráficos, Som, Jogabilidade, Diversão, Inovação), quantidade total de conclusões, presença em wishlists e volume de negociações no marketplace.
+Entidades envolvidas
+Jogo, Review, RegistroDeConclusao, Wishlist, AnuncioMarketplace, EstatisticaJogo
+RN 1
+Título
+recalculo disparado por eventos
+Descrição
+Sempre que uma review, registro de conclusão ou transação no marketplace for criada, editada ou excluída, os valores agregados na tabela EstatisticaJogo devem ser recalculados para o jogo correspondente.
+RN 2
+Título
+precisão e arredondamento numérico
+Descrição
+Todas as médias aritméticas e percentuais calculados pela engine devem ser gravados no banco relacional com precisão fixa de duas casas decimais.
+RN 3
+Título
+regra de elegibilidade para amostragem pública
+Descrição
+As estatísticas públicas do jogo só são exibidas no frontend se houver no mínimo 3 avaliações ativas no sistema, evitando distorções nas métricas.
+Consultas
+consultar a ficha de estatísticas consolidadas de um jogo para exibição na página principal do produto
+
+Funcionalidade 18
+Título
+Gerenciamento completo de anúncios do Marketplace (Anunciar, Editar, Pausar e Excluir)
+Descrição
+Permite que os usuários cadastrem jogos físicos ou digitais da sua coleção para venda ou troca. O usuário cadastra título, estado de conservação (Novo, Usado, Excelente, Com marcas), preço, fotos do produto real, tipo de negociação (Venda, Troca ou Ambos) e localidade para envio. Permite edição de valores, pausa de anúncio e exclusão.
+Entidades envolvidas
+Usuário, Jogo, AnuncioMarketplace, FotoAnuncio
+RN 1
+Título
+obrigatoriedade de vínculo com o catálogo e fotos do item
+Descrição
+Todo anúncio precisa obrigatoriamente estar vinculado a um jogo cadastrado no catálogo do sistema e conter pelo menos 1 foto real do produto anexada.
+RN 2
+Título
+gestão do ciclo de vida do anúncio
+Descrição
+O anúncio pode assumir os status: Ativo, Pausado, Em Negociação, Vendido ou Cancelado. Apenas o proprietário pode alterar o preço ou o status do seu anúncio.
+RN 3
+Título
+validação de preço e retirada de anúncios vendidos da busca
+Descrição
+O valor anunciado deve ser numérico e superior a zero. Ao alterar um anúncio para o status Vendido, o anúncio deixa de aparecer nas buscas públicas do marketplace.
+Consultas
+consultar anúncios do marketplace filtrando por jogo, faixa de preço, estado de conservação, tipo de negociação (Venda/Troca) e região
+
+Funcionalidade 19
+Título
+Chat interno para negociação e propostas entre comprador e vendedor
+Descrição
+Permite a troca de mensagens em tempo real/assíncronas entre o comprador interessado e o vendedor a partir de um anúncio específico do marketplace. Permite o envio de mensagens, propostas formais de valor/troca (ex: "Ofereço R$ 120,00" ou "Troco pelo jogo X") e aceite/recusa da proposta dentro da janela do chat.
+Entidades envolvidas
+AnuncioMarketplace, ConversaChat, MensagemChat, PropostaNegociacao, Usuário
+RN 1
+Título
+vinculação da conversa ao anúncio ativo
+Descrição
+Uma conversa de negociação só pode ser iniciada a partir de um anúncio com status Ativo. O sistema impede a criação de conversas duplicadas entre os mesmos dois usuários para o mesmo anúncio.
+RN 2
+Título
+formalização e bloqueio de propostas
+Descrição
+Ao enviar uma proposta formal no chat, o status da proposta fica como Pendente. Se o vendedor aceitar, a proposta é marcada como Aceita, o sistema reserva o item e altera o status do anúncio para Em Negociação.
+RN 3
+Título
+restrição de visualização das mensagens
+Descrição
+O conteúdo das mensagens do chat é restrito exclusivamente ao comprador e ao vendedor envolvidos na negociação.
+Consultas
+consultar as conversas ativas do usuário (como comprador ou vendedor), exibindo o status da última proposta e mensagens não lidas
+Funcionalidade 20
+Título
+Processamento do pedido, checkout de pagamento e confirmação de entrega
+Descrição
+Módulo para a finalização da transação após o aceite da proposta no chat. O comprador escolhe a forma de pagamento (Simulação de Cartão, PIX ou Saldo da Carteira), informa o endereço de entrega e gera o pedido. O vendedor confirma o envio (com código de rastreio) e o comprador confirma o recebimento para liberar o valor ao vendedor. Cada usuário possui uma Carteira interna, criada automaticamente na primeira transação, que é usada como forma de pagamento (Saldo da Carteira) e recebe os valores liberados ao vendedor.
+Entidades envolvidas
+AnuncioMarketplace, PedidoMarketplace, TransacaoPagamento, EnderecoEntrega, Carteira, Usuário
+RN 1
+Título
+retenção do valor em custódia (escrow)
+Descrição
+O valor pago pelo comprador fica retido no sistema com status Em Custódia e só é transferido para a conta do vendedor após o comprador confirmar o recebimento do produto no sistema ou após o prazo limite de tolerância de 7 dias pós-entrega, sendo então creditado na Carteira do vendedor.
+RN 2
+Título
+obrigatoriedade do código de rastreamento
+Descrição
+Após a confirmação do pagamento, o vendedor tem até 3 dias úteis para registrar o código de rastreio ou método de entrega no pedido. Se o prazo expirar, o pedido é cancelado automaticamente e o comprador reembolsado.
+RN 3
+Título
+atualização dos dados do produto e journal
+Descrição
+Após a conclusão do pedido, o anúncio passa para o status Vendido, o estoque é atualizado e o sistema dispara um evento para a Funcionalidade 16 registrar a compra no journal do comprador.
+Consultas
+consultar os pedidos do usuário (compras e vendas) detalhando o status atual da entrega e do pagamento
+Funcionalidade 21
+Título
+Sistema de reputação e avaliações de vendedores e compradores no Marketplace
+Descrição
+Permite que comprador e vendedor avaliem a experiência da transação após a conclusão de um pedido. A avaliação inclui nota (1 a 5 estrelas), tags de comportamento (ex: "Envio rápido", "Produto como descrito", "Bom comunicador") e um comentário textual. O sistema calcula a reputação geral do usuário no marketplace.
+Entidades envolvidas
+PedidoMarketplace, AvaliacaoMarketplace, ReputacaoUsuario, Usuário
+RN 1
+Título
+vínculo exclusivo com pedido concluído
+Descrição
+Uma avaliação no marketplace só pode ser criada se existir um pedido com status Concluído associado aos dois usuários envolvidos.
+RN 2
+Título
+avaliação única e prazo limite
+Descrição
+Cada parte (comprador e vendedor) pode enviar apenas 1 avaliação por pedido. O prazo limite para avaliar é de até 15 dias após a confirmação de entrega do produto.
+RN 3
+Título
+recalculo da nota de reputação do usuário
+Descrição
+A inserção de uma nova avaliação atualiza imediatamente a média geral da reputação do usuário avaliado no banco relacional e incrementa o total de negociações bem-sucedidas no seu perfil público de vendedor.
+Consultas
+consultar o histórico de avaliações recebidas por um vendedor no marketplace com a nota média de reputação
+

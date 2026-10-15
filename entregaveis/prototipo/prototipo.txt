@@ -1,0 +1,44 @@
+Protótipo de alta fidelidade - Game Tracker
+Link para Figma: https://www.figma.com/make/Hbid18iRVvTGOqfX2p4UNW/Game-Tracker-MVP-Development--Copy-?p=f&t=fS3NxPLv3Ov3KmNI-0
+
+(Antes de entregar: publique o Figma Make e troque o link acima pelo link público do site publicado
+ (formato https://<nome>.figma.site/), como no projeto de referência. O link de edição exige login.)
+
+Telas que o protótipo deve cobrir (uma por história do mapa):
+
+1. Catálogo e Lançamentos
+  - F-01  Catálogo com filtros (título, gênero, desenvolvedora, origem API/Criador, status)
+  - F-01  Importar jogo da API externa (busca + resultado + aviso "jogo já existe, atualizado")
+  - F-01  Cadastro manual de jogo pelo Criador (vinculado à desenvolvedora; erro de título duplicado)
+  - F-01  Perfil institucional da desenvolvedora (bio, site, redes, país) + edição
+  - F-01  Painel do Administrador: editar metadados / remover jogo (aviso de exclusão lógica)
+  - F-12  Lista de lançamentos futuros com contagem regressiva e botão "Quero jogar no lançamento"
+  - F-12  Formulário de cadastro/edição de lançamento (data no passado bloqueada; histórico de alterações)
+
+2. Avaliação e Comunidade de Jogos
+  - F-02  Página do jogo com reviews e médias por categoria
+  - F-02  Modal de review (nota geral + 5 categorias + texto), edição e exclusão com confirmação
+  - F-10  Bloco "Jogos similares" com feedback Útil / Não relevante
+  - F-10  Admin: criar/remover similaridade manual
+  - F-17  Ficha de estatísticas do jogo (e estado "estatísticas disponíveis a partir de 3 reviews")
+
+3. Biblioteca Pessoal
+  - F-04  Minhas listas (total de jogos) + criar/editar lista + itens com nota explicativa (limite 100)
+  - F-06  Wishlist ordenada por prioridade (Alta/Média/Baixa)
+  - F-11  Registrar "zerado" (data, plataforma, horas, 100%) + histórico + editar/excluir
+
+4. Perfil e Diário de Jogatina
+  - F-07  Currently Playing no perfil + modal de substituição ao tentar o 6º jogo
+  - F-08  Perfil público: capa, biografia (contador 500), favoritos em 4 slots com reordenação
+  - F-15  Journal: criar/editar entrada (tags, até 3 imagens, spoiler) e filtro por jogo/tag/período
+  - F-16  Timeline unificada (entradas manuais x automáticas, automáticas sem botão editar)
+
+5. Fórum e Moderação
+  - F-13  Lista de tópicos paginada, tópico com respostas encadeadas, status Aberto/Resolvido/Encerrado
+  - F-14  Botão "Denunciar" + Central de Moderação (fila de denúncias, ação com justificativa, log)
+
+6. Marketplace
+  - F-18  Busca do marketplace com filtros + criar/editar anúncio (fotos, estado, preço, tipo)
+  - F-19  Chat da negociação com proposta (Pendente/Aceita/Recusada)
+  - F-20  Checkout (endereço + Cartão/PIX/Carteira), acompanhamento do pedido, código de rastreio
+  - F-21  Avaliar negociação (estrelas + tags) e perfil de vendedor com reputação
