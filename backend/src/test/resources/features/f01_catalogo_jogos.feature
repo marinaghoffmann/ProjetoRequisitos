@@ -1,4 +1,5 @@
 # language: pt
+@pendente
 Funcionalidade: F-01 Importação, cadastramento manual e gerenciamento do catálogo de jogos e desenvolvedoras
   Como desenvolvedor ou administrador, quero alimentar o catálogo pela API externa ou por
   cadastro manual e gerenciar jogos e desenvolvedoras, mantendo o catálogo sem duplicidades

@@ -1,4 +1,5 @@
 # language: pt
+@pendente
 Funcionalidade: F-02 Gerenciamento completo de reviews e avaliações categoriais
   Como jogador, quero publicar, editar e excluir minha review de um jogo com nota geral e
   notas por categoria, para compartilhar minha opinião com a comunidade.

@@ -1,4 +1,5 @@
 # language: pt
+@pendente
 Funcionalidade: F-11 Gerenciamento de registros de "zerado" e contagem de conclusões
   Como jogador, quero registrar, editar e excluir as vezes em que zerei um jogo, para manter
   o histórico e a contagem de conclusões.

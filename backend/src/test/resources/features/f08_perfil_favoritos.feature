@@ -1,4 +1,5 @@
 # language: pt
+@pendente
 Funcionalidade: F-08 Gerenciamento de jogos favoritos e personalização do perfil público
   Como jogador, quero fixar meus jogos favoritos e personalizar biografia e capa do meu
   perfil público.

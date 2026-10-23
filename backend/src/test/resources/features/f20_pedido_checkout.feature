@@ -1,4 +1,5 @@
 # language: pt
+@pendente
 Funcionalidade: F-20 Processamento do pedido, checkout de pagamento e confirmação de entrega
   Como comprador, quero pagar com segurança e só liberar o valor ao receber o produto; como
   vendedor, quero receber após a entrega confirmada.

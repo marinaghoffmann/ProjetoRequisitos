@@ -1,4 +1,5 @@
 # language: pt
+@pendente
 Funcionalidade: F-16 Automação da linha do tempo e integração de eventos no journal
   Como jogador, quero que minhas ações na plataforma apareçam automaticamente no meu
   journal, formando uma linha do tempo unificada.

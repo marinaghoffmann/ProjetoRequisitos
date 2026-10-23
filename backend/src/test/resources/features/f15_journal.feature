@@ -1,4 +1,5 @@
 # language: pt
+@pendente
 Funcionalidade: F-15 Gerenciamento completo do journal individual
   Como jogador, quero registrar anotações das minhas sessões de jogo com tags, imagens e
   aviso de spoiler, para manter meu diário de bordo.

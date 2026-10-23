@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: gametracker-db
+    environment:
+      POSTGRES_DB: gametracker
+      POSTGRES_USER: gametracker
+      POSTGRES_PASSWORD: gametracker
+    ports:
+      - "5432:5432"
+    volumes:
+      - gametracker-dados:/var/lib/postgresql/data
+
+volumes:
+  gametracker-dados:

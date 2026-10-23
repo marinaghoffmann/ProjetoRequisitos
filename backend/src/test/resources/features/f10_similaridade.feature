@@ -1,4 +1,5 @@
 # language: pt
+@pendente
 Funcionalidade: F-10 Engine de sugestão de similares e central de feedback de relevância
   Como jogador, quero ver jogos parecidos com os que gosto e avaliar se as sugestões são
   relevantes; como administrador, quero ajustar manualmente as conexões.

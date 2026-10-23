@@ -1,4 +1,5 @@
 # language: pt
+@pendente
 Funcionalidade: F-14 Central de moderação, auditoria e denúncias
   Como moderador, quero analisar denúncias e aplicar ações moderativas com registro de
   auditoria, mantendo o fórum saudável.

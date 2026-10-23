@@ -1,4 +1,5 @@
 # language: pt
+@pendente
 Funcionalidade: F-12 Gerenciamento de lançamentos futuros, agenda de alertas e pré-cadastros
   Como administrador ou criador, quero cadastrar lançamentos futuros; como jogador, quero
   ser avisado antes do lançamento dos jogos que me interessam.

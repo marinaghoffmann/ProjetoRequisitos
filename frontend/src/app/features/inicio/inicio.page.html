@@ -1,0 +1,12 @@
+<section class="inicio">
+  <h1>Game Tracker</h1>
+  <p>Registre, avalie e negocie os jogos que você joga.</p>
+
+  @if (status(); as s) {
+    <p class="api api--ok">API: {{ s }}</p>
+  } @else if (erro(); as e) {
+    <p class="api api--erro">API indisponível: {{ e }}</p>
+  } @else {
+    <p class="api">Verificando a API…</p>
+  }
+</section>

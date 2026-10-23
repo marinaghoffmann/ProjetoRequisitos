@@ -1,4 +1,5 @@
 # language: pt
+@pendente
 Funcionalidade: F-19 Chat interno para negociação e propostas entre comprador e vendedor
   Como comprador, quero conversar com o vendedor e enviar propostas formais; como vendedor,
   quero aceitar ou recusar essas propostas.

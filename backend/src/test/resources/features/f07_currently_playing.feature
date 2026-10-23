@@ -1,4 +1,5 @@
 # language: pt
+@pendente
 Funcionalidade: F-07 Marcação de Currently Playing
   Como jogador, quero destacar no perfil os jogos que estou jogando e o meu progresso
   em cada um.

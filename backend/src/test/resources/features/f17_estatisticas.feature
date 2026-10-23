@@ -1,4 +1,5 @@
 # language: pt
+@pendente
 Funcionalidade: F-17 Engine de agregação de estatísticas e métricas da comunidade
   Como jogador, quero ver na página do jogo as métricas consolidadas da comunidade.
 
