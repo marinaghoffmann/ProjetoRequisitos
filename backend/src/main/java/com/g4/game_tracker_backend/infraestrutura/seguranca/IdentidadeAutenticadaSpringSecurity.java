@@ -10,9 +10,17 @@ import org.springframework.stereotype.Component;
 import com.g4.game_tracker_backend.aplicacao.identidade.IdentidadeAutenticada;
 import com.g4.game_tracker_backend.dominio.compartilhado.AcessoNegadoException;
 import com.g4.game_tracker_backend.dominio.identidade.Papel;
+import com.g4.game_tracker_backend.dominio.identidade.Usuario;
+import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
 
 @Component
 public class IdentidadeAutenticadaSpringSecurity implements IdentidadeAutenticada {
+
+    private final UsuarioRepositorio usuarios;
+
+    public IdentidadeAutenticadaSpringSecurity(UsuarioRepositorio usuarios) {
+        this.usuarios = usuarios;
+    }
 
     private JwtAuthenticationToken autenticacaoAtual() {
         Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
@@ -29,7 +37,12 @@ public class IdentidadeAutenticadaSpringSecurity implements IdentidadeAutenticad
 
     @Override
     public Papel papel() {
-        String papel = autenticacaoAtual().getToken().getClaimAsString("papel");
-        return Papel.valueOf(papel);
+        return usuarioPersistidoAtual().papel();
+    }
+
+    private Usuario usuarioPersistidoAtual() {
+        return usuarios.buscarPorId(usuarioId())
+                .filter(Usuario::ativo)
+                .orElseThrow(() -> new AcessoNegadoException("Usuário autenticado não está ativo"));
     }
 }

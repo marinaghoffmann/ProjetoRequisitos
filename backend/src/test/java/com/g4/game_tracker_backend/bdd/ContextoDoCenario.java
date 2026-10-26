@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 import org.springframework.stereotype.Component;
 
 import com.g4.game_tracker_backend.dominio.compartilhado.AcessoNegadoException;
+import com.g4.game_tracker_backend.dominio.compartilhado.CredenciaisInvalidasException;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 
@@ -33,7 +34,8 @@ public class ContextoDoCenario {
     public <T> T obter(Supplier<T> acao) {
         try {
             return acao.get();
-        } catch (RegraDeNegocioException | AcessoNegadoException | RecursoNaoEncontradoException e) {
+        } catch (RegraDeNegocioException | AcessoNegadoException | RecursoNaoEncontradoException
+                | CredenciaisInvalidasException e) {
             this.erro = e;
             return null;
         }

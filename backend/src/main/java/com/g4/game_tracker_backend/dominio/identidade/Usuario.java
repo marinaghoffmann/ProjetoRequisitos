@@ -43,6 +43,10 @@ public final class Usuario {
         return new Usuario(id, nome, email, senhaHash, papel, ativo);
     }
 
+    public Usuario comPapel(Papel novoPapel) {
+        return new Usuario(id, nome, email, senhaHash, novoPapel, ativo);
+    }
+
     private static String normalizarEmail(String email) {
         return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }

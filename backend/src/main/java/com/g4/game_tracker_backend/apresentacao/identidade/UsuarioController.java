@@ -1,15 +1,19 @@
 package com.g4.game_tracker_backend.apresentacao.identidade;
 
 import java.net.URI;
+import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.g4.game_tracker_backend.aplicacao.identidade.AutenticarUsuario;
+import com.g4.game_tracker_backend.aplicacao.identidade.AlterarPapelUsuario;
 import com.g4.game_tracker_backend.aplicacao.identidade.ConsultarUsuarioAtual;
 import com.g4.game_tracker_backend.aplicacao.identidade.RegistrarUsuario;
 import com.g4.game_tracker_backend.aplicacao.identidade.SessaoAutenticada;
@@ -24,12 +28,14 @@ public class UsuarioController {
     private final RegistrarUsuario registrarUsuario;
     private final AutenticarUsuario autenticarUsuario;
     private final ConsultarUsuarioAtual consultarUsuarioAtual;
+    private final AlterarPapelUsuario alterarPapelUsuario;
 
     public UsuarioController(RegistrarUsuario registrarUsuario, AutenticarUsuario autenticarUsuario,
-            ConsultarUsuarioAtual consultarUsuarioAtual) {
+            ConsultarUsuarioAtual consultarUsuarioAtual, AlterarPapelUsuario alterarPapelUsuario) {
         this.registrarUsuario = registrarUsuario;
         this.autenticarUsuario = autenticarUsuario;
         this.consultarUsuarioAtual = consultarUsuarioAtual;
+        this.alterarPapelUsuario = alterarPapelUsuario;
     }
 
     @PostMapping("/usuarios")
@@ -49,5 +55,11 @@ public class UsuarioController {
     @GetMapping("/auth/me")
     public UsuarioResponse usuarioAtual() {
         return UsuarioResponse.de(consultarUsuarioAtual.executar());
+    }
+
+    @PatchMapping("/usuarios/{id}/papel")
+    public UsuarioResponse alterarPapel(@PathVariable UUID id,
+            @Valid @RequestBody AlterarPapelUsuarioRequest requisicao) {
+        return UsuarioResponse.de(alterarPapelUsuario.executar(id, requisicao.papel()));
     }
 }
