@@ -1,0 +1,23 @@
+<main class="cartao-identidade">
+  <a class="voltar" routerLink="/">← Game Tracker</a>
+  <h1>Entrar</h1>
+  <p>Acesse sua conta para continuar.</p>
+
+  <form [formGroup]="formulario" (ngSubmit)="entrar()">
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="email" formControlName="email" />
+
+    <label for="senha">Senha</label>
+    <input id="senha" type="password" autocomplete="current-password" formControlName="senha" />
+
+    @if (erro(); as mensagem) {
+      <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+    }
+
+    <button type="submit" [disabled]="formulario.invalid || carregando()">
+      {{ carregando() ? 'Entrando…' : 'Entrar' }}
+    </button>
+  </form>
+
+  <p class="rodape">Ainda não tem conta? <a routerLink="/cadastro">Cadastre-se</a></p>
+</main>
