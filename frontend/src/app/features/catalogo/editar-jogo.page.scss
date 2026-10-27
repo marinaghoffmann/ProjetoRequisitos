@@ -1,0 +1,86 @@
+.pagina-edicao {
+  width: min(100% - 2rem, 58rem);
+  margin: 3rem auto;
+  padding: 2rem;
+  font-family: Arial, sans-serif;
+}
+
+h1 { margin: 1.5rem 0; }
+
+form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.secao-edicao {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #d8d8d8;
+  border-radius: 0.5rem;
+}
+
+.secao-edicao h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.duas-colunas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+input, select, textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid #aaa;
+  border-radius: 0.35rem;
+  font: inherit;
+}
+
+fieldset {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.opcao {
+  display: flex;
+  align-items: center;
+  font-weight: 400;
+}
+
+.opcao input { width: auto; min-height: auto; }
+
+code {
+  overflow-wrap: anywhere;
+  font-weight: 400;
+}
+
+button {
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: #2458a6;
+  color: #fff;
+  font: inherit;
+}
+
+.erro { color: #b42318; }
+.sucesso { color: #1a7f37; }
+
+@media (max-width: 42rem) {
+  .duas-colunas {
+    grid-template-columns: 1fr;
+  }
+}

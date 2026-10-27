@@ -36,6 +36,9 @@ public class UsuarioJpa {
     @Column(nullable = false)
     private boolean ativo;
 
+    @Column(name = "desenvolvedora_id")
+    private UUID desenvolvedoraId;
+
     protected UsuarioJpa() {
     }
 
@@ -46,6 +49,7 @@ public class UsuarioJpa {
         this.senhaHash = usuario.senhaHash();
         this.papel = usuario.papel();
         this.ativo = usuario.ativo();
+        this.desenvolvedoraId = usuario.desenvolvedoraId();
     }
 
     static UsuarioJpa deDominio(Usuario usuario) {
@@ -53,6 +57,6 @@ public class UsuarioJpa {
     }
 
     Usuario paraDominio() {
-        return Usuario.reconstituir(id, nome, email, senhaHash, papel, ativo);
+        return Usuario.reconstituir(id, nome, email, senhaHash, papel, ativo, desenvolvedoraId);
     }
 }

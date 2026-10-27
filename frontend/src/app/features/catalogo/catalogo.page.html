@@ -1,0 +1,56 @@
+<main class="pagina-listagem">
+  <header class="cabecalho">
+    <div>
+      <a class="voltar" routerLink="/">← Game Tracker</a>
+      <h1>Catálogo de jogos</h1>
+      <p>Encontre os jogos cadastrados no Game Tracker.</p>
+    </div>
+    <a class="botao" routerLink="/catalogo/novo">Cadastrar jogo</a>
+  </header>
+
+  <form class="busca" (ngSubmit)="pesquisar()">
+    <label for="busca">Buscar jogo</label>
+    <div class="busca__linha">
+      <input id="busca" name="busca" type="search" [(ngModel)]="busca" placeholder="Digite o título do jogo" />
+      <button type="submit">Buscar</button>
+    </div>
+  </form>
+
+  @if (carregando()) {
+    <p class="estado">Carregando jogos…</p>
+  } @else if (erro(); as mensagem) {
+    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+  } @else if (!jogos().length) {
+    <p class="estado">Nenhum jogo encontrado.</p>
+  } @else {
+    <p class="quantidade">{{ jogos().length }} jogo(s) encontrado(s)</p>
+    <section class="grade" aria-label="Jogos do catálogo">
+      @for (jogo of jogos(); track jogo.id) {
+        <article class="card">
+          @if (jogo.capaUrl) {
+            <img class="card__capa" [src]="imagemUrl(jogo.capaUrl)" [alt]="'Capa de ' + jogo.titulo" />
+          } @else {
+            <div class="card__sem-capa" aria-label="Jogo sem capa">GT</div>
+          }
+          <div class="card__conteudo">
+            <h2>{{ jogo.titulo }}</h2>
+            @if (jogo.tituloOriginal && jogo.tituloOriginal !== jogo.titulo) {
+              <p class="original">{{ jogo.tituloOriginal }}</p>
+            }
+            <p class="status">{{ jogo.status === 'ATIVO' ? 'Ativo' : 'Inativo' }}</p>
+            @if (jogo.resumo) {
+              <p class="resumo">{{ jogo.resumo }}</p>
+            }
+            @if (jogo.dataLancamento) {
+              <p class="data">Lançamento: {{ jogo.dataLancamento | date:'dd/MM/yyyy' }}</p>
+            }
+            <div class="acoes">
+              <a class="acao" [routerLink]="['/catalogo', jogo.id, 'editar']">Editar</a>
+              <button class="acao acao--perigo" type="button" (click)="excluir(jogo)">Desativar</button>
+            </div>
+          </div>
+        </article>
+      }
+    </section>
+  }
+</main>

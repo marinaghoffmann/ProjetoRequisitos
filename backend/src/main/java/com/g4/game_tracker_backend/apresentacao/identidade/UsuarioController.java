@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.g4.game_tracker_backend.aplicacao.identidade.AutenticarUsuario;
 import com.g4.game_tracker_backend.aplicacao.identidade.AlterarPapelUsuario;
+import com.g4.game_tracker_backend.aplicacao.identidade.VincularDesenvolvedora;
 import com.g4.game_tracker_backend.aplicacao.identidade.ConsultarUsuarioAtual;
 import com.g4.game_tracker_backend.aplicacao.identidade.RegistrarUsuario;
 import com.g4.game_tracker_backend.aplicacao.identidade.SessaoAutenticada;
@@ -29,13 +30,22 @@ public class UsuarioController {
     private final AutenticarUsuario autenticarUsuario;
     private final ConsultarUsuarioAtual consultarUsuarioAtual;
     private final AlterarPapelUsuario alterarPapelUsuario;
+    private final VincularDesenvolvedora vincularDesenvolvedora;
 
     public UsuarioController(RegistrarUsuario registrarUsuario, AutenticarUsuario autenticarUsuario,
-            ConsultarUsuarioAtual consultarUsuarioAtual, AlterarPapelUsuario alterarPapelUsuario) {
+            ConsultarUsuarioAtual consultarUsuarioAtual, AlterarPapelUsuario alterarPapelUsuario,
+            VincularDesenvolvedora vincularDesenvolvedora) {
         this.registrarUsuario = registrarUsuario;
         this.autenticarUsuario = autenticarUsuario;
         this.consultarUsuarioAtual = consultarUsuarioAtual;
         this.alterarPapelUsuario = alterarPapelUsuario;
+        this.vincularDesenvolvedora = vincularDesenvolvedora;
+    }
+
+    @PatchMapping("/usuarios/{id}/desenvolvedora")
+    public UsuarioResponse vincularDesenvolvedora(@PathVariable UUID id,
+            @Valid @RequestBody VincularDesenvolvedoraRequest requisicao) {
+        return UsuarioResponse.de(vincularDesenvolvedora.executar(id, requisicao.desenvolvedoraId()));
     }
 
     @PostMapping("/usuarios")

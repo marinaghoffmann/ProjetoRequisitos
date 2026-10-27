@@ -65,3 +65,7 @@ build/
 node_modules/
 frontend/dist/
 frontend/.angular/
+
+### Uploaded catalog images ###
+backend/uploads/catalogo/*
+!backend/uploads/catalogo/.gitkeep
