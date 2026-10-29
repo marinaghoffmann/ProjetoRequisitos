@@ -1,0 +1,111 @@
+.pagina-anuncio {
+  width: min(100% - 2rem, 42rem);
+  margin: 3rem auto;
+  padding: 2rem;
+  border: 1px solid #d8d8d8;
+  border-radius: 0.75rem;
+  background: #fff;
+  color: #171717;
+  font-family: Arial, sans-serif;
+}
+
+.voltar {
+  color: #2458a6;
+}
+
+h1 {
+  margin: 1.5rem 0 0.4rem;
+}
+
+.introducao {
+  margin-top: 0;
+  color: #555;
+}
+
+form {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1.5rem;
+}
+
+.duas-colunas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.duas-colunas label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+label {
+  font-weight: 600;
+}
+
+input,
+select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid #aaa;
+  border-radius: 0.35rem;
+  font: inherit;
+  font-weight: 400;
+}
+
+.fotos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fotos li {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.fotos img {
+  width: 100%;
+  height: 6rem;
+  border-radius: 0.35rem;
+  object-fit: cover;
+  background: #e8ebef;
+}
+
+button {
+  min-height: 2.75rem;
+  margin-top: 0.6rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: #2458a6;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.remover {
+  min-height: 2rem;
+  margin: 0;
+  background: #b42318;
+  font-size: 0.8rem;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mensagem-erro {
+  color: #b42318;
+}
+
+@media (max-width: 42rem) {
+  .duas-colunas {
+    grid-template-columns: 1fr;
+  }
+}

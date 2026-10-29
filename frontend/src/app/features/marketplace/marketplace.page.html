@@ -1,0 +1,100 @@
+<main class="pagina-listagem">
+  <header class="cabecalho">
+    <div>
+      <a class="voltar" routerLink="/">← Game Tracker</a>
+      <h1>Marketplace</h1>
+      <p>Compre ou troque jogos físicos e digitais anunciados pela comunidade.</p>
+    </div>
+    @if (autenticacao.usuarioAtual()) {
+      <div class="acoes-cabecalho">
+        <a class="botao botao--secundario" routerLink="/marketplace/meus">Meus anúncios</a>
+        <a class="botao" routerLink="/marketplace/novo">Anunciar jogo</a>
+      </div>
+    } @else {
+      <a class="botao" routerLink="/login">Entrar para anunciar</a>
+    }
+  </header>
+
+  <form class="filtros" (ngSubmit)="pesquisar()">
+    <label>
+      Jogo
+      <select name="jogoId" [(ngModel)]="filtro.jogoId">
+        <option value="">Todos os jogos</option>
+        @for (jogo of jogos(); track jogo.id) {
+          <option [value]="jogo.id">{{ jogo.titulo }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      Título do anúncio
+      <input name="titulo" type="search" [(ngModel)]="filtro.titulo" placeholder="Ex.: edição de colecionador" />
+    </label>
+    <label>
+      Preço mínimo (R$)
+      <input name="precoMinimo" type="number" min="0" step="0.01" [(ngModel)]="filtro.precoMinimo" />
+    </label>
+    <label>
+      Preço máximo (R$)
+      <input name="precoMaximo" type="number" min="0" step="0.01" [(ngModel)]="filtro.precoMaximo" />
+    </label>
+    <label>
+      Estado de conservação
+      <select name="estado" [(ngModel)]="filtro.estado">
+        <option value="">Qualquer estado</option>
+        @for (estado of chaves(estados); track estado) {
+          <option [value]="estado">{{ estados[estado] }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      Negociação
+      <select name="tipoNegociacao" [(ngModel)]="filtro.tipoNegociacao">
+        <option value="">Venda ou troca</option>
+        <option value="VENDA">Venda</option>
+        <option value="TROCA">Troca</option>
+      </select>
+    </label>
+    <label>
+      Região
+      <input name="regiao" type="search" [(ngModel)]="filtro.regiao" placeholder="Ex.: Recife" />
+    </label>
+    <div class="filtros__botoes">
+      <button type="submit">Buscar</button>
+      <button class="botao--secundario" type="button" (click)="limpar()">Limpar</button>
+    </div>
+  </form>
+
+  @if (carregando()) {
+    <p class="estado">Carregando anúncios…</p>
+  } @else if (erro(); as mensagem) {
+    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+  } @else if (!anuncios().length) {
+    <p class="estado">Nenhum anúncio encontrado.</p>
+  } @else {
+    <p class="quantidade">{{ anuncios().length }} anúncio(s) encontrado(s)</p>
+    <section class="grade" aria-label="Anúncios do marketplace">
+      @for (anuncio of anuncios(); track anuncio.id) {
+        <article class="card">
+          @if (anuncio.fotos.length && imagemUrl(anuncio.fotos[0])) {
+            <img class="card__capa" [src]="imagemUrl(anuncio.fotos[0])" [alt]="'Foto de ' + anuncio.titulo" />
+          } @else {
+            <div class="card__sem-capa" aria-label="Anúncio sem foto">GT</div>
+          }
+          <div class="card__conteudo">
+            <h2>{{ anuncio.titulo }}</h2>
+            <p class="preco">{{ anuncio.preco | currency: 'BRL' }}</p>
+            <p class="etiquetas">
+              <span class="etiqueta">{{ rotuloEstado(anuncio.estado) }}</span>
+              <span class="etiqueta">{{ rotuloTipo(anuncio.tipoNegociacao) }}</span>
+              <span class="etiqueta">{{ midias[anuncio.midia] }}</span>
+              @if (anuncio.status === 'EM_NEGOCIACAO') {
+                <span class="etiqueta etiqueta--alerta">Em negociação</span>
+              }
+            </p>
+            <p class="detalhe">📍 {{ anuncio.localidade }}</p>
+          </div>
+        </article>
+      }
+    </section>
+  }
+</main>

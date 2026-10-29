@@ -1,0 +1,92 @@
+<main class="pagina-anuncio">
+  <a class="voltar" routerLink="/marketplace/meus">← Meus anúncios</a>
+  <h1>{{ id ? 'Editar anúncio' : 'Anunciar jogo' }}</h1>
+  <p class="introducao">O jogo precisa estar no catálogo e o anúncio precisa de pelo menos 1 foto real do item.</p>
+
+  @if (!autenticacao.usuarioAtual()) {
+    <p class="mensagem-erro" role="alert">
+      Entre na sua conta para anunciar. <a routerLink="/login">Entrar</a>
+    </p>
+  } @else if (carregando()) {
+    <p>Carregando…</p>
+  } @else {
+    <form [formGroup]="formulario" (ngSubmit)="salvar()">
+      <label for="jogoId">Jogo do catálogo *</label>
+      <select id="jogoId" formControlName="jogoId">
+        <option value="" disabled>Selecione o jogo</option>
+        @for (jogo of jogos(); track jogo.id) {
+          <option [value]="jogo.id">{{ jogo.titulo }}</option>
+        }
+      </select>
+
+      <label for="titulo">Título do anúncio</label>
+      <input id="titulo" type="text" formControlName="titulo" placeholder="Se ficar vazio, usamos o nome do jogo" />
+
+      <div class="duas-colunas">
+        <label>
+          Estado de conservação *
+          <select formControlName="estado">
+            @for (estado of estados; track estado[0]) {
+              <option [value]="estado[0]">{{ estado[1] }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Preço (R$) *
+          <input type="number" min="0.01" step="0.01" formControlName="preco" />
+        </label>
+        <label>
+          Tipo de negociação *
+          <select formControlName="tipoNegociacao">
+            @for (tipo of tipos; track tipo[0]) {
+              <option [value]="tipo[0]">{{ tipo[1] }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Mídia *
+          <select formControlName="midia">
+            @for (midia of midias; track midia[0]) {
+              <option [value]="midia[0]">{{ midia[1] }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <label for="localidade">Localidade para envio *</label>
+      <input id="localidade" type="text" formControlName="localidade" placeholder="Ex.: Recife - PE" />
+
+      <label for="fotos">Fotos do item *</label>
+      <input
+        id="fotos"
+        type="file"
+        multiple
+        accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+        (change)="selecionarFotos($event)"
+      />
+      @if (enviandoFotos()) {
+        <small>Enviando fotos…</small>
+      }
+      @if (fotos().length) {
+        <ul class="fotos">
+          @for (foto of fotos(); track $index) {
+            <li>
+              <img [src]="imagemUrl(foto)" [alt]="'Foto ' + ($index + 1)" />
+              <button type="button" class="remover" (click)="removerFoto($index)">Remover</button>
+            </li>
+          }
+        </ul>
+      } @else {
+        <small>Nenhuma foto enviada ainda.</small>
+      }
+
+      @if (erro(); as mensagem) {
+        <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+      }
+
+      <button type="submit" [disabled]="formulario.invalid || salvando() || enviandoFotos()">
+        {{ salvando() ? 'Salvando…' : id ? 'Salvar alterações' : 'Publicar anúncio' }}
+      </button>
+    </form>
+  }
+</main>

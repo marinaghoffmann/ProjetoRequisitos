@@ -1,5 +1,4 @@
 # language: pt
-@pendente
 Funcionalidade: F-18 Gerenciamento completo de anúncios do marketplace
   Como vendedor, quero anunciar jogos da minha coleção para venda ou troca e gerenciar
   meus anúncios.

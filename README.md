@@ -58,6 +58,39 @@ Consultas (`GET`) são públicas. As demais operações exigem login e o papel c
 Status, campos e evento de mudança de status do anúncio estão em
 [entregaveis/contratos/contrato_anuncio.md](entregaveis/contratos/contrato_anuncio.md).
 
+## Marketplace: anúncios (F-18)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/marketplace/anuncios` | Busca pública com filtros opcionais (`jogoId`, `titulo`, `precoMinimo`, `precoMaximo`, `estado`, `tipoNegociacao`, `regiao`) | qualquer um |
+| `GET` | `/api/marketplace/anuncios/{id}` | Consultar um anúncio | qualquer um |
+| `GET` | `/api/marketplace/anuncios/meus` | Anúncios do usuário autenticado, em qualquer status | autenticado |
+| `POST` | `/api/marketplace/anuncios` | Criar anúncio (nasce `ATIVO`) | autenticado |
+| `PUT` | `/api/marketplace/anuncios/{id}` | Editar dados e preço | proprietário |
+| `PATCH` | `/api/marketplace/anuncios/{id}/status` | Pausar (`PAUSADO`) ou reativar (`ATIVO`) com `{ "status": "..." }` | proprietário |
+| `DELETE` | `/api/marketplace/anuncios/{id}` | Excluir: o anúncio passa a `CANCELADO` (exclusão lógica) | proprietário |
+| `POST` | `/api/marketplace/fotos` | Enviar foto do item (multipart, campo `imagem`; PNG, JPG ou WEBP até 5 MB) | autenticado |
+
+- O jogo precisa estar `ATIVO` no catálogo e o anúncio precisa de pelo menos 1 foto. O preço deve ser maior que zero.
+- A busca pública mostra apenas anúncios `ATIVO` e `EM_NEGOCIACAO`. Buscar por `VENDA` ou `TROCA` também traz os anúncios `AMBOS`.
+- `EM_NEGOCIACAO` e `VENDIDO` não são definidos pelo proprietário: ficam a cargo da F-19 (negociação) e da F-20 (pedido).
+- Toda mudança de status publica um `AnuncioStatusAlterado` pelo `ApplicationEventPublisher` do Spring, até o barramento da T04 existir.
+- Frontend: `/marketplace` (busca), `/marketplace/novo`, `/marketplace/meus` e `/marketplace/{id}/editar`.
+- Cenários BDD em `f18_anuncios_marketplace.feature`, com steps em `PassosAnunciosMarketplace`. O step
+  `o jogador "<nome>" autenticado` fica nessa classe e pode ser reutilizado por outras funcionalidades.
+- Detalhes para quem vai integrar (F-19, F-20, F-16, F-17): seção "Implementação" do
+  [contrato do anúncio](entregaveis/contratos/contrato_anuncio.md).
+
+Pendências conhecidas da F-18:
+
+- Não há página de detalhe do anúncio no frontend; a F-19 vai precisar dela para iniciar a conversa.
+- A resposta do anúncio não traz o nome do vendedor nem a capa do jogo; os cards usam a primeira foto.
+- A região é um texto livre (`localidade`) buscado por trecho, sem UF ou cidade estruturadas.
+- A busca não é paginada.
+- As URLs das fotos não são restritas aos arquivos enviados por `/api/marketplace/fotos`, e fotos removidas de
+  um anúncio continuam no disco.
+- `GET /api/marketplace/anuncios/{id}` devolve o anúncio em qualquer status, inclusive cancelado.
+
 ## Entregáveis
 
 | Artefato | Local |
