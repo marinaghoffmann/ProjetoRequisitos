@@ -18,6 +18,6 @@ export function paraErroApi(erro: HttpErrorResponse): ErroApi {
   return {
     status: erro.status,
     titulo: corpo.title ?? 'Erro',
-    mensagem: corpo.detail ?? 'Ocorreu um erro inesperado.',
+    mensagem: corpo.detail ?? `Ocorreu um erro inesperado (HTTP ${erro.status}).`,
   };
 }
