@@ -58,3 +58,22 @@ Quem consome:
 
 A publicação na mesma transação da ação, como `EventoPlataforma`, é responsabilidade do barramento da **T04**.
 O contrato só define o formato do evento e a regra que o gera (`CicloDeVidaAnuncio.transicionar`).
+
+## Implementação (F-18)
+
+O agregado `AnuncioMarketplace` implementa este contrato. As peças que F-19, F-20, F-16 e F-17 vão usar:
+
+| Peça | Onde | Uso |
+|---|---|---|
+| `AnuncioMarketplace` | `dominio/marketplace/anuncios/` | agregado imutável; `mudarStatus(novo, agora)` delega ao `CicloDeVidaAnuncio` |
+| `MudancaDeStatusAnuncio` | `dominio/marketplace/anuncios/` | resultado de `mudarStatus`: o anúncio já atualizado e o `AnuncioStatusAlterado` |
+| `AnuncioMarketplaceRepositorio` | `dominio/marketplace/anuncios/` | `salvar`, `buscarPorId`, `buscarPublicos(FiltroAnuncios)`, `listarPorVendedor` |
+| `FiltroAnuncios` | `dominio/marketplace/anuncios/` | filtros da busca pública; `statusVisiveis()` aplica a RN 3 |
+| `AlterarStatusAnuncio` | `aplicacao/marketplace/anuncios/` | transições do proprietário: `PAUSADO`, `ATIVO` (vindo de `PAUSADO`) e `CANCELADO` |
+
+- O proprietário **não** define `EM_NEGOCIACAO` nem `VENDIDO`: a F-19 e a F-20 devem criar os próprios casos de uso,
+  carregar o anúncio pelo repositório, chamar `mudarStatus` e publicar o evento devolvido.
+- Enquanto a T04 não existe, o evento é publicado com o `ApplicationEventPublisher` do Spring. Quem consumir
+  pode usar `@EventListener` ou `@TransactionalEventListener` para `AnuncioStatusAlterado`.
+- O título do anúncio é opcional na criação: quando vem vazio, usa o título do jogo no catálogo.
+- Um anúncio aceita no máximo 10 fotos. Anúncios `VENDIDO` ou `CANCELADO` não podem mais ser editados.

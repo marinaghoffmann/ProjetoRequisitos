@@ -76,6 +76,20 @@ Status, campos e evento de mudança de status do anúncio estão em
 - `EM_NEGOCIACAO` e `VENDIDO` não são definidos pelo proprietário: ficam a cargo da F-19 (negociação) e da F-20 (pedido).
 - Toda mudança de status publica um `AnuncioStatusAlterado` pelo `ApplicationEventPublisher` do Spring, até o barramento da T04 existir.
 - Frontend: `/marketplace` (busca), `/marketplace/novo`, `/marketplace/meus` e `/marketplace/{id}/editar`.
+- Cenários BDD em `f18_anuncios_marketplace.feature`, com steps em `PassosAnunciosMarketplace`. O step
+  `o jogador "<nome>" autenticado` fica nessa classe e pode ser reutilizado por outras funcionalidades.
+- Detalhes para quem vai integrar (F-19, F-20, F-16, F-17): seção "Implementação" do
+  [contrato do anúncio](entregaveis/contratos/contrato_anuncio.md).
+
+Pendências conhecidas da F-18:
+
+- Não há página de detalhe do anúncio no frontend; a F-19 vai precisar dela para iniciar a conversa.
+- A resposta do anúncio não traz o nome do vendedor nem a capa do jogo; os cards usam a primeira foto.
+- A região é um texto livre (`localidade`) buscado por trecho, sem UF ou cidade estruturadas.
+- A busca não é paginada.
+- As URLs das fotos não são restritas aos arquivos enviados por `/api/marketplace/fotos`, e fotos removidas de
+  um anúncio continuam no disco.
+- `GET /api/marketplace/anuncios/{id}` devolve o anúncio em qualquer status, inclusive cancelado.
 
 ## Entregáveis
 
