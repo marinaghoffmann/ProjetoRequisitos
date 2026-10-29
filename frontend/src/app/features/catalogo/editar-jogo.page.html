@@ -1,0 +1,44 @@
+<main class="pagina-edicao">
+  <a routerLink="/catalogo">← Voltar ao catálogo</a>
+  <h1>Editar jogo</h1>
+
+  @if (carregando()) {
+    <p>Carregando jogo…</p>
+  } @else {
+    <form [formGroup]="formulario" (ngSubmit)="salvar()">
+      <label>Título do jogo * <input type="text" formControlName="titulo" /></label>
+      <label>Título original <input type="text" formControlName="tituloOriginal" /></label>
+      <label>Resumo <textarea rows="4" formControlName="resumo"></textarea></label>
+      <label>Desenvolvedora *
+        <select formControlName="desenvolvedoraId">
+          @for (desenvolvedora of desenvolvedoras(); track desenvolvedora.id) {
+            <option [value]="desenvolvedora.id">{{ desenvolvedora.nome }}</option>
+          }
+        </select>
+      </label>
+      <fieldset>
+        <legend>Gêneros</legend>
+        @for (genero of generos(); track genero.id) {
+          <label class="opcao">
+            <input type="checkbox" [checked]="formulario.controls.generosIds.value.includes(genero.id)" (change)="alternarGenero(genero.id, $event)" />
+            {{ genero.nome }}
+          </label>
+        }
+      </fieldset>
+
+      <label>Data de lançamento <input type="date" formControlName="dataLancamento" /></label>
+      <label>Capa atual: <code>{{ formulario.controls.capaUrl.value || 'nenhuma' }}</code></label>
+      <label>Substituir capa
+        <input type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" (change)="selecionarCapa($event)" />
+      </label>
+      @if (enviandoImagem()) { <small>Enviando capa…</small> }
+      @if (nomeImagem(); as nome) { <small>Nova capa: {{ nome }}</small> }
+      <label>Trailer <input type="url" formControlName="trailerUrl" /></label>
+      @if (erro(); as mensagem) { <p class="erro" role="alert">{{ mensagem }}</p> }
+      @if (sucesso(); as mensagem) { <p class="sucesso" role="status">{{ mensagem }}</p> }
+      <button type="submit" [disabled]="formulario.invalid || salvando()">
+        {{ salvando() ? 'Salvando…' : 'Salvar alterações' }}
+      </button>
+    </form>
+  }
+</main>

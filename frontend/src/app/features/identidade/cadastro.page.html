@@ -1,0 +1,27 @@
+<main class="cartao-identidade">
+  <a class="voltar" routerLink="/">← Game Tracker</a>
+  <h1>Criar conta</h1>
+  <p>Seu cadastro começa com o papel de jogador comum.</p>
+
+  <form [formGroup]="formulario" (ngSubmit)="cadastrar()">
+    <label for="nome">Nome</label>
+    <input id="nome" type="text" autocomplete="name" formControlName="nome" />
+
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="email" formControlName="email" />
+
+    <label for="senha">Senha</label>
+    <input id="senha" type="password" autocomplete="new-password" formControlName="senha" />
+    <small>Use pelo menos 8 caracteres.</small>
+
+    @if (erro(); as mensagem) {
+      <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+    }
+
+    <button type="submit" [disabled]="formulario.invalid || carregando()">
+      {{ carregando() ? 'Criando conta…' : 'Criar conta' }}
+    </button>
+  </form>
+
+  <p class="rodape">Já tem conta? <a routerLink="/login">Entrar</a></p>
+</main>

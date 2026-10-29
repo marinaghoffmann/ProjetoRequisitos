@@ -1,0 +1,96 @@
+<main class="pagina-catalogo">
+  <a class="voltar" routerLink="/">← Game Tracker</a>
+  <h1>Cadastrar jogo</h1>
+  <p class="introducao">Escolha entre importar um jogo da Steam ou preencher o cadastro manualmente.</p>
+
+  @if (carregando()) {
+    <p>Carregando desenvolvedoras e gêneros…</p>
+  } @else {
+    <section class="secao-importacao" aria-labelledby="titulo-importacao">
+      <h2 id="titulo-importacao">Cadastrar via Steam</h2>
+      <p>Pesquise pelo nome do jogo. Os dados encontrados serão gravados diretamente no catálogo.</p>
+      <label for="termoSteam">Nome ou termo de busca</label>
+      <input
+        id="termoSteam"
+        type="search"
+        [formControl]="termoSteam"
+        placeholder="Ex.: Elden Ring"
+        (keydown.enter)="importarDaSteam(); $event.preventDefault()"
+      />
+      <button
+        type="button"
+        [disabled]="termoSteam.invalid || importandoSteam()"
+        (click)="importarDaSteam()"
+      >
+        {{ importandoSteam() ? 'Buscando na Steam…' : 'Importar da Steam' }}
+      </button>
+    </section>
+
+    <div class="separador" role="separator"><span>ou cadastre manualmente</span></div>
+
+    <form [formGroup]="formulario" (ngSubmit)="cadastrar()">
+      <label for="titulo">Título do jogo *</label>
+      <input id="titulo" type="text" formControlName="titulo" />
+
+      <label for="tituloOriginal">Título original</label>
+      <input id="tituloOriginal" type="text" formControlName="tituloOriginal" />
+
+      <label for="resumo">Resumo</label>
+      <textarea id="resumo" rows="4" formControlName="resumo"></textarea>
+
+      <label for="desenvolvedoraId">Desenvolvedora *</label>
+      <select id="desenvolvedoraId" formControlName="desenvolvedoraId">
+        <option value="">Selecione uma desenvolvedora</option>
+        @for (desenvolvedora of desenvolvedoras(); track desenvolvedora.id) {
+          <option [value]="desenvolvedora.id">{{ desenvolvedora.nome }}</option>
+        }
+      </select>
+
+      <fieldset>
+        <legend>Gêneros</legend>
+        @for (genero of generos(); track genero.id) {
+          <label class="opcao">
+            <input
+              type="checkbox"
+              [checked]="formulario.controls.generosIds.value.includes(genero.id)"
+              (change)="alternarGenero(genero.id, $event)"
+            />
+            {{ genero.nome }}
+          </label>
+        } @empty {
+          <span>Nenhum gênero cadastrado.</span>
+        }
+      </fieldset>
+
+      <label for="dataLancamento">Data de lançamento</label>
+      <input id="dataLancamento" type="date" formControlName="dataLancamento" />
+
+      <label for="capaArquivo">Imagem da capa</label>
+      <input
+        id="capaArquivo"
+        type="file"
+        accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+        (change)="selecionarCapa($event)"
+      />
+      @if (enviandoImagem()) {
+        <small>Enviando imagem…</small>
+      } @else if (nomeImagem(); as nome) {
+        <small>Imagem selecionada: {{ nome }}</small>
+      }
+
+      <label for="trailerUrl">URL do trailer</label>
+      <input id="trailerUrl" type="url" formControlName="trailerUrl" />
+
+      @if (erro(); as mensagem) {
+        <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+      }
+      @if (sucesso(); as mensagem) {
+        <p class="mensagem-sucesso" role="status">{{ mensagem }}</p>
+      }
+
+      <button type="submit" [disabled]="formulario.invalid || enviando()">
+        {{ enviando() ? 'Cadastrando…' : 'Cadastrar jogo' }}
+      </button>
+    </form>
+  }
+</main>

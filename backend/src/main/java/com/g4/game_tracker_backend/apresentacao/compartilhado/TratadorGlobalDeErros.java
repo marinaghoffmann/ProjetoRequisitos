@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.g4.game_tracker_backend.dominio.compartilhado.AcessoNegadoException;
+import com.g4.game_tracker_backend.dominio.compartilhado.CredenciaisInvalidasException;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 
@@ -33,6 +34,11 @@ public class TratadorGlobalDeErros {
     @ExceptionHandler(AcessoNegadoException.class)
     public ProblemDetail acessoNegado(AcessoNegadoException e) {
         return problema(HttpStatus.FORBIDDEN, "Acesso negado", e.getMessage());
+    }
+
+    @ExceptionHandler(CredenciaisInvalidasException.class)
+    public ProblemDetail credenciaisInvalidas(CredenciaisInvalidasException e) {
+        return problema(HttpStatus.UNAUTHORIZED, "Não autenticado", e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

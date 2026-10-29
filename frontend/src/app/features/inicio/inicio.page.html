@@ -1,4 +1,13 @@
 <section class="inicio">
+  <nav class="conta">
+    @if (autenticacao.usuarioAtual(); as usuario) {
+      <span>Olá, {{ usuario.nome }} ({{ usuario.papel }})</span>
+      <button type="button" (click)="autenticacao.sair()">Sair</button>
+    } @else {
+      <a routerLink="/login">Entrar</a>
+      <a routerLink="/cadastro">Criar conta</a>
+    }
+  </nav>
   <h1>Game Tracker</h1>
   <p>Registre, avalie e negocie os jogos que você joga.</p>
 

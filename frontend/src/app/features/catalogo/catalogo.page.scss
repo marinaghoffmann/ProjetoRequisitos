@@ -1,0 +1,175 @@
+.pagina-listagem {
+  width: min(100% - 2rem, 72rem);
+  margin: 3rem auto;
+  padding: 2rem;
+  color: #171717;
+  font-family: Arial, sans-serif;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid #d8d8d8;
+  padding-bottom: 1.25rem;
+}
+
+.voltar {
+  color: #2458a6;
+}
+
+h1 {
+  margin: 1.5rem 0 0.4rem;
+}
+
+.cabecalho p {
+  margin: 0;
+  color: #555;
+}
+
+.botao,
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: #2458a6;
+  color: #fff;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.busca {
+  display: grid;
+  gap: 0.4rem;
+  max-width: 42rem;
+  margin: 1.5rem 0;
+  font-weight: 600;
+}
+
+.busca__linha {
+  display: flex;
+  gap: 0.5rem;
+}
+
+input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid #aaa;
+  border-radius: 0.35rem;
+  font: inherit;
+}
+
+.quantidade,
+.estado {
+  color: #555;
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  overflow: hidden;
+  border: 1px solid #d8d8d8;
+  border-radius: 0.75rem;
+  background: #fff;
+  box-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 8%);
+}
+
+.card__capa,
+.card__sem-capa {
+  display: block;
+  width: 100%;
+  height: 15rem;
+  object-fit: cover;
+  background: #e8ebef;
+}
+
+.card__sem-capa {
+  display: grid;
+  place-items: center;
+  color: #2458a6;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.card__conteudo {
+  padding: 1rem;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.original,
+.resumo,
+.data {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.original {
+  margin: 0.3rem 0;
+  font-style: italic;
+}
+
+.resumo {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.status {
+  display: inline-block;
+  margin: 0.65rem 0 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: #e8f5e9;
+  color: #1a7f37;
+  font-size: 0.8rem;
+}
+
+.acoes {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.acao {
+  padding: 0.4rem 0.65rem;
+  border: 0;
+  border-radius: 0.3rem;
+  background: #2458a6;
+  color: #fff;
+  font: inherit;
+  font-size: 0.85rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.acao--perigo {
+  background: #b42318;
+}
+
+.mensagem-erro {
+  color: #b42318;
+}
+
+@media (max-width: 42rem) {
+  .cabecalho {
+    align-items: start;
+    flex-direction: column;
+  }
+}
