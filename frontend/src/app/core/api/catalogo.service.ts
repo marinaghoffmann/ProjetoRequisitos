@@ -36,8 +36,7 @@ export interface Jogo {
   tituloOriginal: string;
   slug: string;
   resumo: string;
-  /** Ignorado no cadastro manual: o backend usa a desenvolvedora vinculada ao desenvolvedor. */
-  desenvolvedoraId: string | null;
+  desenvolvedoraId: string;
   generosIds: string[];
   dataLancamento: string | null;
   capaUrl: string;
