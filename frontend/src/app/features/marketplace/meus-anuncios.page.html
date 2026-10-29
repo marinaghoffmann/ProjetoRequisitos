@@ -1,0 +1,62 @@
+<main class="pagina-listagem">
+  <header class="cabecalho">
+    <div>
+      <a class="voltar" routerLink="/marketplace">← Marketplace</a>
+      <h1>Meus anúncios</h1>
+      <p>Edite valores, pause, reative ou exclua os jogos que você anunciou.</p>
+    </div>
+    @if (autenticacao.usuarioAtual()) {
+      <a class="botao" routerLink="/marketplace/novo">Anunciar jogo</a>
+    }
+  </header>
+
+  @if (!autenticacao.usuarioAtual()) {
+    <p class="mensagem-erro" role="alert">
+      Entre na sua conta para ver os seus anúncios. <a routerLink="/login">Entrar</a>
+    </p>
+  } @else if (carregando()) {
+    <p class="estado">Carregando seus anúncios…</p>
+  } @else {
+    @if (erro(); as mensagem) {
+      <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+    }
+    @if (!anuncios().length) {
+      <p class="estado">Você ainda não anunciou nenhum jogo.</p>
+    } @else {
+      <section class="grade" aria-label="Meus anúncios">
+        @for (anuncio of anuncios(); track anuncio.id) {
+          <article class="card">
+            @if (anuncio.fotos.length && imagemUrl(anuncio.fotos[0])) {
+              <img class="card__capa" [src]="imagemUrl(anuncio.fotos[0])" [alt]="'Foto de ' + anuncio.titulo" />
+            } @else {
+              <div class="card__sem-capa" aria-label="Anúncio sem foto">GT</div>
+            }
+            <div class="card__conteudo">
+              <h2>{{ anuncio.titulo }}</h2>
+              <p class="preco">{{ anuncio.preco | currency: 'BRL' }}</p>
+              <p class="etiquetas">
+                <span class="etiqueta" [class.etiqueta--alerta]="anuncio.status !== 'ATIVO'">
+                  {{ status[anuncio.status] }}
+                </span>
+                <span class="etiqueta">{{ estados[anuncio.estado] }}</span>
+                <span class="etiqueta">{{ tipos[anuncio.tipoNegociacao] }}</span>
+              </p>
+              <p class="detalhe">📍 {{ anuncio.localidade }}</p>
+              @if (editavel(anuncio)) {
+                <div class="acoes">
+                  <a class="acao" [routerLink]="['/marketplace', anuncio.id, 'editar']">Editar</a>
+                  @if (anuncio.status === 'ATIVO') {
+                    <button class="acao" type="button" (click)="alterarStatus(anuncio, 'PAUSADO')">Pausar</button>
+                  } @else {
+                    <button class="acao" type="button" (click)="alterarStatus(anuncio, 'ATIVO')">Reativar</button>
+                  }
+                  <button class="acao acao--perigo" type="button" (click)="excluir(anuncio)">Excluir</button>
+                </div>
+              }
+            </div>
+          </article>
+        }
+      </section>
+    }
+  }
+</main>
