@@ -9,6 +9,7 @@ export interface UsuarioAutenticado {
   nome: string;
   email: string;
   papel: Papel;
+  desenvolvedoraId: string | null;
 }
 
 export interface LoginResponse {
@@ -31,6 +32,12 @@ export class AutenticacaoService {
   private readonly chaveUsuario = 'game-tracker.usuario';
 
   readonly usuarioAtual = signal<UsuarioAutenticado | null>(this.lerUsuarioSalvo());
+
+  /** Só controla o que a tela mostra; quem autoriza de fato é o backend. */
+  temPapel(...papeis: Papel[]): boolean {
+    const usuario = this.usuarioAtual();
+    return !!usuario && papeis.includes(usuario.papel);
+  }
 
   tokenAtual(): string | null {
     return sessionStorage.getItem(this.chaveToken);

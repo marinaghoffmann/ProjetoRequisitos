@@ -3,9 +3,15 @@
   <h1>Cadastrar jogo</h1>
   <p class="introducao">Escolha entre importar um jogo da Steam ou preencher o cadastro manualmente.</p>
 
-  @if (carregando()) {
+  @if (!autenticacao.temPapel('DESENVOLVEDOR', 'ADMINISTRADOR')) {
+    <p class="mensagem-erro" role="alert">
+      Apenas desenvolvedores (cadastro manual) e administradores (importação da Steam) podem cadastrar jogos.
+      <a routerLink="/login">Entrar com outra conta</a>
+    </p>
+  } @else if (carregando()) {
     <p>Carregando desenvolvedoras e gêneros…</p>
   } @else {
+    @if (autenticacao.temPapel('ADMINISTRADOR')) {
     <section class="secao-importacao" aria-labelledby="titulo-importacao">
       <h2 id="titulo-importacao">Cadastrar via Steam</h2>
       <p>Pesquise pelo nome do jogo. Os dados encontrados serão gravados diretamente no catálogo.</p>
@@ -25,9 +31,15 @@
         {{ importandoSteam() ? 'Buscando na Steam…' : 'Importar da Steam' }}
       </button>
     </section>
+    @if (erro(); as mensagem) {
+      <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+    }
+    @if (sucesso(); as mensagem) {
+      <p class="mensagem-sucesso" role="status">{{ mensagem }}</p>
+    }
+    }
 
-    <div class="separador" role="separator"><span>ou cadastre manualmente</span></div>
-
+    @if (autenticacao.temPapel('DESENVOLVEDOR')) {
     <form [formGroup]="formulario" (ngSubmit)="cadastrar()">
       <label for="titulo">Título do jogo *</label>
       <input id="titulo" type="text" formControlName="titulo" />
@@ -38,13 +50,14 @@
       <label for="resumo">Resumo</label>
       <textarea id="resumo" rows="4" formControlName="resumo"></textarea>
 
-      <label for="desenvolvedoraId">Desenvolvedora *</label>
-      <select id="desenvolvedoraId" formControlName="desenvolvedoraId">
-        <option value="">Selecione uma desenvolvedora</option>
-        @for (desenvolvedora of desenvolvedoras(); track desenvolvedora.id) {
-          <option [value]="desenvolvedora.id">{{ desenvolvedora.nome }}</option>
+      <p class="desenvolvedora-vinculada">
+        Desenvolvedora:
+        @if (desenvolvedoraVinculada(); as desenvolvedora) {
+          <strong>{{ desenvolvedora.nome }}</strong>
+        } @else {
+          <strong>nenhuma desenvolvedora ativa vinculada</strong> (peça a um administrador para vincular sua conta)
         }
-      </select>
+      </p>
 
       <fieldset>
         <legend>Gêneros</legend>
@@ -92,5 +105,6 @@
         {{ enviando() ? 'Cadastrando…' : 'Cadastrar jogo' }}
       </button>
     </form>
+    }
   }
 </main>

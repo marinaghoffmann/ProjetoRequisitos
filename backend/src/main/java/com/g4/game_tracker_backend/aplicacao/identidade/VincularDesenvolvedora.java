@@ -17,14 +17,18 @@ public class VincularDesenvolvedora {
 
     private final UsuarioRepositorio usuarios;
     private final DesenvolvedoraRepositorio desenvolvedoras;
+    private final VerificadorDeAcesso verificadorDeAcesso;
 
-    public VincularDesenvolvedora(UsuarioRepositorio usuarios, DesenvolvedoraRepositorio desenvolvedoras) {
+    public VincularDesenvolvedora(UsuarioRepositorio usuarios, DesenvolvedoraRepositorio desenvolvedoras,
+            VerificadorDeAcesso verificadorDeAcesso) {
         this.usuarios = usuarios;
         this.desenvolvedoras = desenvolvedoras;
+        this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
     @Transactional
     public Usuario executar(UUID usuarioId, UUID desenvolvedoraId) {
+        verificadorDeAcesso.exigirPapel(Papel.ADMINISTRADOR);
         Usuario usuario = usuarios.buscarPorId(usuarioId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado"));
         if (usuario.papel() != Papel.DESENVOLVEDOR) {

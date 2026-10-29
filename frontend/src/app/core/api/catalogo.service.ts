@@ -21,7 +21,8 @@ export interface CadastroJogo {
   titulo: string;
   tituloOriginal: string;
   resumo: string;
-  desenvolvedoraId: string;
+  /** Ignorado no cadastro manual: o backend usa a desenvolvedora vinculada ao desenvolvedor. */
+  desenvolvedoraId: string | null;
   generosIds: string[];
   dataLancamento: string | null;
   capaUrl: string;
@@ -35,7 +36,8 @@ export interface Jogo {
   tituloOriginal: string;
   slug: string;
   resumo: string;
-  desenvolvedoraId: string;
+  /** Ignorado no cadastro manual: o backend usa a desenvolvedora vinculada ao desenvolvedor. */
+  desenvolvedoraId: string | null;
   generosIds: string[];
   dataLancamento: string | null;
   capaUrl: string;

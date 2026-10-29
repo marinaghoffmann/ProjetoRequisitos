@@ -1,5 +1,4 @@
 # language: pt
-@pendente
 Funcionalidade: F-01 Importação, cadastramento manual e gerenciamento do catálogo de jogos e desenvolvedoras
   Como desenvolvedor ou administrador, quero alimentar o catálogo pela API externa ou por
   cadastro manual e gerenciar jogos e desenvolvedoras, mantendo o catálogo sem duplicidades
@@ -32,7 +31,7 @@ Funcionalidade: F-01 Importação, cadastramento manual e gerenciamento do catá
     E a origem do jogo deve ser "MANUAL_CRIADOR"
 
   Cenário: Usuário sem papel de desenvolvedor não cadastra jogo manualmente
-    Dado um usuário com papel "JOGADOR"
+    Dado um usuário com papel "COMUM"
     Quando o usuário cadastra manualmente o jogo "Mangue Runner"
     Então o cadastro deve ser recusado com a mensagem "Apenas desenvolvedores podem cadastrar jogos manualmente"
 
@@ -47,6 +46,8 @@ Funcionalidade: F-01 Importação, cadastramento manual e gerenciamento do catá
     Então o perfil da desenvolvedora "Studio Recife" deve exibir a biografia "Estúdio indie pernambucano"
 
   # RN 3 - exclusão lógica e manutenção da integridade de vínculos
+  # Os dois cenários abaixo dependem de reviews (F-02), journal (F-15) e listas (F-04).
+  @pendente
   Cenário: Administrador remove jogo com reviews vinculadas por exclusão lógica
     Dado um usuário com papel "ADMINISTRADOR"
     E que o jogo "Hollow Knight" possui 3 reviews
@@ -54,11 +55,24 @@ Funcionalidade: F-01 Importação, cadastramento manual e gerenciamento do catá
     Então o jogo "Hollow Knight" deve continuar no banco com status "INATIVO"
     E as 3 reviews do jogo devem ser preservadas
 
+  @pendente
   Cenário: Administrador remove jogo sem vínculos definitivamente
     Dado um usuário com papel "ADMINISTRADOR"
     E que o jogo "Jogo Teste" não possui reviews, entradas de journal nem itens de lista
     Quando o administrador remove o jogo "Jogo Teste"
     Então o jogo "Jogo Teste" não deve mais existir no catálogo
+
+  Cenário: Administrador desativa um jogo sem apagar seus dados
+    Dado um usuário com papel "ADMINISTRADOR"
+    E que existe o jogo "Jogo Descontinuado" no catálogo
+    Quando o administrador remove o jogo "Jogo Descontinuado"
+    Então o jogo "Jogo Descontinuado" deve continuar no banco com status "INATIVO"
+
+  Cenário: Usuário comum não remove jogos do catálogo
+    Dado um usuário com papel "COMUM"
+    E que existe o jogo "Jogo Protegido" no catálogo
+    Quando o usuário tenta remover o jogo "Jogo Protegido"
+    Então a operação deve ser recusada com a mensagem "Você não tem permissão para esta operação"
 
   Cenário: Administrador edita os metadados de um jogo
     Dado um usuário com papel "ADMINISTRADOR"

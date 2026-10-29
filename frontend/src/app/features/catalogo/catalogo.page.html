@@ -5,7 +5,11 @@
       <h1>Catálogo de jogos</h1>
       <p>Encontre os jogos cadastrados no Game Tracker.</p>
     </div>
-    <a class="botao" routerLink="/catalogo/novo">Cadastrar jogo</a>
+    @if (autenticacao.temPapel('DESENVOLVEDOR', 'ADMINISTRADOR')) {
+      <a class="botao" routerLink="/catalogo/novo">Cadastrar jogo</a>
+    } @else if (!autenticacao.usuarioAtual()) {
+      <a class="botao" routerLink="/login">Entrar</a>
+    }
   </header>
 
   <form class="busca" (ngSubmit)="pesquisar()">
@@ -44,10 +48,14 @@
             @if (jogo.dataLancamento) {
               <p class="data">Lançamento: {{ jogo.dataLancamento | date:'dd/MM/yyyy' }}</p>
             }
-            <div class="acoes">
-              <a class="acao" [routerLink]="['/catalogo', jogo.id, 'editar']">Editar</a>
-              <button class="acao acao--perigo" type="button" (click)="excluir(jogo)">Desativar</button>
-            </div>
+            @if (podeEditar(jogo)) {
+              <div class="acoes">
+                <a class="acao" [routerLink]="['/catalogo', jogo.id, 'editar']">Editar</a>
+                @if (autenticacao.temPapel('ADMINISTRADOR')) {
+                  <button class="acao acao--perigo" type="button" (click)="excluir(jogo)">Desativar</button>
+                }
+              </div>
+            }
           </div>
         </article>
       }

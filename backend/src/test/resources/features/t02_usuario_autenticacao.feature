@@ -26,7 +26,7 @@ Funcionalidade: T02 Usuários, autenticação e papéis
 
   Cenário: Administrador pode atribuir um papel permitido
     Dado que estou autenticado como administrador
-    E existe uma conta comum cadastrada
+    E que existe uma conta comum cadastrada
     Quando o administrador altera o papel dessa conta para "MODERADOR"
     Então o papel persistido da conta deve ser "MODERADOR"
     E a operação deve ser concluída sem erros

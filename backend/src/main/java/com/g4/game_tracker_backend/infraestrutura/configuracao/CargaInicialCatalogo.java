@@ -6,18 +6,22 @@ import java.util.Set;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 import com.g4.game_tracker_backend.dominio.catalogo.Desenvolvedora;
 import com.g4.game_tracker_backend.dominio.catalogo.DesenvolvedoraRepositorio;
+import com.g4.game_tracker_backend.dominio.catalogo.FiltroCatalogo;
 import com.g4.game_tracker_backend.dominio.catalogo.Genero;
 import com.g4.game_tracker_backend.dominio.catalogo.GeneroRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.Jogo;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 
+/** Carga inicial idempotente do catálogo: gêneros, desenvolvedoras e jogos de exemplo. */
 @Configuration
 public class CargaInicialCatalogo {
 
     @Bean
+    @Order(1)
     CommandLineRunner carregarCatalogo(DesenvolvedoraRepositorio desenvolvedoras, GeneroRepositorio generos,
             JogoRepositorio jogos) {
         return args -> {
@@ -33,13 +37,13 @@ public class CargaInicialCatalogo {
                     .orElseGet(() -> desenvolvedoras.salvar(Desenvolvedora.criar(
                             "FromSoftware", "Estúdio japonês responsável por Elden Ring.",
                             "https://www.fromsoftware.jp", "@fromsoftware_pr", "Japão")));
-            if (jogos.consultar(com.g4.game_tracker_backend.dominio.catalogo.FiltroCatalogo.ativos()).isEmpty()) {
+            if (jogos.consultar(FiltroCatalogo.ativos()).isEmpty()) {
                 jogos.salvar(Jogo.importar("Eclipse: Fallen Order", null,
                         "Uma aventura épica em um universo em ruínas.", "SEED-ECLIPSE",
                         estudio.id(), Set.of(rpg.id()), LocalDate.of(2025, 6, 12),
                         "", ""));
                 jogos.salvar(Jogo.criarManual("Neon Drifter", null,
-                "Ação e velocidade em uma cidade neon.", estudio.id(), Set.of(acao.id()),
+                        "Ação e velocidade em uma cidade neon.", estudio.id(), Set.of(acao.id()),
                         LocalDate.of(2026, 2, 20), "", ""));
             }
             if (jogos.buscarPorIdentificadorExterno("SEED-ELDEN-RING").isEmpty()) {

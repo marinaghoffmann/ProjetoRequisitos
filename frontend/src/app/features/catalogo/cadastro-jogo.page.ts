@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forkJoin, map } from 'rxjs';
@@ -8,6 +8,7 @@ import {
   Desenvolvedora,
   Genero,
 } from '../../core/api/catalogo.service';
+import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
 
 @Component({
@@ -19,6 +20,7 @@ import { ErroApi } from '../../core/http/erro-api';
 export class CadastroJogoPage {
   private readonly formularioBuilder = inject(FormBuilder).nonNullable;
   private readonly catalogo = inject(CatalogoService);
+  protected readonly autenticacao = inject(AutenticacaoService);
 
   protected readonly desenvolvedoras = signal<Desenvolvedora[]>([]);
   protected readonly generos = signal<Genero[]>([]);
@@ -31,12 +33,15 @@ export class CadastroJogoPage {
   protected readonly nomesGaleria = signal<string[]>([]);
   protected readonly erro = signal<string | null>(null);
   protected readonly sucesso = signal<string | null>(null);
+  protected readonly desenvolvedoraVinculada = computed(() => {
+    const id = this.autenticacao.usuarioAtual()?.desenvolvedoraId;
+    return this.desenvolvedoras().find((item) => item.id === id) ?? null;
+  });
 
   protected readonly formulario = this.formularioBuilder.group({
     titulo: ['', [Validators.required, Validators.maxLength(180)]],
     tituloOriginal: ['', [Validators.maxLength(180)]],
     resumo: ['', [Validators.maxLength(600)]],
-    desenvolvedoraId: ['', [Validators.required]],
     generosIds: this.formularioBuilder.control<string[]>([]),
     dataLancamento: [''],
     capaUrl: ['', [Validators.maxLength(1000)]],
@@ -152,7 +157,7 @@ export class CadastroJogoPage {
       titulo: dados.titulo,
       tituloOriginal: dados.tituloOriginal,
       resumo: dados.resumo,
-      desenvolvedoraId: dados.desenvolvedoraId,
+      desenvolvedoraId: null,
       generosIds: dados.generosIds,
       dataLancamento: dados.dataLancamento || null,
       capaUrl: dados.capaUrl,
@@ -192,7 +197,6 @@ export class CadastroJogoPage {
           titulo: '',
           tituloOriginal: '',
           resumo: '',
-          desenvolvedoraId: '',
           generosIds: [],
           dataLancamento: '',
           capaUrl: '',

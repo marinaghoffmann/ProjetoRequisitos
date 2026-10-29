@@ -41,6 +41,23 @@ Para importar da Steam Store, não é necessária chave de API. Envie o título 
 O perfil de desenvolvedora pode ser atualizado por `PUT /api/catalogo/desenvolvedoras/{id}` e desativado
 por `DELETE /api/catalogo/desenvolvedoras/{id}`.
 
+Consultas (`GET`) são públicas. As demais operações exigem login e o papel certo, checado nos casos de uso:
+
+| Operação | Quem pode |
+|---|---|
+| Cadastrar jogo manualmente | `DESENVOLVEDOR` vinculado a uma desenvolvedora ativa |
+| Editar jogo | `ADMINISTRADOR`, ou `DESENVOLVEDOR` da desenvolvedora do jogo |
+| Desativar jogo, importar (API/Steam), cadastrar gênero | `ADMINISTRADOR` |
+| Cadastrar ou desativar desenvolvedora | `ADMINISTRADOR` |
+| Editar perfil da desenvolvedora | `ADMINISTRADOR`, ou `DESENVOLVEDOR` vinculado a ela |
+| Enviar imagem de capa | `ADMINISTRADOR` ou `DESENVOLVEDOR` |
+| Alterar papel e vincular desenvolvedor (`PATCH /api/usuarios/{id}/...`) | `ADMINISTRADOR` |
+
+## Marketplace: contrato do anúncio (T07)
+
+Status, campos e evento de mudança de status do anúncio estão em
+[entregaveis/contratos/contrato_anuncio.md](entregaveis/contratos/contrato_anuncio.md).
+
 ## Entregáveis
 
 | Artefato | Local |
@@ -50,5 +67,6 @@ por `DELETE /api/catalogo/desenvolvedoras/{id}`.
 | Mapa de histórias do usuário | `entregaveis/mapa/` |
 | Protótipos de alta fidelidade | `entregaveis/prototipo/prototipo.txt` |
 | Modelo dos subdomínios (Context Mapper) | `entregaveis/cml/game_tracker.cml` |
+| Contrato do anúncio do marketplace (T07) | `entregaveis/contratos/contrato_anuncio.md` |
 | Cenários de teste BDD (Gherkin, pt) | `backend/src/test/resources/features/` |
 | Automação dos cenários BDD (Cucumber) | `backend/src/test/java/com/g4/game_tracker_backend/bdd/` |

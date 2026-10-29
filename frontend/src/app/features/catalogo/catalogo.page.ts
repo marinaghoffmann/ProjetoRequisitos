@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
+import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
 
 @Component({
@@ -14,6 +15,7 @@ import { ErroApi } from '../../core/http/erro-api';
 })
 export class CatalogoPage {
   private readonly catalogo = inject(CatalogoService);
+  protected readonly autenticacao = inject(AutenticacaoService);
 
   protected readonly jogos = signal<Jogo[]>([]);
   protected readonly carregando = signal(true);
@@ -32,6 +34,13 @@ export class CatalogoPage {
     if (caminho.startsWith('/uploads/')) return caminho;
     if (caminho.startsWith('http://') || caminho.startsWith('https://')) return caminho;
     return '';
+  }
+
+  protected podeEditar(jogo: Jogo): boolean {
+    const usuario = this.autenticacao.usuarioAtual();
+    if (!usuario) return false;
+    return usuario.papel === 'ADMINISTRADOR'
+      || (usuario.papel === 'DESENVOLVEDOR' && usuario.desenvolvedoraId === jogo.desenvolvedoraId);
   }
 
   protected excluir(jogo: Jogo): void {

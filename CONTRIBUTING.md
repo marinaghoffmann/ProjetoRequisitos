@@ -11,6 +11,15 @@
 | Todos os testes do backend (JUnit, ArchUnit e Cucumber) | `./mvnw verify` | `backend/` |
 | Testes do frontend | `npm test` | `frontend/` |
 
+Com Postgres, defina antes a chave do JWT (Base64, 32 bytes ou mais), por exemplo
+`export APP_SECURITY_JWT_SECRET=$(openssl rand -base64 32)`, e, se quiser um admin, `APP_BOOTSTRAP_ADMIN_EMAIL`
+e `APP_BOOTSTRAP_ADMIN_PASSWORD`. O perfil `h2` já traz valores de desenvolvimento e cria duas contas:
+
+| Conta | Senha | Papel |
+|---|---|---|
+| `admin@gametracker.local` | `admin12345` | ADMINISTRADOR |
+| `dev@gametracker.local` | `dev12345` | DESENVOLVEDOR, vinculado à "Umbra Interactive" |
+
 O backend sobe em `http://localhost:8080` e o frontend em `http://localhost:4200`. Em desenvolvimento,
 o Angular repassa tudo que começa com `/api` para o backend (`frontend/proxy.conf.json`).
 Requisitos: Java 21, Node 20.19+ ou 22.12+.

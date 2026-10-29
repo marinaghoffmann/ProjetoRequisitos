@@ -6,8 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.UUID;
 
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import com.g4.game_tracker_backend.aplicacao.identidade.AlterarPapelUsuario;
 import com.g4.game_tracker_backend.aplicacao.identidade.AutenticarUsuario;
@@ -117,12 +115,6 @@ public class PassosUsuarioAutenticacao {
         assertEquals(Papel.COMUM, sessao.usuario().papel());
     }
 
-    @Entao("o login deve ser recusado com a mensagem {string}")
-    public void loginDeveSerRecusado(String mensagem) {
-        assertNotNull(contexto.erro());
-        assertEquals(mensagem, contexto.erro().getMessage());
-    }
-
     @Entao("o papel persistido da conta deve ser {string}")
     public void papelPersistidoDaConta(String papel) {
         Usuario atualizado = usuarios.buscarPorId(contaAlvo.id()).orElseThrow();
@@ -143,11 +135,6 @@ public class PassosUsuarioAutenticacao {
     }
 
     private void autenticarComo(Usuario usuario) {
-        Jwt jwt = Jwt.withTokenValue("token-bdd")
-                .header("alg", "none")
-                .subject(usuario.id().toString())
-                .claim("papel", usuario.papel().name())
-                .build();
-        SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
+        SessaoDeTeste.autenticarComo(usuario);
     }
 }

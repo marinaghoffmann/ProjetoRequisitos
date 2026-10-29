@@ -30,6 +30,7 @@ import com.g4.game_tracker_backend.aplicacao.catalogo.ImportarJogo;
 import com.g4.game_tracker_backend.dominio.catalogo.FiltroCatalogo;
 import com.g4.game_tracker_backend.dominio.catalogo.OrigemJogo;
 import com.g4.game_tracker_backend.dominio.catalogo.StatusCatalogo;
+import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 
 import jakarta.validation.Valid;
 
@@ -95,7 +96,7 @@ public class CatalogoController {
 
     @PostMapping("/jogos")
     public ResponseEntity<JogoResponse> cadastrar(@Valid @RequestBody JogoRequest request) {
-        var jogo = cadastrarJogoManual.executarParaUsuario(request.titulo(), request.tituloOriginal(),
+        var jogo = cadastrarJogoManual.executar(request.titulo(), request.tituloOriginal(),
                 request.resumo(), request.generosIds(), request.dataLancamento(), request.capaUrl(),
                 request.trailerUrl(), serializarMetadados(request.metadados()));
         return ResponseEntity.created(URI.create("/api/catalogo/jogos/" + jogo.id()))
@@ -119,7 +120,7 @@ public class CatalogoController {
         try {
             return objectMapper.writeValueAsString(metadados);
         } catch (JacksonException e) {
-            throw new IllegalArgumentException("Os metadados do jogo são inválidos", e);
+            throw new RegraDeNegocioException("Os metadados do jogo são inválidos");
         }
     }
 

@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import { CatalogoService, Desenvolvedora, Genero } from '../../core/api/catalogo.service';
+import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
 
 @Component({
@@ -14,6 +15,7 @@ import { ErroApi } from '../../core/http/erro-api';
 })
 export class EditarJogoPage {
   private readonly catalogo = inject(CatalogoService);
+  private readonly autenticacao = inject(AutenticacaoService);
   private readonly rota = inject(ActivatedRoute);
   private readonly builder = inject(FormBuilder).nonNullable;
   private readonly id = this.rota.snapshot.paramMap.get('id') ?? '';
@@ -115,6 +117,8 @@ export class EditarJogoPage {
           acessibilidade: this.valorLista('acessibilidade'),
         });
         this.desenvolvedoras.set(desenvolvedoras.filter((item) => item.ativa));
+        // Só o administrador transfere o jogo para outra desenvolvedora.
+        if (!this.autenticacao.temPapel('ADMINISTRADOR')) this.formulario.controls.desenvolvedoraId.disable();
         this.generos.set(generos);
         this.carregando.set(false);
       },
