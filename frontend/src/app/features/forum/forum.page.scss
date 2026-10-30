@@ -1,0 +1,187 @@
+.pagina-forum {
+  width: min(100% - 2rem, 60rem);
+  margin: 3rem auto;
+  padding: 2rem;
+  color: #171717;
+  font-family: Arial, sans-serif;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid #d8d8d8;
+  padding-bottom: 1.25rem;
+}
+
+.voltar {
+  color: #2458a6;
+}
+
+h1 {
+  margin: 1.5rem 0 0.4rem;
+}
+
+.cabecalho p {
+  margin: 0;
+  color: #555;
+}
+
+.botao,
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: #2458a6;
+  color: #fff;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.botao--secundario {
+  border: 1px solid #2458a6;
+  background: #fff;
+  color: #2458a6;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.filtros label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.filtros__botoes {
+  display: flex;
+  align-items: end;
+  gap: 0.5rem;
+}
+
+input,
+select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid #aaa;
+  border-radius: 0.35rem;
+  font: inherit;
+  font-weight: 400;
+}
+
+.estado {
+  color: #555;
+}
+
+.topicos {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.topico {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #d8d8d8;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.topico__titulo {
+  color: #171717;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.topico__numeros {
+  display: grid;
+  justify-items: end;
+  align-content: start;
+  gap: 0.15rem;
+  min-width: 9rem;
+  color: #555;
+  text-align: right;
+}
+
+.topico__numeros strong {
+  color: #2458a6;
+  font-size: 1.4rem;
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.5rem 0;
+}
+
+.etiqueta {
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: #eef2f8;
+  color: #2458a6;
+  font-size: 0.8rem;
+}
+
+.etiqueta--alerta {
+  background: #fff4e5;
+  color: #9a5b00;
+}
+
+.etiqueta--ok {
+  background: #e7f6ec;
+  color: #1a7f37;
+}
+
+.detalhe {
+  margin: 0;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  color: #555;
+}
+
+.mensagem-erro {
+  color: #b42318;
+}
+
+@media (max-width: 42rem) {
+  .cabecalho,
+  .topico {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .topico__numeros {
+    justify-items: start;
+    text-align: left;
+  }
+}

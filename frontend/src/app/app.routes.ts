@@ -12,5 +12,6 @@ export const routes: Routes = [
   { path: 'catalogo/:id/editar', loadComponent: () => import('./features/catalogo/editar-jogo.page').then((m) => m.EditarJogoPage) },
   { path: 'catalogo', loadComponent: () => import('./features/catalogo/catalogo.page').then((m) => m.CatalogoPage) },
   { path: 'marketplace', loadChildren: () => import('./features/marketplace/marketplace.routes') },
+  { path: 'forum', loadChildren: () => import('./features/forum/forum.routes') },
   { path: '**', redirectTo: '' },
 ];

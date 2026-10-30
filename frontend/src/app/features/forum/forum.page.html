@@ -1,0 +1,76 @@
+<main class="pagina-forum">
+  <header class="cabecalho">
+    <div>
+      <a class="voltar" routerLink="/">← Game Tracker</a>
+      <h1>Fórum</h1>
+      <p>Tire dúvidas, compartilhe estratégias e converse sobre os jogos do catálogo.</p>
+    </div>
+    @if (autenticacao.usuarioAtual()) {
+      <a class="botao" routerLink="/forum/novo">Novo tópico</a>
+    } @else {
+      <a class="botao" routerLink="/login">Entrar para participar</a>
+    }
+  </header>
+
+  <form class="filtros" (ngSubmit)="pesquisar()">
+    <label>
+      Jogo
+      <select name="jogoId" [(ngModel)]="filtro.jogoId">
+        <option value="">Todos os tópicos</option>
+        @for (jogo of jogos(); track jogo.id) {
+          <option [value]="jogo.id">{{ jogo.titulo }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      Categoria
+      <input name="categoria" type="search" [(ngModel)]="filtro.categoria" placeholder="Ex.: Geral, Dicas" />
+    </label>
+    <div class="filtros__botoes">
+      <button type="submit">Filtrar</button>
+      <button class="botao--secundario" type="button" (click)="limpar()">Limpar</button>
+    </div>
+  </form>
+
+  @if (carregando()) {
+    <p class="estado">Carregando tópicos…</p>
+  } @else if (erro(); as mensagem) {
+    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+  } @else if (pagina(); as resultado) {
+    @if (!resultado.itens.length) {
+      <p class="estado">Nenhum tópico encontrado.</p>
+    } @else {
+      <ul class="topicos" aria-label="Tópicos do fórum">
+        @for (topico of resultado.itens; track topico.id) {
+          <li class="topico">
+            <div>
+              <a class="topico__titulo" [routerLink]="['/forum', topico.id]">{{ topico.titulo }}</a>
+              <p class="etiquetas">
+                <span class="etiqueta" [class.etiqueta--alerta]="topico.status === 'ENCERRADO'"
+                  [class.etiqueta--ok]="topico.status === 'RESOLVIDO'">{{ status[topico.status] }}</span>
+                <span class="etiqueta">{{ topico.categoria }}</span>
+                @if (tituloDoJogo(topico.jogoId); as jogo) {
+                  <span class="etiqueta">🎮 {{ jogo }}</span>
+                }
+              </p>
+              <p class="detalhe">por {{ topico.nomeAutor ?? 'usuário removido' }}</p>
+            </div>
+            <div class="topico__numeros">
+              <strong>{{ topico.totalRespostas }}</strong>
+              <span>resposta(s)</span>
+              <small>Última interação {{ topico.dataUltimaAtividade | date: 'dd/MM/yyyy HH:mm' }}</small>
+            </div>
+          </li>
+        }
+      </ul>
+
+      <nav class="paginacao" aria-label="Paginação">
+        <button class="botao--secundario" type="button" [disabled]="resultado.pagina <= 1"
+          (click)="carregar(resultado.pagina - 1)">← Anterior</button>
+        <span>Página {{ resultado.pagina }} de {{ resultado.totalPaginas }} ({{ resultado.totalItens }} tópicos)</span>
+        <button class="botao--secundario" type="button" [disabled]="resultado.pagina >= resultado.totalPaginas"
+          (click)="carregar(resultado.pagina + 1)">Próxima →</button>
+      </nav>
+    }
+  }
+</main>

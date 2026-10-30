@@ -1,0 +1,70 @@
+.pagina-form {
+  width: min(100% - 2rem, 42rem);
+  margin: 3rem auto;
+  padding: 2rem;
+  border: 1px solid #d8d8d8;
+  border-radius: 0.75rem;
+  background: #fff;
+  color: #171717;
+  font-family: Arial, sans-serif;
+}
+
+.voltar {
+  color: #2458a6;
+}
+
+h1 {
+  margin: 1.5rem 0 0.4rem;
+}
+
+.introducao {
+  margin-top: 0;
+  color: #555;
+}
+
+form {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1.5rem;
+}
+
+label {
+  font-weight: 600;
+}
+
+input,
+select,
+textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid #aaa;
+  border-radius: 0.35rem;
+  font: inherit;
+  font-weight: 400;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  min-height: 2.75rem;
+  margin-top: 0.6rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: #2458a6;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mensagem-erro {
+  color: #b42318;
+}
