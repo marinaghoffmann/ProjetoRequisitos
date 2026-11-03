@@ -1,14 +1,12 @@
+
 <main class="pagina-listagem">
   <header class="cabecalho">
     <div>
-      <a class="voltar" routerLink="/">← Game Tracker</a>
       <h1>Catálogo de jogos</h1>
       <p>Encontre os jogos cadastrados no Game Tracker.</p>
     </div>
     @if (autenticacao.temPapel('DESENVOLVEDOR', 'ADMINISTRADOR')) {
       <a class="botao" routerLink="/catalogo/novo">Cadastrar jogo</a>
-    } @else if (!autenticacao.usuarioAtual()) {
-      <a class="botao" routerLink="/login">Entrar</a>
     }
   </header>
 
