@@ -1,1 +1,40 @@
-<router-outlet />
+<div class="shell">
+  <aside class="sidebar">
+    <a class="marca" routerLink="/catalogo">
+      <span class="marca__icone">G</span>
+      <span class="marca__nome">GAME<em>TRACK</em></span>
+    </a>
+
+    <nav class="menu" aria-label="Navegação principal">
+      <a routerLink="/catalogo" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: true }">Catálogo</a>
+      @if (autenticacao.temPapel('DESENVOLVEDOR', 'ADMINISTRADOR')) {
+        <a routerLink="/catalogo/novo" routerLinkActive="ativo">Cadastrar jogo</a>
+      }
+
+      <p class="menu__rotulo">Marketplace</p>
+      <a routerLink="/marketplace" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: true }">Anúncios</a>
+      @if (autenticacao.usuarioAtual()) {
+        <a routerLink="/marketplace/meus" routerLinkActive="ativo">Meus anúncios</a>
+        <a routerLink="/marketplace/novo" routerLinkActive="ativo">Anunciar jogo</a>
+      }
+    </nav>
+
+    <div class="conta">
+      @if (autenticacao.usuarioAtual(); as usuario) {
+        <span class="conta__avatar">{{ usuario.nome.slice(0, 2).toUpperCase() }}</span>
+        <div class="conta__dados">
+          <strong>{{ usuario.nome }}</strong>
+          <span>{{ usuario.papel }}</span>
+        </div>
+        <button type="button" (click)="autenticacao.sair()">Sair</button>
+      } @else {
+        <a class="botao" routerLink="/login">Entrar</a>
+        <a class="botao botao--secundario" routerLink="/cadastro">Criar conta</a>
+      }
+    </div>
+  </aside>
+
+  <div class="principal">
+    <router-outlet />
+  </div>
+</div>

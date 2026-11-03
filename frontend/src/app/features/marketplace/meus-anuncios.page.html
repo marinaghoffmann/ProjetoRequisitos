@@ -41,7 +41,7 @@
                 <span class="etiqueta">{{ estados[anuncio.estado] }}</span>
                 <span class="etiqueta">{{ tipos[anuncio.tipoNegociacao] }}</span>
               </p>
-              <p class="detalhe">📍 {{ anuncio.localidade }}</p>
+              <p class="detalhe">{{ anuncio.localidade }}</p>
               @if (editavel(anuncio)) {
                 <div class="acoes">
                   <a class="acao" [routerLink]="['/marketplace', anuncio.id, 'editar']">Editar</a>
