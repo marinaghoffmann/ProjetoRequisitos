@@ -1,5 +1,4 @@
 # language: pt
-@pendente
 Funcionalidade: F-17 Engine de agregação de estatísticas e métricas da comunidade
   Como jogador, quero ver na página do jogo as métricas consolidadas da comunidade.
 
@@ -18,6 +17,11 @@ Funcionalidade: F-17 Engine de agregação de estatísticas e métricas da comun
     Dado que o jogo "Celeste" possui 10 conclusões
     Quando um jogador registra uma conclusão de "Celeste"
     Então o total de conclusões de "Celeste" deve ser 11
+
+  Cenário: Adicionar o jogo a uma wishlist atualiza a presença em wishlists
+    Dado que o jogo "Celeste" está em 4 wishlists
+    Quando um jogador adiciona "Celeste" à wishlist
+    Então o total de wishlists de "Celeste" deve ser 5
 
   Cenário: Pedido concluído no marketplace atualiza o volume de negociações
     Dado que o jogo "Hades" possui 2 negociações concluídas
