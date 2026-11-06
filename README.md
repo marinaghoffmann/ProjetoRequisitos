@@ -91,6 +91,39 @@ Pendências conhecidas da F-18:
   um anúncio continuam no disco.
 - `GET /api/marketplace/anuncios/{id}` devolve o anúncio em qualquer status, inclusive cancelado.
 
+## Fórum (F-13)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/forum/topicos` | Tópicos paginados, do mais recentemente ativo para o menos (`jogoId`, `categoria`, `pagina` a partir de 1, `tamanho` até 50) | qualquer um |
+| `GET` | `/api/forum/topicos/{id}` | Tópico com todas as respostas (o encadeamento vem em `respostaPaiId`) | qualquer um |
+| `POST` | `/api/forum/topicos` | Criar tópico geral (`jogoId` nulo) ou de um jogo `ATIVO` do catálogo; nasce `ABERTO` | autenticado |
+| `PUT` | `/api/forum/topicos/{id}` | Editar título, mensagem e categoria (até 48 horas após a publicação) | autor |
+| `PATCH` | `/api/forum/topicos/{id}/status` | Marcar como `RESOLVIDO`, reabrir (`ABERTO`) ou encerrar (`ENCERRADO`) com `{ "status": "..." }` | autor |
+| `DELETE` | `/api/forum/topicos/{id}` | Excluir o tópico (exclusão lógica: ele some das consultas) | autor |
+| `POST` | `/api/forum/topicos/{id}/respostas` | Responder ao tópico, ou a outra resposta com `respostaPaiId` | autenticado |
+| `PUT` | `/api/forum/topicos/{id}/respostas/{respostaId}` | Editar a resposta (até 48 horas após a publicação) | autor |
+| `DELETE` | `/api/forum/topicos/{id}/respostas/{respostaId}` | Excluir a resposta | autor |
+
+- RN 1: tópico `ENCERRADO` não aceita novas respostas, edições nem exclusões, e não pode ser reaberto pelo autor.
+- RN 2: só o autor edita ou exclui a sua postagem (403 "Apenas o autor pode alterar esta postagem"); a edição vale por 48 horas.
+- RN 3: criar, editar ou excluir uma resposta atualiza o contador do tópico e a data da última atividade. Os dois ficam
+  gravados no próprio tópico (`forum_topicos`), então a listagem não carrega as respostas.
+- A exclusão de resposta é lógica: ela deixa de contar, volta sem conteúdo (`removida: true`) e continua na árvore
+  para as respostas filhas não sumirem. Não é possível responder a uma resposta removida.
+- Toda resposta nova publica um `RespostaPublicada` pelo `ApplicationEventPublisher`, até o barramento da T04 existir.
+- Frontend: `/forum` (lista com filtros e paginação), `/forum/novo`, `/forum/{id}` (tópico com respostas em árvore)
+  e `/forum/{id}/editar`.
+- Cenários BDD em `f13_forum.feature`, com steps em `PassosForum`. Jogadores e jogos de apoio ficam em `DadosDoCenario`,
+  compartilhado entre as classes de steps; o step `o jogador "<nome>" autenticado` agora fica em `PassosComuns`.
+
+Pendências conhecidas da F-13 (algumas são escopo da F-14):
+
+- Moderadores e administradores ainda não têm poderes no fórum: encerrar, reabrir, ocultar e remover conteúdo de
+  outros usuários fica para a central de moderação (F-14), que pode reaproveitar os campos `removido` e `removida`.
+- A "formatação de texto" é só a preservação de quebras de linha; não há Markdown nem editor rico.
+- A listagem mostra o nome do jogo procurando no catálogo carregado pela tela; não há busca por título do tópico.
+
 ## Entregáveis
 
 | Artefato | Local |

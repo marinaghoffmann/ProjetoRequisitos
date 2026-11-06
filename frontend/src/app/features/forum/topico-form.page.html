@@ -1,0 +1,42 @@
+<main class="pagina-form">
+  <a class="voltar" [routerLink]="id ? ['/forum', id] : ['/forum']">← {{ id ? 'Voltar ao tópico' : 'Fórum' }}</a>
+  <h1>{{ id ? 'Editar tópico' : 'Novo tópico' }}</h1>
+  <p class="introducao">
+    {{ id ? 'Você pode editar o tópico até 48 horas depois de publicá-lo.' : 'Escolha um jogo do catálogo ou deixe em branco para um tópico geral.' }}
+  </p>
+
+  @if (!autenticacao.usuarioAtual()) {
+    <p class="mensagem-erro" role="alert">
+      Entre na sua conta para participar do fórum. <a routerLink="/login">Entrar</a>
+    </p>
+  } @else if (carregando()) {
+    <p>Carregando…</p>
+  } @else {
+    <form [formGroup]="formulario" (ngSubmit)="salvar()">
+      <label for="jogoId">Jogo</label>
+      <select id="jogoId" formControlName="jogoId">
+        <option value="">Tópico geral (sem jogo)</option>
+        @for (jogo of jogos(); track jogo.id) {
+          <option [value]="jogo.id">{{ jogo.titulo }}</option>
+        }
+      </select>
+
+      <label for="categoria">Categoria</label>
+      <input id="categoria" type="text" formControlName="categoria" placeholder="Se ficar vazio, usamos “Geral”" />
+
+      <label for="titulo">Título *</label>
+      <input id="titulo" type="text" formControlName="titulo" />
+
+      <label for="conteudo">Mensagem *</label>
+      <textarea id="conteudo" rows="8" formControlName="conteudo"></textarea>
+
+      @if (erro(); as mensagem) {
+        <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+      }
+
+      <button type="submit" [disabled]="formulario.invalid || salvando()">
+        {{ salvando() ? 'Salvando…' : id ? 'Salvar alterações' : 'Publicar tópico' }}
+      </button>
+    </form>
+  }
+</main>
