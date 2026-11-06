@@ -1,1 +1,228 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+// ===== Tokens (do protótipo Figma) =====
+:root {
+  --bg: #090b0f;
+  --surface: #11141a;
+  --surface-2: #171b22;
+  --surface-3: #1d222b;
+  --line: #252b35;
+  --line-soft: #1d222a;
+  --text: #f5f7fa;
+  --muted: #8e98a7;
+  --faint: #606a78;
+  --accent: #d9ff43;
+  --accent-deep: #b7db22;
+  --danger: #ff5c6c;
+  --orange: #ff7448;
+  --success: #5cff92;
+  --radius: 14px;
+  --shadow: 0 18px 60px rgba(0, 0, 0, 0.38);
+  --font-body: 'Manrope', system-ui, sans-serif;
+  --font-title: 'Space Grotesk', 'Manrope', sans-serif;
+  color-scheme: dark;
+}
+
+// ===== Base =====
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+}
+a { color: var(--accent); text-decoration: none; &:hover { text-decoration: underline; } }
+img { display: block; max-width: 100%; }
+h1, h2 { font-family: var(--font-title); letter-spacing: -0.03em; }
+h1 { margin: 1.25rem 0 0.4rem; font-size: clamp(1.8rem, 3.4vw, 2.75rem); line-height: 1.05; }
+small { color: var(--muted); font-size: 0.8rem; }
+code { padding: 0.1rem 0.4rem; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+// ===== Containers de página =====
+.pagina-listagem,
+.pagina-anuncio,
+.pagina-catalogo,
+.pagina-edicao,
+.inicio {
+  width: min(1160px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+}
+.pagina-anuncio, .pagina-catalogo, .pagina-edicao { max-width: 760px; }
+.inicio { max-width: 640px; padding-top: 4rem; }
+
+.cabecalho {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line-soft);
+  p { margin: 0; color: var(--muted); }
+}
+.acoes-cabecalho { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+.voltar, .pagina-edicao > a:first-child, .cartao-identidade .voltar {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  &:hover { color: var(--accent); text-decoration: none; }
+}
+.introducao { margin: 0 0 1.5rem; color: var(--muted); font-size: 0.85rem; }
+
+// ===== Botões =====
+button,
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #0a0d10;
+  font: 800 0.8rem var(--font-body);
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  &:hover { transform: translateY(-1px); filter: brightness(1.08); text-decoration: none; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; transform: none; filter: none; }
+}
+.botao--secundario, button.botao--secundario {
+  background: rgb(255 255 255 / 5%);
+  color: var(--text);
+  border: 1px solid rgb(255 255 255 / 14%);
+}
+.acao, button.remover {
+  min-height: auto;
+  padding: 0.4rem 0.75rem;
+  border-radius: 7px;
+  background: var(--surface-3);
+  color: var(--text);
+  font-size: 0.75rem;
+  &:hover { background: var(--surface-2); color: var(--accent); }
+}
+.acao--perigo, button.remover { background: rgb(255 92 108 / 12%); color: var(--danger); &:hover { background: rgb(255 92 108 / 22%); color: var(--danger); } }
+.acoes { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+
+// ===== Formulários =====
+form { display: grid; gap: 0.75rem; margin-top: 1.5rem; }
+label { display: grid; gap: 0.35rem; color: var(--muted); font-size: 0.8rem; font-weight: 600; }
+input, select, textarea {
+  width: 100%;
+  min-height: 2.6rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: 500 0.85rem var(--font-body);
+  &::placeholder { color: var(--faint); }
+  &:focus { border-color: var(--accent); }
+}
+textarea { resize: vertical; }
+input[type='file'] { padding: 0.45rem; &::file-selector-button { margin-right: 0.75rem; padding: 0.35rem 0.7rem; border: 0; border-radius: 6px; background: var(--surface-3); color: var(--text); cursor: pointer; } }
+fieldset { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin: 0; padding: 0.9rem 1rem; border: 1px solid var(--line); border-radius: 10px; }
+legend { padding: 0 0.4rem; color: var(--muted); font-size: 0.8rem; font-weight: 700; }
+.opcao { display: flex; align-items: center; gap: 0.5rem; color: var(--text); font-weight: 500; input { width: auto; min-height: auto; accent-color: var(--accent); } }
+.duas-colunas { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+form > button[type='submit'] { margin-top: 0.5rem; min-height: 2.75rem; }
+
+// ===== Mensagens e estados =====
+.mensagem-erro, .erro { padding: 0.75rem 1rem; border: 1px solid rgb(255 116 72 / 25%); border-radius: 9px; background: rgb(255 116 72 / 7%); color: #ffc0aa; }
+.mensagem-sucesso, .sucesso { padding: 0.75rem 1rem; border: 1px solid rgb(92 255 146 / 25%); border-radius: 9px; background: rgb(92 255 146 / 7%); color: var(--success); }
+.estado, .quantidade { color: var(--muted); }
+.estado { padding: 4rem 0; text-align: center; }
+.desenvolvedora-vinculada { margin: 0; color: var(--muted); strong { color: var(--text); } }
+
+// ===== Busca e filtros =====
+.busca { display: grid; gap: 0.4rem; max-width: 42rem; margin: 1.5rem 0; }
+.busca__linha { display: flex; gap: 0.5rem; button { flex: 0 0 auto; } }
+.filtros { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: 0.75rem; margin: 1.5rem 0; padding: 1.25rem; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--surface); }
+.filtros__botoes { display: flex; align-items: flex-end; gap: 0.5rem; }
+
+// ===== Grade e cards =====
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: 1.25rem; }
+.card {
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  &:hover { transform: translateY(-3px); border-color: #46505e; }
+  h2 { margin: 0; font-size: 1.05rem; line-height: 1.25; }
+}
+.card__capa, .card__sem-capa { display: block; width: 100%; height: 15rem; object-fit: cover; background: var(--surface-2); }
+.card__sem-capa { display: grid; place-items: center; color: var(--accent); font: 700 2rem var(--font-title); }
+.card__conteudo { display: flex; flex-direction: column; gap: 0.35rem; padding: 1rem; }
+.original, .resumo, .data, .detalhe { margin: 0; color: var(--muted); font-size: 0.8rem; }
+.original { font-style: italic; }
+.resumo { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; }
+.preco { margin: 0.25rem 0; font: 700 1.35rem var(--font-title); }
+.status {
+  align-self: flex-start;
+  margin: 0.25rem 0;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgb(217 255 67 / 10%);
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+.etiquetas { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0; }
+.etiqueta { padding: 0.2rem 0.55rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-2); color: #b9c1cc; font-size: 0.7rem; font-weight: 600; }
+.etiqueta--alerta { border-color: rgb(255 116 72 / 35%); background: rgb(255 116 72 / 10%); color: var(--orange); }
+
+// ===== Anúncio / cadastro de jogo / edição =====
+.fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr)); gap: 0.6rem; margin: 0; padding: 0; list-style: none; li { display: grid; gap: 0.4rem; } img { width: 100%; height: 6rem; border-radius: 8px; object-fit: cover; background: var(--surface-2); } }
+.secao-importacao {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: linear-gradient(125deg, #171c19, var(--surface));
+  h2 { margin: 0; font-size: 1.1rem; }
+  p { margin: 0; color: var(--muted); font-size: 0.85rem; }
+}
+
+// ===== Login / cadastro =====
+.cartao-identidade {
+  width: min(100% - 2rem, 28rem);
+  margin: 4rem auto;
+  padding: 2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  p { color: var(--muted); }
+  form button { margin-top: 0.6rem; min-height: 2.75rem; }
+  .rodape { margin: 1.5rem 0 0; font-size: 0.85rem; }
+}
+
+// ===== Início =====
+.inicio {
+  .conta { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; margin-bottom: 3rem; color: var(--muted); font-size: 0.8rem; button { min-height: 2rem; background: transparent; color: var(--muted); border: 1px solid var(--line); } }
+  h1 { font-size: clamp(2.6rem, 7vw, 4.5rem); letter-spacing: -0.06em; line-height: 0.95; }
+  > p { color: var(--muted); }
+  .api { display: inline-block; margin-top: 2rem; padding: 0.3rem 0.7rem; border: 1px solid var(--line); border-radius: 999px; font: 600 0.75rem monospace; }
+  .api--ok { color: var(--success); }
+  .api--erro { color: var(--danger); }
+}
+
+@media (max-width: 42rem) {
+  .cabecalho { flex-direction: column; align-items: flex-start; }
+  .duas-colunas { grid-template-columns: 1fr; }
+  .card__capa, .card__sem-capa { height: 12rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

@@ -18,6 +18,7 @@ export class CatalogoPage {
   protected readonly autenticacao = inject(AutenticacaoService);
 
   protected readonly jogos = signal<Jogo[]>([]);
+  protected readonly destaque = signal<Jogo | null>(null);
   protected readonly carregando = signal(true);
   protected readonly erro = signal<string | null>(null);
   protected busca = '';
@@ -57,6 +58,10 @@ export class CatalogoPage {
     this.catalogo.listarJogos(titulo).subscribe({
       next: (jogos) => {
         this.jogos.set(jogos);
+        // O destaque só aparece na listagem completa: o primeiro jogo ativo com capa válida.
+        this.destaque.set(
+          titulo ? null : (jogos.find((j) => j.status === 'ATIVO' && this.imagemUrl(j.capaUrl ?? '')) ?? null),
+        );
         this.carregando.set(false);
       },
       error: (e: ErroApi) => {
