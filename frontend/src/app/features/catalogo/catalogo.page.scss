@@ -1,1 +1,9 @@
 // Estilos compartilhados ficam em src/styles.scss (tema do protótipo).
+
+.card__titulo {
+  color: var(--text);
+
+  &:hover {
+    color: var(--accent);
+  }
+}
