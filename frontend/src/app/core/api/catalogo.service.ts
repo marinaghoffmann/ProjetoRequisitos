@@ -46,6 +46,9 @@ export interface Jogo {
   status: string;
 }
 
+export interface Captura { miniatura: string; completa: string; }
+
+
 @Injectable({ providedIn: 'root' })
 export class CatalogoService {
   private readonly http = inject(HttpClient);
@@ -96,6 +99,10 @@ export class CatalogoService {
     return forkJoin(imagens.map((imagem) => this.enviarCapa(imagem))).pipe(
       map((respostas) => respostas.map((resposta) => resposta.caminho)),
     );
+  }
+
+  capturas(id: string) {
+    return this.http.get<Captura[]>(`/api/catalogo/jogos/${id}/capturas`);
   }
 
   listarJogos(titulo?: string): Observable<Jogo[]> {
