@@ -1,0 +1,82 @@
+// Botões, campos, filtros e etiquetas vêm do tema global (styles.scss).
+.pagina-forum {
+  width: min(60rem, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+}
+
+.topicos {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.topico {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-color: #46505e;
+  }
+}
+
+.topico__titulo {
+  color: var(--text);
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.topico__numeros {
+  display: grid;
+  justify-items: end;
+  align-content: start;
+  gap: 0.15rem;
+  min-width: 9rem;
+  color: var(--muted);
+  text-align: right;
+}
+
+.topico__numeros strong {
+  color: var(--accent);
+  font-family: var(--font-title);
+  font-size: 1.4rem;
+}
+
+.etiquetas {
+  margin: 0.5rem 0;
+}
+
+.etiqueta--ok {
+  border-color: rgb(92 255 146 / 35%);
+  background: rgb(92 255 146 / 10%);
+  color: var(--success);
+}
+
+.paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  color: var(--muted);
+}
+
+@media (max-width: 42rem) {
+  .topico {
+    flex-direction: column;
+  }
+
+  .topico__numeros {
+    justify-items: start;
+    text-align: left;
+  }
+}
