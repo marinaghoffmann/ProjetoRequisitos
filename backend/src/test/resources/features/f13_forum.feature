@@ -1,5 +1,4 @@
 # language: pt
-@pendente
 Funcionalidade: F-13 Gerenciamento completo do fórum de discussões
   Como jogador, quero criar tópicos e responder discussões, editando ou removendo o que eu
   publiquei.
