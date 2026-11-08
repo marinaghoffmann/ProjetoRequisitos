@@ -91,6 +91,39 @@ Pendências conhecidas da F-18:
   um anúncio continuam no disco.
 - `GET /api/marketplace/anuncios/{id}` devolve o anúncio em qualquer status, inclusive cancelado.
 
+## Estatísticas dos jogos (F-17)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/catalogo/jogos/{id}/estatisticas` | Ficha de estatísticas consolidadas do jogo | qualquer um |
+
+- RN 1: a ficha é refeita por inteiro a cada evento, sempre a partir das fontes. O recálculo roda depois do commit da
+  ação, em transação própria, para enxergar os dados gravados e não desfazer a ação do usuário se falhar.
+- RN 2: as médias são gravadas com duas casas decimais (`estatisticas_jogo`), com arredondamento `HALF_UP`.
+- RN 3: com menos de 3 reviews ativas, a API devolve `elegivel: false` e só o total de reviews e o mínimo exigido. Os
+  demais indicadores vão nulos.
+- Frontend: `/catalogo/{id}` (página do jogo com a ficha), acessada pelo título do jogo no catálogo.
+- Cenários BDD em `f17_estatisticas.feature`, com steps em `PassosEstatisticas`.
+
+Como ligar as funcionalidades que ainda não existem:
+
+| Funcionalidade | Implementar (bean Spring) | Publicar ao criar, editar ou excluir |
+|---|---|---|
+| F-02 Reviews | `FonteDeReviews` | `MetricasDoJogoAlteradas(jogoId)` |
+| F-11 Conclusões | `FonteDeConclusoes` | `MetricasDoJogoAlteradas(jogoId)` |
+| F-06 Wishlist | `FonteDeWishlists` | `MetricasDoJogoAlteradas(jogoId)` |
+
+Ao ligar uma fonte real, remova a porta correspondente de `MetricasDeApoioDosCenarios` (test) e faça os steps usarem a
+funcionalidade de verdade: as duas implementações juntas falham na subida dos testes. O marketplace já está ligado: o
+volume de negociações conta os anúncios `VENDIDO` e é recalculado pelo `AnuncioStatusAlterado`, que a F-20 publica.
+
+Pendências conhecidas da F-17:
+
+- Até F-02, F-06 e F-11 chegarem, nenhum jogo atinge 3 reviews em produção, então a página sempre mostra o aviso de
+  estatísticas indisponíveis.
+- Os cenários de review, conclusão e wishlist usam dados de apoio (`MetricasDeApoioDosCenarios`), não as funcionalidades reais.
+- Se o recálculo falhar depois do commit, o erro só vai para o log e a ficha fica desatualizada até o próximo evento.
+
 ## Fórum (F-13)
 
 | Método | Rota | Objetivo | Quem pode |
