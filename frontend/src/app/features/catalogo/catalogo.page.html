@@ -35,7 +35,7 @@
             <div class="card__sem-capa" aria-label="Jogo sem capa">GT</div>
           }
           <div class="card__conteudo">
-            <h2><a class="card__titulo" [routerLink]="['/catalogo', jogo.id]">{{ jogo.titulo }}</a></h2>
+            <h2><a class="link-card card__titulo" [routerLink]="['/catalogo', jogo.id]">{{ jogo.titulo }}</a></h2>
             @if (jogo.tituloOriginal && jogo.tituloOriginal !== jogo.titulo) {
               <p class="original">{{ jogo.tituloOriginal }}</p>
             }

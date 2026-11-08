@@ -1,5 +1,16 @@
 // Estilos compartilhados ficam em src/styles.scss (tema do protótipo).
 
+.card { position: relative; }
+
+.link-card {
+  color: inherit;
+  text-decoration: none;
+
+  &::after { content: ''; position: absolute; inset: 0; }
+}
+
+.card .acoes { position: relative; z-index: 1; }
+
 .card__titulo {
   color: var(--text);
 

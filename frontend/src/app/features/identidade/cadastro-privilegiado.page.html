@@ -1,0 +1,34 @@
+<main class="cartao-identidade">
+  <a class="voltar" routerLink="/">← Game Tracker</a>
+  <h1>Criar conta privilegiada</h1>
+  <p>Cria administradores e desenvolvedores.</p>
+
+  <form [formGroup]="formulario" (ngSubmit)="cadastrar()">
+    <label for="nome">Nome</label>
+    <input id="nome" type="text" formControlName="nome" />
+
+    <label for="email">Email</label>
+    <input id="email" type="email" formControlName="email" />
+
+    <label for="senha">Senha</label>
+    <input id="senha" type="password" autocomplete="new-password" formControlName="senha" />
+    <small>Use pelo menos 8 caracteres.</small>
+
+    <label for="papel">Papel</label>
+    <select id="papel" formControlName="papel">
+      <option value="DESENVOLVEDOR">Desenvolvedor</option>
+      <option value="ADMINISTRADOR">Administrador</option>
+    </select>
+
+    @if (erro(); as mensagem) {
+      <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+    }
+    @if (sucesso(); as mensagem) {
+      <p role="status">{{ mensagem }}</p>
+    }
+
+    <button type="submit" [disabled]="formulario.invalid || carregando()">
+      {{ carregando() ? 'Criando…' : 'Criar conta' }}
+    </button>
+  </form>
+</main>
