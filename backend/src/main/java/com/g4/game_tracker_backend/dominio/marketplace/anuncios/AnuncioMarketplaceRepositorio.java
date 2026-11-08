@@ -9,4 +9,5 @@ public interface AnuncioMarketplaceRepositorio {
     Optional<AnuncioMarketplace> buscarPorId(UUID id);
     List<AnuncioMarketplace> buscarPublicos(FiltroAnuncios filtro);
     List<AnuncioMarketplace> listarPorVendedor(UUID vendedorId);
+    int contarPorJogoEStatus(UUID jogoId, StatusAnuncio status);
 }

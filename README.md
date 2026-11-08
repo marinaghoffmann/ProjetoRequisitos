@@ -91,6 +91,72 @@ Pendências conhecidas da F-18:
   um anúncio continuam no disco.
 - `GET /api/marketplace/anuncios/{id}` devolve o anúncio em qualquer status, inclusive cancelado.
 
+## Estatísticas dos jogos (F-17)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/catalogo/jogos/{id}/estatisticas` | Ficha de estatísticas consolidadas do jogo | qualquer um |
+
+- RN 1: a ficha é refeita por inteiro a cada evento, sempre a partir das fontes. O recálculo roda depois do commit da
+  ação, em transação própria, para enxergar os dados gravados e não desfazer a ação do usuário se falhar.
+- RN 2: as médias são gravadas com duas casas decimais (`estatisticas_jogo`), com arredondamento `HALF_UP`.
+- RN 3: com menos de 3 reviews ativas, a API devolve `elegivel: false` e só o total de reviews e o mínimo exigido. Os
+  demais indicadores vão nulos.
+- Frontend: `/catalogo/{id}` (página do jogo com a ficha), acessada pelo título do jogo no catálogo.
+- Cenários BDD em `f17_estatisticas.feature`, com steps em `PassosEstatisticas`.
+
+Como ligar as funcionalidades que ainda não existem:
+
+| Funcionalidade | Implementar (bean Spring) | Publicar ao criar, editar ou excluir |
+|---|---|---|
+| F-02 Reviews | `FonteDeReviews` | `MetricasDoJogoAlteradas(jogoId)` |
+| F-11 Conclusões | `FonteDeConclusoes` | `MetricasDoJogoAlteradas(jogoId)` |
+| F-06 Wishlist | `FonteDeWishlists` | `MetricasDoJogoAlteradas(jogoId)` |
+
+Ao ligar uma fonte real, remova a porta correspondente de `MetricasDeApoioDosCenarios` (test) e faça os steps usarem a
+funcionalidade de verdade: as duas implementações juntas falham na subida dos testes. O marketplace já está ligado: o
+volume de negociações conta os anúncios `VENDIDO` e é recalculado pelo `AnuncioStatusAlterado`, que a F-20 publica.
+
+Pendências conhecidas da F-17:
+
+- Até F-02, F-06 e F-11 chegarem, nenhum jogo atinge 3 reviews em produção, então a página sempre mostra o aviso de
+  estatísticas indisponíveis.
+- Os cenários de review, conclusão e wishlist usam dados de apoio (`MetricasDeApoioDosCenarios`), não as funcionalidades reais.
+- Se o recálculo falhar depois do commit, o erro só vai para o log e a ficha fica desatualizada até o próximo evento.
+
+## Fórum (F-13)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/forum/topicos` | Tópicos paginados, do mais recentemente ativo para o menos (`jogoId`, `categoria`, `pagina` a partir de 1, `tamanho` até 50) | qualquer um |
+| `GET` | `/api/forum/topicos/{id}` | Tópico com todas as respostas (o encadeamento vem em `respostaPaiId`) | qualquer um |
+| `POST` | `/api/forum/topicos` | Criar tópico geral (`jogoId` nulo) ou de um jogo `ATIVO` do catálogo; nasce `ABERTO` | autenticado |
+| `PUT` | `/api/forum/topicos/{id}` | Editar título, mensagem e categoria (até 48 horas após a publicação) | autor |
+| `PATCH` | `/api/forum/topicos/{id}/status` | Marcar como `RESOLVIDO`, reabrir (`ABERTO`) ou encerrar (`ENCERRADO`) com `{ "status": "..." }` | autor |
+| `DELETE` | `/api/forum/topicos/{id}` | Excluir o tópico (exclusão lógica: ele some das consultas) | autor |
+| `POST` | `/api/forum/topicos/{id}/respostas` | Responder ao tópico, ou a outra resposta com `respostaPaiId` | autenticado |
+| `PUT` | `/api/forum/topicos/{id}/respostas/{respostaId}` | Editar a resposta (até 48 horas após a publicação) | autor |
+| `DELETE` | `/api/forum/topicos/{id}/respostas/{respostaId}` | Excluir a resposta | autor |
+
+- RN 1: tópico `ENCERRADO` não aceita novas respostas, edições nem exclusões, e não pode ser reaberto pelo autor.
+- RN 2: só o autor edita ou exclui a sua postagem (403 "Apenas o autor pode alterar esta postagem"); a edição vale por 48 horas.
+- RN 3: criar, editar ou excluir uma resposta atualiza o contador do tópico e a data da última atividade. Os dois ficam
+  gravados no próprio tópico (`forum_topicos`), então a listagem não carrega as respostas.
+- A exclusão de resposta é lógica: ela deixa de contar, volta sem conteúdo (`removida: true`) e continua na árvore
+  para as respostas filhas não sumirem. Não é possível responder a uma resposta removida.
+- Toda resposta nova publica um `RespostaPublicada` pelo `ApplicationEventPublisher`, até o barramento da T04 existir.
+- Frontend: `/forum` (lista com filtros e paginação), `/forum/novo`, `/forum/{id}` (tópico com respostas em árvore)
+  e `/forum/{id}/editar`.
+- Cenários BDD em `f13_forum.feature`, com steps em `PassosForum`. Jogadores e jogos de apoio ficam em `DadosDoCenario`,
+  compartilhado entre as classes de steps; o step `o jogador "<nome>" autenticado` agora fica em `PassosComuns`.
+
+Pendências conhecidas da F-13 (algumas são escopo da F-14):
+
+- Moderadores e administradores ainda não têm poderes no fórum: encerrar, reabrir, ocultar e remover conteúdo de
+  outros usuários fica para a central de moderação (F-14), que pode reaproveitar os campos `removido` e `removida`.
+- A "formatação de texto" é só a preservação de quebras de linha; não há Markdown nem editor rico.
+- A listagem mostra o nome do jogo procurando no catálogo carregado pela tela; não há busca por título do tópico.
+
 ## Entregáveis
 
 | Artefato | Local |
