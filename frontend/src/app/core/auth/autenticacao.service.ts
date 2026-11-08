@@ -47,6 +47,10 @@ export class AutenticacaoService {
     return this.http.post<UsuarioAutenticado>('/api/usuarios', dados);
   }
 
+  registrarPrivilegiado(dados: CadastroUsuario & { papel: Papel }): Observable<UsuarioAutenticado> {
+    return this.http.post<UsuarioAutenticado>('/api/admin/usuarios', dados);
+  }
+
   entrar(email: string, senha: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>('/api/auth/login', { email, senha }).pipe(
       tap((resposta) => {

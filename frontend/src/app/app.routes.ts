@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { papelGuard } from './core/auth/papel.guard';
 
 /**
  * Cada contexto do domínio ganha sua pasta em features/ e suas rotas carregadas sob demanda:
@@ -13,4 +14,10 @@ export const routes: Routes = [
   { path: 'catalogo', loadComponent: () => import('./features/catalogo/catalogo.page').then((m) => m.CatalogoPage) },
   { path: 'marketplace', loadChildren: () => import('./features/marketplace/marketplace.routes') },
   { path: '**', redirectTo: 'catalogo' },
+  {
+    path: 'admin/usuarios/novo',
+    canActivate: [papelGuard('ADMINISTRADOR')],
+    loadComponent: () =>
+      import('./features/identidade/cadastro-privilegiado.page').then((m) => m.CadastroPrivilegiadoPage),
+  }
 ];
