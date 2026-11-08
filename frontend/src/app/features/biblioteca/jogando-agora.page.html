@@ -1,0 +1,30 @@
+<main class="pagina">
+  <h1>Jogando agora</h1>
+  <p class="contagem">{{ jogos().length }} de {{ limite }} jogos</p>
+
+  @if (erro(); as m) { <p class="erro" role="alert">{{ m }}</p> }
+
+  @if (!jogos().length) {
+  <p>Você não marcou nenhum jogo. <a routerLink="/catalogo">Ir ao catálogo</a></p>
+  } @else {
+  <section class="lista">
+    @for (j of jogos(); track j.jogoId) {
+    <article class="item">
+      @if (j.capaUrl) { <img [src]="j.capaUrl" [alt]="'Capa de ' + j.titulo" /> }
+      <div class="dados">
+        <a [routerLink]="['/catalogo', j.jogoId]">{{ j.titulo }}</a>
+        <small>Desde {{ j.dataInicio | date: 'dd/MM/yyyy' }}</small>
+        <div class="controles">
+          <select (change)="alterar(j.jogoId, $any($event.target).value)">
+            @for (p of progressos; track p) {
+            <option [value]="p" [selected]="p === j.progresso">{{ rotulos[p] }}</option>
+            }
+          </select>
+          <button type="button" (click)="remover(j.jogoId)">Concluí / remover</button>
+        </div>
+      </div>
+    </article>
+    }
+  </section>
+  }
+</main>

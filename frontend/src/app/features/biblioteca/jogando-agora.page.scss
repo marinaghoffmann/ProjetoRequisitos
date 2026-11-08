@@ -1,0 +1,27 @@
+:host { display: block; padding: 24px; max-width: 900px; margin: 0 auto; }
+
+.contagem { opacity: .7; font-size: 13px; }
+.erro { color: #ff5c6c; }
+
+.lista { display: grid; gap: 12px; margin-top: 16px; }
+
+.item {
+  display: flex; gap: 16px; padding: 12px;
+  background: #14141a; border: 1px solid #262630; border-radius: 12px;
+
+  img { width: 160px; aspect-ratio: 460 / 215; object-fit: cover; border-radius: 8px; }
+}
+
+.dados {
+  display: grid; align-content: center; gap: 6px;
+
+  a { color: inherit; font-weight: 600; font-size: 18px; text-decoration: none; }
+  small { opacity: .7; }
+}
+
+.controles {
+  display: flex; gap: 8px; flex-wrap: wrap;
+
+  select, button { padding: 6px 10px; border-radius: 8px; border: 1px solid #333; background: #1a1a22; color: inherit; }
+  button { cursor: pointer; &:hover { border-color: #d4ff3a; } }
+}
