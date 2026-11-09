@@ -92,6 +92,7 @@
               }
             </p>
             <p class="detalhe">{{ anuncio.localidade }}</p>
+            <a class="detalhe" [routerLink]="['/marketplace/vendedores', anuncio.vendedorId]">Ver reputação do vendedor</a>
           </div>
         </article>
       }

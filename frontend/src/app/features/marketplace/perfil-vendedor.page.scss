@@ -1,0 +1,102 @@
+// Etiquetas, mensagens e o link de voltar vêm do tema global (styles.scss).
+.pagina-vendedor {
+  width: min(48rem, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+}
+
+.resumo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.resumo__avatar {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #0b0d10;
+  font-family: var(--font-title);
+  font-weight: 800;
+}
+
+.numeros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.numero {
+  display: grid;
+  gap: 0.2rem;
+  padding: 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+
+  strong {
+    color: var(--accent);
+    font-family: var(--font-title);
+    font-size: 1.8rem;
+  }
+}
+
+.estrelas {
+  color: var(--line-soft);
+  letter-spacing: 0.1rem;
+
+  .cheia {
+    color: var(--accent);
+  }
+}
+
+.avaliacoes {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.avaliacao {
+  padding: 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.avaliacao__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--muted);
+}
+
+.detalhe {
+  margin: 0.35rem 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.5rem 0;
+}
+
+.avaliacao__comentario {
+  margin: 0.5rem 0 0;
+  color: var(--text);
+  white-space: pre-line;
+}
