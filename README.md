@@ -124,6 +124,45 @@ Pendências conhecidas da F-17:
 - Os cenários de review, conclusão e wishlist usam dados de apoio (`MetricasDeApoioDosCenarios`), não as funcionalidades reais.
 - Se o recálculo falhar depois do commit, o erro só vai para o log e a ficha fica desatualizada até o próximo evento.
 
+## Timeline automática do journal (F-16)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/journal/timeline` | Timeline do jogador, com entradas manuais e automáticas, da sessão mais recente para a mais antiga (`pagina` a partir de 1, `tamanho` até 50) | autenticado (só as próprias entradas) |
+
+- A entrada do journal é uma só (`EntradaDeJournal`, tabela `journal_entradas`), com `tipoOrigem` `MANUAL` ou `AUTOMATICO`,
+  como no CML. A F-15 acrescenta tags, anexos e o CRUD das manuais sobre essa base.
+- RN 1: o `ObservadorEventosPlataforma` usa `@EventListener` e roda na transação de quem publicou o evento. Se a ação
+  falhar, a entrada sofre rollback junto. `GerarEntradaAutomatica` usa `Propagation.MANDATORY`: publicar o evento fora
+  de uma transação dá erro na hora, em vez de gravar uma entrada solta.
+- RN 2: excluir a ação de origem remove a entrada automática. O vínculo é `(tipo_evento, origem_id)`, com restrição
+  única, e o mesmo evento entregue duas vezes não duplica a entrada.
+- RN 3: `EntradaDeJournal.editar(...)` recusa entradas automáticas com "Entradas automáticas não podem ser editadas".
+- Frontend: `/timeline` ("Minha timeline" no menu, para quem está logado).
+- Cenários BDD em `f16_timeline_automatica.feature`, com steps em `PassosTimelineAutomatica`.
+
+Como ligar as funcionalidades que ainda não existem (publicar com o `ApplicationEventPublisher`, **dentro** do método
+`@Transactional` do caso de uso, depois de gravar):
+
+| Funcionalidade | Ao criar | Ao excluir |
+|---|---|---|
+| F-02 Reviews | `ReviewPublicada(autorId, jogoId, reviewId, publicadaEm)` | `ReviewExcluida(reviewId)` |
+| F-11 Conclusões | `JogoZerado(jogadorId, jogoId, registroId, zeradoEm)` | `ConclusaoExcluida(registroId)` |
+| F-20 Pedidos | `CompraConcluida(compradorId, jogoId, pedidoId, concluidaEm)` ao confirmar o recebimento | — |
+
+Os eventos ficam em `dominio/journal/eventos`. Ao ligar uma funcionalidade real, troque nos steps da F-16 a ação
+correspondente de `AcoesDeApoioDaTimeline` (test) pelo caso de uso de verdade e apague-a de lá.
+
+Para a F-15: a edição de entradas precisa passar por `EntradaDeJournal.editar(...)`, que já aplica a RN 1 da F-15
+(só o dono) e a RN 3 da F-16. A exclusão de uma entrada automática pelo jogador não está definida nas histórias; combine
+antes de liberar.
+
+Pendências conhecidas da F-16:
+
+- Até F-02, F-11 e F-20 chegarem, nenhuma entrada automática é gerada em produção.
+- Editar uma review não atualiza o texto da entrada, que só cita o jogo.
+- Não há visão pública da timeline; o perfil público é da F-06/F-08.
+
 ## Fórum (F-13)
 
 | Método | Rota | Objetivo | Quem pode |
