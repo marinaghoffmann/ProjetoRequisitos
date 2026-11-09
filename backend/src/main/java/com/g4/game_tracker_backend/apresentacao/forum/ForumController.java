@@ -22,6 +22,7 @@ import com.g4.game_tracker_backend.aplicacao.forum.ConsultarForum;
 import com.g4.game_tracker_backend.aplicacao.forum.CriarTopico;
 import com.g4.game_tracker_backend.aplicacao.forum.EditarTopico;
 import com.g4.game_tracker_backend.aplicacao.forum.GerenciarRespostas;
+import com.g4.game_tracker_backend.apresentacao.compartilhado.PaginaResponse;
 import com.g4.game_tracker_backend.dominio.compartilhado.Pagina;
 import com.g4.game_tracker_backend.dominio.forum.FiltroTopicos;
 import com.g4.game_tracker_backend.dominio.forum.ResumoTopico;
