@@ -21,5 +21,9 @@ export const routes: Routes = [
     canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
     loadComponent: () => import('./features/biblioteca/jogando-agora.page').then((m) => m.JogandoAgoraPage),
   },
+  { path: 'timeline',
+    canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
+    loadComponent: () => import('./features/journal/timeline.page').then((m) => m.TimelinePage),
+  },
   { path: '**', redirectTo: 'catalogo' },
 ];

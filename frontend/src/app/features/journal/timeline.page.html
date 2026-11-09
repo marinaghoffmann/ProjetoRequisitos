@@ -1,0 +1,61 @@
+<main class="pagina-timeline">
+  <header class="cabecalho">
+    <div>
+      <a class="voltar" routerLink="/">← Game Tracker</a>
+      <h1>Minha timeline</h1>
+      <p>Suas anotações e o que você fez na plataforma, em ordem cronológica.</p>
+    </div>
+  </header>
+
+  @if (carregando()) {
+    <p class="estado">Carregando a timeline…</p>
+  } @else if (erro(); as mensagem) {
+    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+  } @else if (pagina(); as resultado) {
+    @if (!resultado.itens.length) {
+      <p class="estado">
+        Sua timeline está vazia. Publicar uma review, registrar um jogo zerado ou concluir uma compra no
+        marketplace gera uma entrada aqui automaticamente.
+      </p>
+    } @else {
+      <ol class="linha" aria-label="Entradas da timeline">
+        @for (entrada of resultado.itens; track entrada.id) {
+          <li class="entrada" [class.entrada--automatica]="entrada.tipoOrigem === 'AUTOMATICO'">
+            <span class="entrada__marco" aria-hidden="true"></span>
+            <div class="entrada__corpo">
+              <p class="etiquetas">
+                <time class="entrada__data" [attr.datetime]="entrada.dataSessao">
+                  {{ entrada.dataSessao | date: 'dd/MM/yyyy HH:mm' }}
+                </time>
+                @if (entrada.tipoEvento; as evento) {
+                  <span class="etiqueta etiqueta--sistema">⚙ {{ eventos[evento] }}</span>
+                } @else {
+                  <span class="etiqueta">✎ Anotação</span>
+                }
+                @if (entrada.contemSpoiler) {
+                  <span class="etiqueta etiqueta--alerta">Spoiler</span>
+                }
+              </p>
+              <p class="entrada__texto">{{ entrada.texto }}</p>
+              @if (entrada.jogoId) {
+                <a class="entrada__jogo" [routerLink]="['/catalogo', entrada.jogoId]">
+                  🎮 {{ entrada.jogoTitulo ?? 'Ver jogo' }}
+                </a>
+              }
+            </div>
+          </li>
+        }
+      </ol>
+
+      @if (resultado.totalPaginas > 1) {
+        <nav class="paginacao" aria-label="Paginação">
+          <button class="botao--secundario" type="button" [disabled]="resultado.pagina <= 1"
+            (click)="carregar(resultado.pagina - 1)">← Mais recentes</button>
+          <span>Página {{ resultado.pagina }} de {{ resultado.totalPaginas }}</span>
+          <button class="botao--secundario" type="button" [disabled]="resultado.pagina >= resultado.totalPaginas"
+            (click)="carregar(resultado.pagina + 1)">Mais antigas →</button>
+        </nav>
+      }
+    }
+  }
+</main>
