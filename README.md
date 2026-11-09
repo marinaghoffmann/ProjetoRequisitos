@@ -91,6 +91,36 @@ Pendências conhecidas da F-18:
   um anúncio continuam no disco.
 - `GET /api/marketplace/anuncios/{id}` devolve o anúncio em qualquer status, inclusive cancelado.
 
+## Reputação no marketplace (F-21)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `POST` | `/api/marketplace/pedidos/{pedidoId}/avaliacoes` | Avaliar a outra parte do pedido com `{ "estrelas": 1-5, "tags": [...], "comentario": "..." }` | comprador ou vendedor do pedido |
+| `GET` | `/api/marketplace/usuarios/{usuarioId}/reputacao` | Perfil de vendedor: nota média, totais e avaliações recebidas (da mais recente para a mais antiga) | qualquer um |
+
+- Tags: `ENVIO_RAPIDO`, `PRODUTO_COMO_DESCRITO`, `BOM_COMUNICADOR` e `PAGAMENTO_RAPIDO`. O comentário é opcional (até 1000 caracteres).
+- RN 1: só para pedido concluído ("Só é possível avaliar pedidos concluídos"), e só pelas duas partes. O avaliado é a
+  outra parte do pedido, e não um campo da requisição.
+- RN 2: uma avaliação por parte e pedido ("Você já avaliou este pedido"), com restrição única
+  `(pedido_id, avaliador_id)`, em até 15 dias após a confirmação da entrega ("O prazo de 15 dias para avaliar terminou").
+- RN 3: a reputação (`marketplace_reputacoes`) é recalculada na mesma transação, com a linha travada. A média vem da soma
+  das estrelas (duas casas, `HALF_UP`), para não acumular erro de arredondamento. Cada avaliação soma 1 negociação bem-sucedida.
+- Frontend: `/marketplace/vendedores/{id}` (perfil de vendedor), acessado por "Ver reputação do vendedor" no card do
+  anúncio. `ReputacaoService.avaliar(...)` já está pronto para a tela do pedido.
+- Cenários BDD em `f21_reputacao.feature`, com steps em `PassosReputacao`.
+
+Como ligar a F-20 (pedidos): implemente `FonteDePedidos` como bean Spring, devolvendo
+`PedidoAvaliavel(pedidoId, compradorId, vendedorId, concluido, entregaConfirmadaEm)`. `entregaConfirmadaEm` é a data em
+que o comprador confirmou o recebimento (ou em que a tolerância de 7 dias expirou), e é o início do prazo de 15 dias.
+Depois, apague `PedidosDeApoioDosCenarios` (test) e faça os steps criarem pedidos reais: as duas implementações juntas
+falham na subida dos testes. Na tela do pedido concluído, chame `ReputacaoService.avaliar(...)`.
+
+Pendências conhecidas da F-21:
+
+- Até a F-20 chegar, todo `POST` de avaliação responde 404 "Pedido não encontrado".
+- Não há como editar nem excluir uma avaliação (as histórias não pedem).
+- O perfil lista todas as avaliações de uma vez, sem paginação.
+
 ## Estatísticas dos jogos (F-17)
 
 | Método | Rota | Objetivo | Quem pode |
@@ -123,36 +153,6 @@ Pendências conhecidas da F-17:
   estatísticas indisponíveis.
 - Os cenários de review, conclusão e wishlist usam dados de apoio (`MetricasDeApoioDosCenarios`), não as funcionalidades reais.
 - Se o recálculo falhar depois do commit, o erro só vai para o log e a ficha fica desatualizada até o próximo evento.
-
-## Reputação no marketplace (F-21)
-
-| Método | Rota | Objetivo | Quem pode |
-|---|---|---|---|
-| `POST` | `/api/marketplace/pedidos/{pedidoId}/avaliacoes` | Avaliar a outra parte do pedido com `{ "estrelas": 1-5, "tags": [...], "comentario": "..." }` | comprador ou vendedor do pedido |
-| `GET` | `/api/marketplace/usuarios/{usuarioId}/reputacao` | Perfil de vendedor: nota média, totais e avaliações recebidas (da mais recente para a mais antiga) | qualquer um |
-
-- Tags: `ENVIO_RAPIDO`, `PRODUTO_COMO_DESCRITO`, `BOM_COMUNICADOR` e `PAGAMENTO_RAPIDO`. O comentário é opcional (até 1000 caracteres).
-- RN 1: só para pedido concluído ("Só é possível avaliar pedidos concluídos"), e só pelas duas partes. O avaliado é a
-  outra parte do pedido, e não um campo da requisição.
-- RN 2: uma avaliação por parte e pedido ("Você já avaliou este pedido"), com restrição única
-  `(pedido_id, avaliador_id)`, em até 15 dias após a confirmação da entrega ("O prazo de 15 dias para avaliar terminou").
-- RN 3: a reputação (`marketplace_reputacoes`) é recalculada na mesma transação, com a linha travada. A média vem da soma
-  das estrelas (duas casas, `HALF_UP`), para não acumular erro de arredondamento. Cada avaliação soma 1 negociação bem-sucedida.
-- Frontend: `/marketplace/vendedores/{id}` (perfil de vendedor), acessado por "Ver reputação do vendedor" no card do
-  anúncio. `ReputacaoService.avaliar(...)` já está pronto para a tela do pedido.
-- Cenários BDD em `f21_reputacao.feature`, com steps em `PassosReputacao`.
-
-Como ligar a F-20 (pedidos): implemente `FonteDePedidos` como bean Spring, devolvendo
-`PedidoAvaliavel(pedidoId, compradorId, vendedorId, concluido, entregaConfirmadaEm)`. `entregaConfirmadaEm` é a data em
-que o comprador confirmou o recebimento (ou em que a tolerância de 7 dias expirou), e é o início do prazo de 15 dias.
-Depois, apague `PedidosDeApoioDosCenarios` (test) e faça os steps criarem pedidos reais: as duas implementações juntas
-falham na subida dos testes. Na tela do pedido concluído, chame `ReputacaoService.avaliar(...)`.
-
-Pendências conhecidas da F-21:
-
-- Até a F-20 chegar, todo `POST` de avaliação responde 404 "Pedido não encontrado".
-- Não há como editar nem excluir uma avaliação (as histórias não pedem).
-- O perfil lista todas as avaliações de uma vez, sem paginação.
 
 ## Fórum (F-13)
 
