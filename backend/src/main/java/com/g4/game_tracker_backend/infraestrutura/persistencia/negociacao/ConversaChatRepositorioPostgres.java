@@ -6,11 +6,17 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.g4.game_tracker_backend.dominio.marketplace.negociacao.ConversaChat;
 import com.g4.game_tracker_backend.dominio.marketplace.negociacao.ConversaChatRepositorio;
 
+/**
+ * As coleções da conversa são carregadas sob demanda na conversão para o domínio; por isso cada método roda
+ * numa transação (a do caso de uso, quando já existe uma).
+ */
 @Repository
+@Transactional
 public class ConversaChatRepositorioPostgres implements ConversaChatRepositorio {
 
     private final ConversaChatSpringDataRepository springData;
