@@ -1,0 +1,72 @@
+<main class="pagina-vendedor">
+  <a class="voltar" routerLink="/marketplace">← Anúncios</a>
+
+  @if (erro(); as mensagem) {
+    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+  } @else if (perfil(); as p) {
+    <header class="resumo">
+      <span class="resumo__avatar" aria-hidden="true">{{ p.nome.slice(0, 2).toUpperCase() }}</span>
+      <div>
+        <h1>{{ p.nome }}</h1>
+        <p class="detalhe">Perfil de vendedor no marketplace</p>
+      </div>
+    </header>
+
+    <section class="numeros" aria-label="Reputação">
+      <div class="numero">
+        <strong>{{ p.notaMedia === null ? '—' : (p.notaMedia | number: '1.2-2') }}</strong>
+        <span>nota média</span>
+        @if (p.notaMedia !== null) {
+          <span class="estrelas" [attr.aria-label]="p.notaMedia + ' de 5 estrelas'">
+            @for (n of escala; track n) {
+              <span [class.cheia]="n <= p.notaMedia + 0.5">★</span>
+            }
+          </span>
+        }
+      </div>
+      <div class="numero">
+        <strong>{{ p.totalAvaliacoes }}</strong>
+        <span>avaliação(ões)</span>
+      </div>
+      <div class="numero">
+        <strong>{{ p.negociacoesBemSucedidas }}</strong>
+        <span>negociação(ões) bem-sucedida(s)</span>
+      </div>
+    </section>
+
+    <h2>Avaliações recebidas</h2>
+    @if (!p.avaliacoes.length) {
+      <p class="estado">Este usuário ainda não recebeu avaliações.</p>
+    } @else {
+      <ul class="avaliacoes">
+        @for (a of p.avaliacoes; track a.id) {
+          <li class="avaliacao">
+            <div class="avaliacao__topo">
+              <span class="estrelas" [attr.aria-label]="a.estrelas + ' de 5 estrelas'">
+                @for (n of escala; track n) {
+                  <span [class.cheia]="n <= a.estrelas">★</span>
+                }
+              </span>
+              <small>{{ a.criadaEm | date: 'dd/MM/yyyy' }}</small>
+            </div>
+            <p class="detalhe">
+              por {{ a.nomeAvaliador ?? 'usuário removido' }} · como {{ a.papelAvaliado === 'VENDEDOR' ? 'vendedor' : 'comprador' }}
+            </p>
+            @if (a.tags.length) {
+              <p class="etiquetas">
+                @for (t of a.tags; track t) {
+                  <span class="etiqueta">{{ tags[t] }}</span>
+                }
+              </p>
+            }
+            @if (a.comentario) {
+              <p class="avaliacao__comentario">{{ a.comentario }}</p>
+            }
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <p class="estado">Carregando perfil…</p>
+  }
+</main>
