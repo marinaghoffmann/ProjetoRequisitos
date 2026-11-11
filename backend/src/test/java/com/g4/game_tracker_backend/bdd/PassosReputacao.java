@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 import com.g4.game_tracker_backend.aplicacao.marketplace.reputacao.AvaliarNegociacao;
 import com.g4.game_tracker_backend.aplicacao.marketplace.reputacao.ConsultarReputacao;
 import com.g4.game_tracker_backend.aplicacao.marketplace.reputacao.ConsultarReputacao.PerfilDeVendedor;
+import com.g4.game_tracker_backend.dominio.marketplace.pedidos.FormaPagamento;
+import com.g4.game_tracker_backend.dominio.marketplace.pedidos.StatusPedido;
 import com.g4.game_tracker_backend.dominio.marketplace.reputacao.AvaliacaoMarketplace;
 import com.g4.game_tracker_backend.dominio.marketplace.reputacao.AvaliacaoMarketplaceRepositorio;
 import com.g4.game_tracker_backend.dominio.marketplace.reputacao.ReputacaoUsuario;
@@ -25,18 +27,18 @@ import io.cucumber.java.pt.Entao;
 import io.cucumber.java.pt.Quando;
 
 /**
- * Steps da F-21. Os pedidos vêm de PedidosDeApoioDosCenarios, no lugar da F-20; avaliação e reputação
- * são reais. Quem avalia é autenticado antes da ação, como numa requisição.
+ * Steps da F-21. Os pedidos são reais (F-20), criados por PedidosDoCenario e concluídos pela confirmação do
+ * recebimento; avaliação e reputação também. Quem avalia é autenticado antes da ação, como numa requisição.
  */
 public class PassosReputacao {
 
-    private static final Duration ENTREGUE_HA_UM_DIA = Duration.ofDays(1);
+    private static final BigDecimal VALOR_DO_PEDIDO = new BigDecimal("100.00");
 
     private final AvaliarNegociacao avaliarNegociacao;
     private final ConsultarReputacao consultarReputacao;
     private final AvaliacaoMarketplaceRepositorio avaliacoes;
     private final ReputacaoUsuarioRepositorio reputacoes;
-    private final PedidosDeApoioDosCenarios pedidos;
+    private final PedidosDoCenario pedidos;
     private final DadosDoCenario dados;
     private final ContextoDoCenario contexto;
 
@@ -45,7 +47,7 @@ public class PassosReputacao {
 
     public PassosReputacao(AvaliarNegociacao avaliarNegociacao, ConsultarReputacao consultarReputacao,
             AvaliacaoMarketplaceRepositorio avaliacoes, ReputacaoUsuarioRepositorio reputacoes,
-            PedidosDeApoioDosCenarios pedidos, DadosDoCenario dados, ContextoDoCenario contexto) {
+            PedidosDoCenario pedidos, DadosDoCenario dados, ContextoDoCenario contexto) {
         this.avaliarNegociacao = avaliarNegociacao;
         this.consultarReputacao = consultarReputacao;
         this.avaliacoes = avaliacoes;
@@ -55,19 +57,19 @@ public class PassosReputacao {
         this.contexto = contexto;
     }
 
-    // ---- Pedidos de apoio ----
+    // ---- Pedidos (F-20) ----
 
     @Dado("um pedido {string} entre o comprador {string} e o vendedor {string}")
     public void pedidoEntre(String status, String comprador, String vendedor) {
-        boolean concluido = "CONCLUIDO".equals(status);
-        pedidoAtual = pedidos.criar(dados.jogador(comprador).id(), dados.jogador(vendedor).id(), concluido,
-                concluido ? Instant.now().minus(ENTREGUE_HA_UM_DIA) : null);
+        pedidoAtual = pedidos.criar(comprador, vendedor, VALOR_DO_PEDIDO, StatusPedido.valueOf(status),
+                FormaPagamento.PIX);
     }
 
+    /** A entrega é confirmada na conclusão do pedido; recuar as datas simula os dias passados desde então. */
     @Dado("um pedido {string} entregue há {int} dias entre {string} e {string}")
     public void pedidoEntregueHa(String status, int dias, String comprador, String vendedor) {
-        pedidoAtual = pedidos.criar(dados.jogador(comprador).id(), dados.jogador(vendedor).id(),
-                "CONCLUIDO".equals(status), Instant.now().minus(Duration.ofDays(dias)));
+        pedidoEntre(status, comprador, vendedor);
+        pedidos.recuar(Duration.ofDays(dias));
     }
 
     // ---- Avaliações ----

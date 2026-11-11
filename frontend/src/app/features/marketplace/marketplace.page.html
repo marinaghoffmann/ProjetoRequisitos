@@ -81,7 +81,7 @@
             <div class="card__sem-capa" aria-label="Anúncio sem foto">GT</div>
           }
           <div class="card__conteudo">
-            <h2>{{ anuncio.titulo }}</h2>
+            <h2><a class="card__titulo" [routerLink]="['/marketplace', anuncio.id]">{{ anuncio.titulo }}</a></h2>
             <p class="preco">{{ anuncio.preco | currency: 'BRL' }}</p>
             <p class="etiquetas">
               <span class="etiqueta">{{ rotuloEstado(anuncio.estado) }}</span>

@@ -1,0 +1,54 @@
+<div class="fundo" (click)="fechar.emit()"></div>
+<section class="dialogo" role="dialog" aria-modal="true" aria-labelledby="titulo-proposta">
+  <header>
+    <h2 id="titulo-proposta">Fazer uma proposta</h2>
+    <button class="fechar" type="button" aria-label="Fechar" (click)="fechar.emit()">×</button>
+  </header>
+
+  @if (precoAnuncio() !== null) {
+    <p class="detalhe">Preço anunciado: <strong>{{ precoAnuncio() | currency: 'BRL' }}</strong></p>
+  }
+
+  <form (ngSubmit)="confirmar()">
+    @if (aceitaValor() && aceitaTroca()) {
+      <fieldset>
+        <legend>Tipo de oferta</legend>
+        <label class="opcao">
+          <input type="radio" name="tipo" value="VALOR" [checked]="tipo() === 'VALOR'" (change)="tipo.set('VALOR')" />
+          Oferta em valor
+        </label>
+        <label class="opcao">
+          <input type="radio" name="tipo" value="TROCA" [checked]="tipo() === 'TROCA'" (change)="tipo.set('TROCA')" />
+          Troca por outro jogo
+        </label>
+      </fieldset>
+    }
+
+    @if (tipoEfetivo() === 'VALOR') {
+      <label>
+        Valor oferecido (R$)
+        <input name="valor" type="number" min="0.01" step="0.01" required [(ngModel)]="valor" placeholder="120,00" />
+      </label>
+    } @else {
+      <label>
+        Jogo oferecido na troca
+        <input name="jogo" maxlength="80" required [(ngModel)]="jogoOferecido" placeholder="Ex.: Celeste (PS4)" />
+      </label>
+    }
+
+    <label>
+      Mensagem (opcional)
+      <textarea name="mensagem" rows="3" maxlength="1000" [(ngModel)]="mensagem"
+        placeholder="Conte ao vendedor por que essa oferta é boa"></textarea>
+    </label>
+
+    @if (erro(); as mensagemErro) {
+      <p class="mensagem-erro" role="alert">{{ mensagemErro }}</p>
+    }
+
+    <div class="acoes">
+      <button type="submit" [disabled]="enviando()">Enviar proposta</button>
+      <button class="botao--secundario" type="button" (click)="fechar.emit()">Cancelar</button>
+    </div>
+  </form>
+</section>
