@@ -1,0 +1,93 @@
+// Botões, etiquetas e mensagens vêm do tema global (styles.scss).
+.pagina-timeline {
+  width: min(48rem, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+}
+
+.linha {
+  position: relative;
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem 0 0;
+  padding: 0 0 0 1.75rem;
+  list-style: none;
+
+  // Trilho vertical que liga os marcos.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    left: 0.4rem;
+    width: 2px;
+    background: var(--line-soft);
+  }
+}
+
+.entrada {
+  position: relative;
+}
+
+.entrada__marco {
+  position: absolute;
+  top: 1.15rem;
+  left: -1.75rem;
+  width: 0.95rem;
+  height: 0.95rem;
+  border: 2px solid var(--muted);
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.entrada--automatica .entrada__marco {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.entrada__corpo {
+  padding: 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.entrada__data {
+  margin-right: 0.25rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.6rem;
+}
+
+.etiqueta--sistema {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.entrada__texto {
+  margin: 0;
+  color: var(--text);
+  white-space: pre-line;
+}
+
+.entrada__jogo {
+  display: inline-block;
+  margin-top: 0.6rem;
+  font-size: 0.9rem;
+}
+
+.paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  color: var(--muted);
+}

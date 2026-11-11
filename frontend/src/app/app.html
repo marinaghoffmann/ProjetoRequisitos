@@ -20,6 +20,11 @@
 
       <p class="menu__rotulo">Comunidade</p>
       <a routerLink="/forum" routerLinkActive="ativo">Fórum</a>
+
+      @if (autenticacao.usuarioAtual()) {
+        <p class="menu__rotulo">Diário</p>
+        <a routerLink="/timeline" routerLinkActive="ativo">Minha timeline</a>
+      }
     </nav>
 
     <div class="conta">
