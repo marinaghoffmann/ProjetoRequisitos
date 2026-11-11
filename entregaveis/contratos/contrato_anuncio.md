@@ -53,7 +53,7 @@ Toda transição válida produz um `AnuncioStatusAlterado`:
 Quem consome:
 
 - **F-17**: recalcula o volume de negociações do jogo.
-- **F-16**: com `vendido()`, gera a entrada automática no journal do comprador, usando o `PedidoConcluidoEvent` da F-20.
+- **F-16**: a entrada automática no journal do comprador vem do `CompraConcluida` que a F-20 publica ao concluir o pedido.
 - **F-19**: deixa de aceitar propostas quando o anúncio sai de `ATIVO`.
 
 A publicação na mesma transação da ação, como `EventoPlataforma`, é responsabilidade do barramento da **T04**.
@@ -77,3 +77,15 @@ O agregado `AnuncioMarketplace` implementa este contrato. As peças que F-19, F-
   pode usar `@EventListener` ou `@TransactionalEventListener` para `AnuncioStatusAlterado`.
 - O título do anúncio é opcional na criação: quando vem vazio, usa o título do jogo no catálogo.
 - Um anúncio aceita no máximo 10 fotos. Anúncios `VENDIDO` ou `CANCELADO` não podem mais ser editados.
+
+## Integração (F-19 e F-20)
+
+| Transição | Quem faz | Onde |
+|---|---|---|
+| `ATIVO` -> `EM_NEGOCIACAO` | aceite de proposta (F-19 RN 9) ou compra direta (F-20 RN 2) | `AnunciosParaNegociacao.reservar`, `CicloDoAnuncioNoPedido.reservar` |
+| `EM_NEGOCIACAO` -> `ATIVO` | reserva expirada ou liberada (F-19 RN 10), pedido cancelado sem envio (F-20 RN 9) | `AnunciosParaNegociacao.liberar`, `CicloDoAnuncioNoPedido.liberar` |
+| `EM_NEGOCIACAO` -> `VENDIDO` | pedido concluído, de compra ou de troca (F-20 RN 11) | `CicloDoAnuncioNoPedido.vender` |
+
+- As duas classes carregam o anúncio pelo repositório, chamam `mudarStatus` e publicam o `AnuncioStatusAlterado` na
+  transação do caso de uso. Liberar só age sobre um anúncio ainda `EM_NEGOCIACAO`.
+- A troca também termina em `VENDIDO`: não há status próprio para ela.
