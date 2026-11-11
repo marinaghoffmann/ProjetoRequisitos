@@ -32,18 +32,21 @@ class OrigemDoPedido {
         this.pedidos = pedidos;
     }
 
-    /** Exatamente um dos dois: a proposta aceita do comprador ou o anúncio da compra direta. */
+    /**
+     * Exatamente um dos dois: a proposta aceita do comprador ou o anúncio da compra direta. O pedido ativo
+     * (RN 2) é checado primeiro, para quem tenta pagar de novo saber que o pedido já existe.
+     */
     Resolvida resolver(UUID anuncioId, UUID propostaId, UUID compradorId, Instant agora) {
         if ((anuncioId == null) == (propostaId == null)) {
             throw new RegraDeNegocioException("Informe o anúncio da compra direta ou a proposta aceita");
         }
-        Resolvida origem = propostaId != null
-                ? daProposta(propostaId, compradorId, agora)
-                : daCompraDireta(anuncioId, compradorId);
-        if (pedidos.existeAtivoParaAnuncio(origem.anuncio().id())) {
+        UUID anuncioDoPedido = propostaId != null ? reservas.anuncioDaProposta(propostaId) : anuncioId;
+        if (pedidos.existeAtivoParaAnuncio(anuncioDoPedido)) {
             throw new RegraDeNegocioException("Este anúncio já tem um pedido em andamento");
         }
-        return origem;
+        return propostaId != null
+                ? daProposta(propostaId, compradorId, agora)
+                : daCompraDireta(anuncioId, compradorId);
     }
 
     /** Proposta ACEITA do próprio comprador, com o anúncio reservado (EM_NEGOCIACAO), pelo valor da proposta. */

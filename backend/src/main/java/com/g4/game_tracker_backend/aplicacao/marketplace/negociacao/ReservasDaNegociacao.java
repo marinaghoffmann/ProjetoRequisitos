@@ -34,6 +34,13 @@ public class ReservasDaNegociacao {
         this.gerenciarPropostas = gerenciarPropostas;
     }
 
+    /** O anúncio negociado na conversa da proposta, para o checkout checar o pedido ativo (F-20 RN 2). */
+    public UUID anuncioDaProposta(UUID propostaId) {
+        return conversas.buscarPorProposta(propostaId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Proposta não encontrada"))
+                .anuncioId();
+    }
+
     /** F-20 RN 1: só a proposta ACEITA do próprio comprador, sem pedido e dentro das 48 horas (F-19 RN 10). */
     public ReservaAceita reservaDoComprador(UUID propostaId, UUID compradorId, Instant agora) {
         ConversaChat conversa = conversas.buscarPorProposta(propostaId)
