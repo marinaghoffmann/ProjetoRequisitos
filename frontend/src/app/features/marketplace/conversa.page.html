@@ -1,0 +1,123 @@
+<main class="pagina-conversa">
+  <a class="voltar" routerLink="/marketplace/mensagens">← Mensagens</a>
+
+  @if (erro(); as mensagem) {
+    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+  } @else if (conversa(); as c) {
+    <header class="topo">
+      @if (imagem(c.fotoAnuncio)) {
+        <img class="topo__foto" [src]="imagem(c.fotoAnuncio)" alt="" />
+      } @else {
+        <span class="topo__foto topo__foto--vazia" aria-hidden="true">GT</span>
+      }
+      <div class="topo__texto">
+        <a class="topo__titulo" [routerLink]="['/marketplace', c.anuncioId]">{{ c.tituloAnuncio ?? 'Anúncio removido' }}</a>
+        <span class="detalhe">
+          @if (c.precoAnuncio !== null) {
+            {{ c.precoAnuncio | currency: 'BRL' }} ·
+          }
+          {{ souVendedor() ? 'Comprador' : 'Vendedor' }}: {{ nomeOutraParte() }}
+        </span>
+      </div>
+      @if (c.statusAnuncio) {
+        <span class="status" [class.status--alerta]="c.statusAnuncio !== 'ATIVO'">{{ statusAnuncio[c.statusAnuncio] }}</span>
+      }
+    </header>
+
+    <section class="linha-do-tempo" aria-label="Mensagens e propostas" aria-live="polite">
+      @if (!itens().length) {
+        <p class="estado">Comece a conversa: tire dúvidas sobre o item ou faça uma proposta.</p>
+      }
+      @for (item of itens(); track item.quando + item.tipo) {
+        @if (item.tipo === 'mensagem') {
+          <div class="balao" [class.balao--minha]="minha(item.mensagem)">
+            <p>{{ item.mensagem.texto }}</p>
+            <small>{{ item.mensagem.enviadaEm | date: 'dd/MM HH:mm' }}</small>
+          </div>
+        } @else {
+          @let p = item.proposta;
+          <article class="proposta proposta--{{ p.status.toLowerCase() }}" [class.proposta--minha]="!souVendedor()">
+            <header>
+              <strong>{{ p.tipo === 'VALOR' ? 'Proposta de valor' : 'Proposta de troca' }}</strong>
+              <span class="proposta__status">{{ statusProposta[p.status] }}</span>
+            </header>
+            <p class="proposta__oferta">
+              @if (p.tipo === 'VALOR') {
+                Ofereço {{ p.valorOferecido | currency: 'BRL' }}
+              } @else {
+                Troco pelo jogo {{ p.jogoOferecido }}
+              }
+            </p>
+            @if (p.motivo) {
+              <p class="proposta__motivo">{{ p.motivo }}</p>
+            }
+
+            @if (p.status === 'PENDENTE') {
+              <div class="acoes">
+                @if (souVendedor()) {
+                  <button type="button" [disabled]="ocupado() || c.somenteLeitura" (click)="aceitar(p)">Aceitar</button>
+                  <button class="botao--secundario" type="button" [disabled]="ocupado()" (click)="recusar(p)">Recusar</button>
+                } @else {
+                  <span class="detalhe">Aguardando a resposta do vendedor.</span>
+                  <button class="acao" type="button" [disabled]="ocupado()" (click)="cancelar(p)">Cancelar proposta</button>
+                }
+              </div>
+            }
+
+            @if (reservaVigente(p)) {
+              <div class="reserva">
+                <p>
+                  Anúncio em negociação: item reservado até
+                  <strong>{{ p.prazoParaPagar | date: 'dd/MM/yyyy HH:mm' }}</strong>.
+                </p>
+                <div class="acoes">
+                  @if (souVendedor()) {
+                    <button class="acao" type="button" [disabled]="ocupado()" (click)="liberarReserva(p)">Liberar reserva</button>
+                  } @else {
+                    <button type="button" (click)="pagar(p)">Pagar agora</button>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (p.status === 'ACEITA' && p.pedidoId) {
+              <p class="reserva">Pedido gerado. Acompanhe em <a routerLink="/marketplace/pedidos">Meus pedidos</a>.</p>
+            }
+            <small>{{ p.enviadaEm | date: 'dd/MM HH:mm' }}</small>
+          </article>
+        }
+      }
+    </section>
+
+    @if (erroAcao(); as mensagem) {
+      @if (!dialogoAberto()) {
+        <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+      }
+    }
+
+    @if (c.somenteLeitura) {
+      <p class="encerrada">Anúncio encerrado: a conversa é somente leitura.</p>
+    } @else {
+      <form class="escrever" (ngSubmit)="enviarMensagem()">
+        <label class="escrever__campo">
+          <span class="visualmente-oculto">Mensagem</span>
+          <textarea name="texto" rows="2" maxlength="1000" [(ngModel)]="texto" placeholder="Escreva uma mensagem"
+            (keydown.enter)="$event.preventDefault(); enviarMensagem()"></textarea>
+        </label>
+        <div class="escrever__acoes">
+          @if (podeProporAgora()) {
+            <button class="botao--secundario" type="button" (click)="abrirProposta()">Fazer proposta</button>
+          }
+          <button type="submit" [disabled]="ocupado() || !texto.trim()">Enviar</button>
+        </div>
+      </form>
+    }
+
+    @if (dialogoAberto()) {
+      <app-proposta-dialog [tipoNegociacao]="c.tipoNegociacao" [precoAnuncio]="c.precoAnuncio" [erro]="erroAcao()"
+        [enviando]="ocupado()" (enviar)="enviarProposta($event)" (fechar)="dialogoAberto.set(false)" />
+    }
+  } @else {
+    <p class="estado">Carregando conversa…</p>
+  }
+</main>

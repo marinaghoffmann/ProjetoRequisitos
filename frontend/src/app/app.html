@@ -16,6 +16,12 @@
       @if (autenticacao.usuarioAtual()) {
         <a routerLink="/marketplace/meus" routerLinkActive="ativo">Meus anúncios</a>
         <a routerLink="/marketplace/novo" routerLinkActive="ativo">Anunciar jogo</a>
+        <a routerLink="/marketplace/mensagens" routerLinkActive="ativo">
+          Mensagens
+          @if (naoLidas() > 0) {
+            <span class="menu__contador" [attr.aria-label]="naoLidas() + ' mensagens não lidas'">{{ naoLidas() }}</span>
+          }
+        </a>
       }
 
       <p class="menu__rotulo">Comunidade</p>
