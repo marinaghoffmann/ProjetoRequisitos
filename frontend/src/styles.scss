@@ -162,6 +162,7 @@ form > button[type='submit'] { margin-top: 0.5rem; min-height: 2.75rem; }
   h2 { margin: 0; font-size: 1.05rem; line-height: 1.25; }
 }
 .card__capa, .card__sem-capa { display: block; width: 100%; height: 15rem; object-fit: cover; background: var(--surface-2); }
+.card__titulo { color: inherit; &:hover { color: var(--accent); text-decoration: none; } }
 .card__sem-capa { display: grid; place-items: center; color: var(--accent); font: 700 2rem var(--font-title); }
 .card__conteudo { display: flex; flex-direction: column; gap: 0.35rem; padding: 1rem; }
 .original, .resumo, .data, .detalhe { margin: 0; color: var(--muted); font-size: 0.8rem; }

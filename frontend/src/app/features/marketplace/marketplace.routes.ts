@@ -6,4 +6,5 @@ export default [
   { path: 'novo', loadComponent: () => import('./anuncio-form.page').then((m) => m.AnuncioFormPage) },
   { path: 'vendedores/:id', loadComponent: () => import('./perfil-vendedor.page').then((m) => m.PerfilVendedorPage) },
   { path: ':id/editar', loadComponent: () => import('./anuncio-form.page').then((m) => m.AnuncioFormPage) },
+  { path: ':id', loadComponent: () => import('./anuncio.page').then((m) => m.AnuncioPage) },
 ] satisfies Routes;
