@@ -1,0 +1,158 @@
+<main class="pagina-checkout">
+  <a class="voltar" routerLink="/marketplace">← Anúncios</a>
+  <h1>Finalizar compra</h1>
+
+  @if (erro(); as mensagem) {
+    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+  } @else if (resumo(); as r) {
+    <ol class="passos" aria-label="Etapas do checkout">
+      <li [class.atual]="passo() === 1">1. Endereço e frete</li>
+      <li [class.atual]="passo() === 2">2. Pagamento</li>
+    </ol>
+
+    <div class="checkout">
+      <section class="etapa">
+        @if (passo() === 1) {
+          <form #formEndereco="ngForm" (ngSubmit)="irParaPagamento()">
+            <h2>Endereço de entrega</h2>
+            <label>
+              Destinatário
+              <input name="destinatario" required minlength="3" maxlength="80" [(ngModel)]="endereco.destinatario" />
+            </label>
+            <div class="duas-colunas">
+              <label>
+                CEP
+                <input name="cep" required inputmode="numeric" placeholder="00000-000" pattern="\d{5}-\d{3}"
+                  [ngModel]="endereco.cep" (ngModelChange)="formatarCep($event)" />
+              </label>
+              <label>
+                Número
+                <input name="numero" required maxlength="10" [(ngModel)]="endereco.numero" />
+              </label>
+            </div>
+            <label>
+              Rua
+              <input name="rua" required maxlength="120" [(ngModel)]="endereco.rua" />
+            </label>
+            <label>
+              Complemento (opcional)
+              <input name="complemento" maxlength="60" [(ngModel)]="endereco.complemento" />
+            </label>
+            <div class="duas-colunas">
+              <label>
+                Cidade
+                <input name="cidade" required maxlength="80" [(ngModel)]="endereco.cidade" />
+              </label>
+              <label>
+                UF
+                <input name="uf" required maxlength="2" pattern="[A-Za-z]{2}" placeholder="PE" [(ngModel)]="endereco.uf" />
+              </label>
+            </div>
+
+            <fieldset class="opcoes">
+              <legend>Frete</legend>
+              @for (f of r.fretes; track f.opcao) {
+                <label class="opcao opcao--cartao" [class.selecionada]="frete() === f.opcao">
+                  <input type="radio" name="frete" [value]="f.opcao" [checked]="frete() === f.opcao"
+                    (change)="frete.set(f.opcao)" />
+                  <span>{{ fretes[f.opcao] }}</span>
+                  <strong>{{ f.valor | currency: 'BRL' }}</strong>
+                </label>
+              }
+            </fieldset>
+
+            <button type="submit" [disabled]="formEndereco.invalid">Continuar para o pagamento</button>
+          </form>
+        } @else {
+          <form (ngSubmit)="confirmar()">
+            <h2>Forma de pagamento</h2>
+            <fieldset class="opcoes">
+              <legend>Como você quer pagar?</legend>
+              @for (f of formasDisponiveis; track f) {
+                <label class="opcao opcao--cartao" [class.selecionada]="forma() === f">
+                  <input type="radio" name="forma" [value]="f" [checked]="forma() === f" (change)="forma.set(f)" />
+                  <span>{{ formas[f] }}</span>
+                  @if (f === 'SALDO_CARTEIRA') {
+                    <small>Saldo: {{ r.saldoCarteira | currency: 'BRL' }}</small>
+                  }
+                </label>
+              }
+            </fieldset>
+
+            @if (forma() === 'CARTAO') {
+              <div class="cartao">
+                <label>
+                  Número do cartão
+                  <input name="numero" required inputmode="numeric" autocomplete="off" [(ngModel)]="cartao.numero"
+                    placeholder="4111 1111 1111 1111" />
+                </label>
+                <label>
+                  Nome impresso
+                  <input name="nome" required autocomplete="off" [(ngModel)]="cartao.nomeImpresso" />
+                </label>
+                <div class="duas-colunas">
+                  <label>
+                    Validade
+                    <input name="validade" required placeholder="MM/AA" autocomplete="off" [ngModel]="cartao.validade"
+                      (ngModelChange)="formatarValidade($event)" />
+                  </label>
+                  <label>
+                    CVV
+                    <input name="cvv" required inputmode="numeric" maxlength="4" autocomplete="off" [(ngModel)]="cartao.cvv" />
+                  </label>
+                </div>
+                <small>Simulação: nenhum valor é cobrado. Só os 4 últimos dígitos ficam registrados.</small>
+              </div>
+            } @else if (forma() === 'PIX') {
+              <p class="aviso">PIX simulado: o pagamento é aprovado ao confirmar o pedido.</p>
+            } @else if (saldoInsuficiente()) {
+              <p class="mensagem-erro">O saldo da carteira não cobre o total deste pedido.</p>
+            }
+
+            <p class="aviso aviso--custodia">
+              O valor fica <strong>em custódia</strong> e só é liberado ao vendedor quando você confirmar o
+              recebimento, ou 7 dias após o envio. Se o vendedor não enviar em 3 dias úteis, o pedido é cancelado e
+              você é reembolsado.
+            </p>
+
+            @if (erroPedido(); as mensagem) {
+              <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+            }
+
+            <div class="acoes">
+              <button type="submit" [disabled]="enviando() || saldoInsuficiente()">
+                Pagar {{ total() | currency: 'BRL' }}
+              </button>
+              <button class="botao--secundario" type="button" (click)="passo.set(1)">Voltar</button>
+            </div>
+          </form>
+        }
+      </section>
+
+      <aside class="resumo-pedido" aria-label="Resumo do pedido">
+        @if (imagem(r.fotoAnuncio)) {
+          <img [src]="imagem(r.fotoAnuncio)" alt="" />
+        }
+        <h2>{{ r.tituloAnuncio }}</h2>
+        @if (r.jogoOferecidoEmTroca) {
+          <p class="detalhe">Troca pelo jogo {{ r.jogoOferecidoEmTroca }}: você paga só o frete.</p>
+        } @else if (r.origem === 'PROPOSTA') {
+          <p class="detalhe">Valor da proposta aceita no chat.</p>
+        }
+        @if (r.prazoParaPagar) {
+          <p class="detalhe">Reserva válida até {{ r.prazoParaPagar | date: 'dd/MM/yyyy HH:mm' }}.</p>
+        }
+        <dl>
+          <dt>Item</dt>
+          <dd>{{ r.valorItem | currency: 'BRL' }}</dd>
+          <dt>Frete ({{ fretes[frete()] }})</dt>
+          <dd>{{ valorFrete() | currency: 'BRL' }}</dd>
+          <dt class="total">Total</dt>
+          <dd class="total">{{ total() | currency: 'BRL' }}</dd>
+        </dl>
+      </aside>
+    </div>
+  } @else {
+    <p class="estado">Preparando o checkout…</p>
+  }
+</main>

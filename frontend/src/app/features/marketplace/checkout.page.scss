@@ -1,0 +1,151 @@
+.pagina-checkout {
+  width: min(64rem, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+}
+
+.passos {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0 1.5rem;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .atual {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+}
+
+.checkout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.etapa,
+.resumo-pedido {
+  padding: 1.5rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+
+  h2 {
+    margin: 0;
+    font-size: 1.2rem;
+  }
+
+  form {
+    margin-top: 0;
+  }
+}
+
+.opcoes {
+  flex-direction: column;
+}
+
+.opcao--cartao {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  cursor: pointer;
+
+  span {
+    flex: 1;
+  }
+
+  &.selecionada {
+    border-color: var(--accent);
+    background: rgb(217 255 67 / 6%);
+  }
+}
+
+.cartao {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.aviso {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.aviso--custodia {
+  padding: 0.75rem 1rem;
+  border: 1px solid rgb(92 255 146 / 25%);
+  border-radius: 9px;
+  background: rgb(92 255 146 / 6%);
+  color: var(--text);
+
+  strong {
+    color: var(--success);
+  }
+}
+
+.resumo-pedido {
+  display: grid;
+  gap: 0.6rem;
+  position: sticky;
+  top: 1.5rem;
+
+  img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: 10px;
+    object-fit: cover;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.4rem 1rem;
+    margin: 0.5rem 0 0;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  dt {
+    color: var(--muted);
+  }
+
+  dd {
+    margin: 0;
+    text-align: right;
+  }
+
+  .total {
+    color: var(--text);
+    font: 700 1.2rem var(--font-title);
+  }
+}
+
+.detalhe {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 52rem) {
+  .checkout {
+    grid-template-columns: 1fr;
+  }
+
+  .resumo-pedido {
+    position: static;
+    order: -1;
+  }
+}

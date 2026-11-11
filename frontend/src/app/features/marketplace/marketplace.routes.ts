@@ -19,6 +19,16 @@ export default [
     canActivate: [logado],
     loadComponent: () => import('./conversa.page').then((m) => m.ConversaPage),
   },
+  {
+    path: 'checkout',
+    canActivate: [logado],
+    loadComponent: () => import('./checkout.page').then((m) => m.CheckoutPage),
+  },
+  {
+    path: 'pedidos',
+    canActivate: [logado],
+    loadComponent: () => import('./pedidos.page').then((m) => m.PedidosPage),
+  },
   { path: ':id/editar', loadComponent: () => import('./anuncio-form.page').then((m) => m.AnuncioFormPage) },
   { path: ':id', loadComponent: () => import('./anuncio.page').then((m) => m.AnuncioPage) },
 ] satisfies Routes;
