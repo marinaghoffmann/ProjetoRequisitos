@@ -6,6 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, interval } from 'rxjs';
 
 import { STATUS_ANUNCIO } from '../../core/api/marketplace.service';
+import { NaoLidasService } from '../../core/api/nao-lidas.service';
 import {
   Conversa,
   MensagemChat,
@@ -40,6 +41,7 @@ export class ConversaPage {
   private readonly negociacao = inject(NegociacaoService);
   private readonly router = inject(Router);
   private readonly autenticacao = inject(AutenticacaoService);
+  private readonly naoLidas = inject(NaoLidasService);
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
 
   protected readonly statusProposta = STATUS_PROPOSTA;
@@ -147,7 +149,7 @@ export class ConversaPage {
       next: (conversa) => {
         this.conversa.set(conversa);
         if (conversa.naoLidas > 0) {
-          this.negociacao.marcarComoLidas(this.id).subscribe();
+          this.negociacao.marcarComoLidas(this.id).subscribe(() => this.naoLidas.atualizar());
         }
       },
       error: (e: ErroApi) => {
