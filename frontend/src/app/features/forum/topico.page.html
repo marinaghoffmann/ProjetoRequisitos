@@ -18,6 +18,17 @@
         }
       </p>
       <p class="texto">{{ t.conteudo }}</p>
+      @if (t.imagens.length) {
+        <ul class="galeria" aria-label="Imagens do tópico">
+          @for (url of t.imagens; track url) {
+            <li>
+              <a [href]="urlDaImagem(url)" target="_blank" rel="noopener" title="Abrir em tamanho original">
+                <img [src]="urlDaImagem(url)" alt="Imagem anexada ao tópico" loading="lazy" />
+              </a>
+            </li>
+          }
+        </ul>
+      }
 
       @if (ehAutor(t.autorId) && t.status !== 'ENCERRADO') {
         <div class="acoes">
@@ -53,7 +64,8 @@
       <form class="formulario" (ngSubmit)="responder()">
         <label for="nova-resposta">Sua resposta</label>
         <textarea id="nova-resposta" name="novaResposta" rows="4" maxlength="5000" [(ngModel)]="novaResposta"></textarea>
-        <button type="submit" [disabled]="enviando() || !novaResposta.trim()">Responder</button>
+        <app-anexo-imagens [(imagens)]="imagensNovaResposta" [(enviando)]="anexando" />
+        <button type="submit" [disabled]="enviando() || anexando() || !novaResposta.trim()">Responder</button>
       </form>
     } @else {
       <p class="aviso"><a routerLink="/login">Entre na sua conta</a> para responder.</p>
@@ -86,6 +98,17 @@
           </form>
         } @else {
           <p class="texto">{{ resposta.conteudo }}</p>
+          @if (resposta.imagens.length) {
+            <ul class="galeria galeria--resposta" aria-label="Imagens da resposta">
+              @for (url of resposta.imagens; track url) {
+                <li>
+                  <a [href]="urlDaImagem(url)" target="_blank" rel="noopener" title="Abrir em tamanho original">
+                    <img [src]="urlDaImagem(url)" alt="Imagem anexada à resposta" loading="lazy" />
+                  </a>
+                </li>
+              }
+            </ul>
+          }
           @if (!encerrado() && autenticacao.usuarioAtual()) {
             <div class="acoes">
               <button class="acao acao--secundaria" type="button" (click)="abrirReplica(resposta)">Responder</button>
@@ -103,8 +126,9 @@
           <form class="formulario" (ngSubmit)="enviarReplica(resposta)">
             <textarea name="replica" rows="3" maxlength="5000" [(ngModel)]="replica"
               [placeholder]="'Respondendo a ' + (resposta.nomeAutor ?? 'esta resposta')"></textarea>
+            <app-anexo-imagens [(imagens)]="imagensReplica" [(enviando)]="anexando" />
             <div class="acoes">
-              <button class="acao" type="submit" [disabled]="enviando() || !replica.trim()">Enviar</button>
+              <button class="acao" type="submit" [disabled]="enviando() || anexando() || !replica.trim()">Enviar</button>
               <button class="acao acao--secundaria" type="button" (click)="respondendoA.set(null)">Cancelar</button>
             </div>
           </form>

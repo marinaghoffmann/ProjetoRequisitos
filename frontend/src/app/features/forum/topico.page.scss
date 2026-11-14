@@ -91,3 +91,31 @@ h2 {
   background: var(--surface);
   color: var(--muted);
 }
+
+.galeria {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+  padding: 0;
+  list-style: none;
+
+  a {
+    display: block;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    max-width: 22rem;
+    max-height: 18rem;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+}
+
+.galeria--resposta img {
+  max-width: 14rem;
+  max-height: 11rem;
+}

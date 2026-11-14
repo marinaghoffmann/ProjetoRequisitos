@@ -30,11 +30,14 @@
       <label for="conteudo">Mensagem *</label>
       <textarea id="conteudo" rows="8" formControlName="conteudo"></textarea>
 
+      <label for="imagens">Imagens (opcional)</label>
+      <app-anexo-imagens id="imagens" [(imagens)]="imagens" [(enviando)]="anexando" />
+
       @if (erro(); as mensagem) {
         <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
       }
 
-      <button type="submit" [disabled]="formulario.invalid || salvando()">
+      <button type="submit" [disabled]="formulario.invalid || salvando() || anexando()">
         {{ salvando() ? 'Salvando…' : id ? 'Salvar alterações' : 'Publicar tópico' }}
       </button>
     </form>
