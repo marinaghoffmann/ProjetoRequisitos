@@ -10,6 +10,8 @@ export interface UsuarioAutenticado {
   email: string;
   papel: Papel;
   desenvolvedoraId: string | null;
+  bio?: string | null;
+  localizacao?: string | null;
 }
 
 export interface LoginResponse {
@@ -23,6 +25,12 @@ export interface CadastroUsuario {
   nome: string;
   email: string;
   senha: string;
+}
+
+export interface DadosPerfil {
+  nome: string;
+  bio: string;
+  localizacao: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -55,16 +63,32 @@ export class AutenticacaoService {
     return this.http.post<LoginResponse>('/api/auth/login', { email, senha }).pipe(
       tap((resposta) => {
         sessionStorage.setItem(this.chaveToken, resposta.accessToken);
-        sessionStorage.setItem(this.chaveUsuario, JSON.stringify(resposta.usuario));
-        this.usuarioAtual.set(resposta.usuario);
+        this.guardarUsuario(resposta.usuario);
       }),
     );
+  }
+
+  /** Busca os dados atuais do usuário logado (a sessão salva pode estar desatualizada). */
+  recarregarUsuario(): Observable<UsuarioAutenticado> {
+    return this.http.get<UsuarioAutenticado>('/api/auth/me').pipe(tap((usuario) => this.guardarUsuario(usuario)));
+  }
+
+  /** Atualiza nome, bio e localização; o usuário devolvido substitui o da sessão. */
+  atualizarPerfil(dados: DadosPerfil): Observable<UsuarioAutenticado> {
+    return this.http
+      .put<UsuarioAutenticado>('/api/usuarios/me', dados)
+      .pipe(tap((usuario) => this.guardarUsuario(usuario)));
   }
 
   sair(): void {
     sessionStorage.removeItem(this.chaveToken);
     sessionStorage.removeItem(this.chaveUsuario);
     this.usuarioAtual.set(null);
+  }
+
+  private guardarUsuario(usuario: UsuarioAutenticado): void {
+    sessionStorage.setItem(this.chaveUsuario, JSON.stringify(usuario));
+    this.usuarioAtual.set(usuario);
   }
 
   private lerUsuarioSalvo(): UsuarioAutenticado | null {

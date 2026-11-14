@@ -30,7 +30,13 @@
             {{ u.nome }}
             <span class="pf-chip">{{ papel() }}</span>
           </h1>
-          <p class="pf-bio"><span class="pf-fazendo">Fazendo</span> bio e localização</p>
+          <p class="pf-bio">
+            @if (u.bio || u.localizacao) {
+              {{ u.bio }}{{ u.bio && u.localizacao ? ' · ' : '' }}{{ u.localizacao }}
+            } @else {
+              <span class="pf-fazendo">Fazendo</span> bio e localização
+            }
+          </p>
 
           <ul class="pf-stats">
             @for (s of estatisticas; track s) {
@@ -41,7 +47,7 @@
         </div>
 
         <div class="pf-acoes">
-          <button type="button" class="pf-btn" disabled title="Fazendo">Editar perfil</button>
+          <button type="button" class="pf-btn" routerLink="/perfil/editar">Editar perfil</button>
           <button type="button" class="pf-btn" disabled title="Fazendo">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg>
             Meus pedidos
