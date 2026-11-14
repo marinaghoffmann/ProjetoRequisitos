@@ -10,6 +10,11 @@ export const STATUS_TOPICO: Record<StatusTopico, string> = {
   ENCERRADO: 'Encerrado',
 };
 
+/** Limites das imagens anexadas a tópicos e respostas (o backend confere de novo). */
+export const FORUM_MAX_IMAGENS = 4;
+export const FORUM_TAMANHO_MAX_IMAGEM = 5 * 1024 * 1024;
+export const FORUM_TIPOS_IMAGEM = ['image/png', 'image/jpeg', 'image/webp'];
+
 export interface Pagina<T> {
   itens: T[];
   pagina: number;
@@ -39,6 +44,8 @@ export interface RespostaForum {
   respostaPaiId: string | null;
   /** null quando a resposta foi removida. */
   conteudo: string | null;
+  /** URLs (/uploads/forum/...) das imagens anexadas; vazio quando a resposta foi removida. */
+  imagens: string[];
   removida: boolean;
   publicadaEm: string;
   editadaEm: string | null;
@@ -53,6 +60,7 @@ export interface Topico {
   categoria: string;
   titulo: string;
   conteudo: string;
+  imagens: string[];
   status: StatusTopico;
   totalRespostas: number;
   publicadoEm: string;
@@ -68,6 +76,8 @@ export interface DadosTopico {
   categoria: string;
   titulo: string;
   conteudo: string;
+  /** Na edição, omitir mantém as imagens atuais; uma lista (mesmo vazia) substitui todas. */
+  imagens?: string[];
 }
 
 export interface FiltroTopicos {
@@ -109,8 +119,20 @@ export class ForumService {
     return this.http.delete<void>(`/api/forum/topicos/${id}`);
   }
 
-  responder(topicoId: string, conteudo: string, respostaPaiId: string | null = null): Observable<Topico> {
-    return this.http.post<Topico>(`/api/forum/topicos/${topicoId}/respostas`, { conteudo, respostaPaiId });
+  responder(
+    topicoId: string,
+    conteudo: string,
+    respostaPaiId: string | null = null,
+    imagens: string[] = [],
+  ): Observable<Topico> {
+    return this.http.post<Topico>(`/api/forum/topicos/${topicoId}/respostas`, { conteudo, respostaPaiId, imagens });
+  }
+
+  /** Envia uma imagem (PNG, JPG ou WEBP, até 5 MB) e devolve a URL para anexar ao tópico ou à resposta. */
+  enviarImagem(arquivo: File): Observable<{ url: string }> {
+    const dados = new FormData();
+    dados.append('imagem', arquivo);
+    return this.http.post<{ url: string }>('/api/forum/imagens', dados);
   }
 
   editarResposta(topicoId: string, respostaId: string, conteudo: string): Observable<Topico> {

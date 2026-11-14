@@ -6,11 +6,12 @@ import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
 import { ForumService } from '../../core/api/forum.service';
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
+import { AnexoImagens } from './anexo-imagens.component';
 
 /** Cria um tópico (rota forum/novo) ou edita um existente (rota forum/:id/editar). */
 @Component({
   selector: 'app-topico-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [AnexoImagens, ReactiveFormsModule, RouterLink],
   templateUrl: './topico-form.page.html',
   styleUrl: './topico-form.page.scss',
 })
@@ -26,6 +27,9 @@ export class TopicoFormPage {
   protected readonly carregando = signal(true);
   protected readonly salvando = signal(false);
   protected readonly erro = signal<string | null>(null);
+  /** URLs das imagens já enviadas (no modo edição, começam com as do tópico). */
+  protected readonly imagens = signal<string[]>([]);
+  protected readonly anexando = signal(false);
 
   protected readonly formulario = this.builder.group({
     jogoId: [''],
@@ -53,6 +57,7 @@ export class TopicoFormPage {
           titulo: topico.titulo,
           conteudo: topico.conteudo,
         });
+        this.imagens.set(topico.imagens);
         this.carregando.set(false);
       },
       error: (e: ErroApi) => {
@@ -63,7 +68,7 @@ export class TopicoFormPage {
   }
 
   protected salvar(): void {
-    if (this.formulario.invalid || this.salvando()) {
+    if (this.formulario.invalid || this.salvando() || this.anexando()) {
       this.formulario.markAllAsTouched();
       return;
     }
@@ -71,7 +76,7 @@ export class TopicoFormPage {
     this.salvando.set(true);
     this.erro.set(null);
     const dados = this.formulario.getRawValue();
-    const corpo = { ...dados, jogoId: dados.jogoId || null };
+    const corpo = { ...dados, jogoId: dados.jogoId || null, imagens: this.imagens() };
     const requisicao = this.id ? this.forum.editar(this.id, corpo) : this.forum.criar(corpo);
     requisicao.subscribe({
       next: (topico) => this.roteador.navigate(['/forum', topico.id]),

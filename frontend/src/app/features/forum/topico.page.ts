@@ -6,6 +6,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ForumService, RespostaForum, STATUS_TOPICO, StatusTopico, Topico } from '../../core/api/forum.service';
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
+import { urlDaImagem } from '../marketplace/imagem';
+import { AnexoImagens } from './anexo-imagens.component';
 
 /**
  * Tópico com as respostas em árvore. Os botões de editar e excluir só aparecem para o autor e,
@@ -13,7 +15,7 @@ import { ErroApi } from '../../core/http/erro-api';
  */
 @Component({
   selector: 'app-topico',
-  imports: [DatePipe, FormsModule, NgTemplateOutlet, RouterLink],
+  imports: [AnexoImagens, DatePipe, FormsModule, NgTemplateOutlet, RouterLink],
   templateUrl: './topico.page.html',
   styleUrl: './topico.page.scss',
 })
@@ -24,6 +26,7 @@ export class TopicoPage {
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
 
   protected readonly status = STATUS_TOPICO;
+  protected readonly urlDaImagem = urlDaImagem;
   protected readonly topico = signal<Topico | null>(null);
   protected readonly carregando = signal(true);
   protected readonly enviando = signal(false);
@@ -31,6 +34,11 @@ export class TopicoPage {
   /** Resposta que está recebendo uma réplica, ou null quando o formulário principal está em uso. */
   protected readonly respondendoA = signal<string | null>(null);
   protected readonly editando = signal<string | null>(null);
+  /** Imagens já enviadas e ainda não publicadas, uma lista por formulário. */
+  protected readonly imagensNovaResposta = signal<string[]>([]);
+  protected readonly imagensReplica = signal<string[]>([]);
+  /** true enquanto alguma imagem está subindo: o envio da resposta espera. */
+  protected readonly anexando = signal(false);
   protected novaResposta = '';
   protected replica = '';
   protected textoEditado = '';
@@ -68,18 +76,23 @@ export class TopicoPage {
   }
 
   protected responder(): void {
-    this.enviar(this.novaResposta, null, () => (this.novaResposta = ''));
+    this.enviar(this.novaResposta, null, this.imagensNovaResposta(), () => {
+      this.novaResposta = '';
+      this.imagensNovaResposta.set([]);
+    });
   }
 
   protected abrirReplica(resposta: RespostaForum): void {
     this.editando.set(null);
     this.replica = '';
+    this.imagensReplica.set([]);
     this.respondendoA.set(resposta.id);
   }
 
   protected enviarReplica(resposta: RespostaForum): void {
-    this.enviar(this.replica, resposta.id, () => {
+    this.enviar(this.replica, resposta.id, this.imagensReplica(), () => {
       this.replica = '';
+      this.imagensReplica.set([]);
       this.respondendoA.set(null);
     });
   }
@@ -112,9 +125,9 @@ export class TopicoPage {
     });
   }
 
-  private enviar(texto: string, respostaPaiId: string | null, aoConcluir: () => void): void {
-    if (!texto.trim()) return;
-    this.executar(this.forum.responder(this.id, texto, respostaPaiId), aoConcluir);
+  private enviar(texto: string, respostaPaiId: string | null, imagens: string[], aoConcluir: () => void): void {
+    if (!texto.trim() || this.anexando()) return;
+    this.executar(this.forum.responder(this.id, texto, respostaPaiId, imagens), aoConcluir);
   }
 
   private executar(requisicao: ReturnType<ForumService['buscarTopico']>, aoConcluir?: () => void): void {
