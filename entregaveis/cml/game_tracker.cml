@@ -81,7 +81,7 @@ Domain GameTracker {
 
     Subdomain NotificacaoSubdomain {
         type GENERIC_SUBDOMAIN
-        domainVisionStatement = "Sink transversal que recebe eventos de outros contextos (lancamento proximo, data adiada, proposta aceita) e entrega notificacoes ao usuario."
+        domainVisionStatement = "Sink transversal que recebe eventos de outros contextos (lancamento proximo, data adiada, advertencia da moderacao) e entrega notificacoes ao usuario."
     }
 }
 
@@ -1297,12 +1297,12 @@ BoundedContext ContextoAnuncios implements MarketplaceSubdomain {
         // Transicoes disparadas por outros contextos (F-19 e F-20).
         Service CicloVidaAnuncioService {
             void reservar(@AnuncioId anuncioId);                  // ATIVO -> EM_NEGOCIACAO
-            void marcarVendido(@AnuncioId anuncioId);             // EM_NEGOCIACAO -> VENDIDO
+            void marcarVendido(@AnuncioId anuncioId);             // EM_NEGOCIACAO -> VENDIDO (pedido de compra ou troca concluido)
             void liberarReserva(@AnuncioId anuncioId);            // EM_NEGOCIACAO -> ATIVO
         }
 
         Service BuscaMarketplaceService {
-            List<@AnuncioMarketplace> buscar(@FiltroAnuncio filtro, Integer pagina, Integer tamanho);   // RN 3: nunca VENDIDO
+            List<@AnuncioMarketplace> buscar(@FiltroAnuncio filtro, Integer pagina, Integer tamanho);   // RN 3: so ATIVO e EM_NEGOCIACAO
         }
 
         DomainEvent AnuncioVendidoEvent {
@@ -1326,153 +1326,237 @@ BoundedContext ContextoNegociacao implements MarketplaceSubdomain {
     type = FEATURE
 
     // F-19 Chat interno para negociacao e propostas
+    // Mensagens assincronas: o frontend consulta a API periodicamente (sem WebSocket).
     Aggregate ConversaChat {
 
         Entity ConversaChat {
             aggregateRoot
             - @ConversaId                   conversaId
             - @AnuncioId                    anuncioId             // RN 1: anuncio ATIVO na abertura
-            - @UsuarioId                    compradorId           // RN 1: uma conversa por par e anuncio
-            - @UsuarioId                    vendedorId
-            - List<@MensagemChat>           mensagens             // RN 3: visiveis so para as duas partes
+            - @UsuarioId                    compradorId           // RN 1: o dono do anuncio nao negocia nele
+            - @UsuarioId                    vendedorId            // RN 2: uma conversa por (anuncio, comprador, vendedor)
+            - List<@MensagemChat>           mensagens             // RN 3: so as duas partes leem e enviam
             - List<@PropostaNegociacao>     propostas
             DateTime                        iniciadaEm
-            DateTime                        ultimaMensagemEm
+            DateTime                        ultimaAtividadeEm     // ordena a caixa de mensagens
+
+            Repository ConversaChatRepository {
+                @ConversaChat salvar(@ConversaChat conversa);
+                Optional<@ConversaChat> buscarPorId(@ConversaId conversaId);
+                Optional<@ConversaChat> buscarPorAnuncioEComprador(@AnuncioId anuncioId, @UsuarioId compradorId);
+                Optional<@ConversaChat> buscarPorProposta(@PropostaId propostaId);
+                List<@ConversaChat> listarPorParticipante(@UsuarioId usuarioId);
+                List<@ConversaChat> listarPorAnuncio(@AnuncioId anuncioId);
+                List<@ConversaChat> listarComReservaVencida(DateTime limite);
+            }
         }
 
         Entity MensagemChat {
             - @MensagemId   mensagemId
             - @UsuarioId    remetenteId
-            String          conteudo
-            Boolean         lida
+            String          texto                                 // RN 4: nao vazia, ate 1000 caracteres
             DateTime        enviadaEm
+            DateTime        lidaEm                                // RN 11: preenchida quando o destinatario abre a conversa
         }
 
+        // RN 6: so o comprador envia; VALOR exige valor maior que zero, TROCA exige o nome do jogo (2 a 80).
+        // RN 7: no maximo uma proposta PENDENTE por conversa.
+        // RN 8: so o vendedor aceita ou recusa; so o comprador cancela; ACEITA, RECUSADA, CANCELADA e
+        //       EXPIRADA nao mudam mais (a ACEITA so pode expirar, pela RN 10).
+        // RN 9: ao aceitar, anuncio ATIVO -> EM_NEGOCIACAO e as PENDENTES de outras conversas do mesmo
+        //       anuncio passam a RECUSADA com o aviso "item reservado para outro comprador".
+        // RN 10: ACEITA sem pedido em 48 horas passa a EXPIRADA e o anuncio volta a ATIVO; o vendedor
+        //        tambem pode liberar a reserva antes.
         Entity PropostaNegociacao {
             - @PropostaId           propostaId
             - @TipoProposta         tipo
-            BigDecimal              valorOferecido
-            - @JogoId               jogoOferecidoEmTrocaId
-            - @StatusProposta       status                        // RN 2: PENDENTE -> ACEITA ou RECUSADA
+            BigDecimal              valorOferecido                // so VALOR
+            String                  jogoOferecido                 // so TROCA (texto livre)
+            - @StatusProposta       status
+            String                  motivo                        // aviso da recusa automatica ou da expiracao
+            String                  pedidoGerado                  // id do pedido da F-20; bloqueia a expiracao da RN 10
             DateTime                enviadaEm
             DateTime                respondidaEm
         }
 
         enum TipoProposta   { VALOR, TROCA }
-        enum StatusProposta { PENDENTE, ACEITA, RECUSADA }
+        enum StatusProposta { PENDENTE, ACEITA, RECUSADA, CANCELADA, EXPIRADA }
         ValueObject ConversaId  { String id }
         ValueObject MensagemId  { String id }
         ValueObject PropostaId  { String id }
 
+        // Consulta: conversas do usuario como comprador ou vendedor, da atividade mais recente para a mais antiga.
         ValueObject ResumoConversa {
             - @ConversaId       conversaId
             - @AnuncioId        anuncioId
+            String              tituloAnuncio
             String              nomeOutraParte
-            - @StatusProposta   statusUltimaProposta
-            Integer             mensagensNaoLidas
+            String              ultimaMensagem
+            - @StatusProposta   statusUltimaProposta              // nulo quando ainda nao houve proposta
+            Integer             mensagensNaoLidas                 // RN 11
+            DateTime            ultimaAtividadeEm
         }
 
         Service ChatNegociacaoService {
-            @ConversaChat iniciarConversa(@AnuncioId anuncioId, @UsuarioId compradorId);
-            @MensagemChat enviarMensagem(@ConversaId conversaId, @UsuarioId remetenteId, String conteudo);
-            void marcarComoLidas(@ConversaId conversaId, @UsuarioId leitorId);
+            @ConversaChat iniciarConversa(@AnuncioId anuncioId, @UsuarioId compradorId);   // RN 2: reabre a existente
+            @MensagemChat enviarMensagem(@ConversaId conversaId, @UsuarioId remetenteId, String texto);   // RN 3, 4 e 5
+            void marcarComoLidas(@ConversaId conversaId, @UsuarioId leitorId);              // RN 11
         }
 
-        // RN 2: ao aceitar, reserva o item e muda o anuncio para EM_NEGOCIACAO.
         Service PropostaService {
-            @PropostaNegociacao enviarProposta(@ConversaId conversaId, @UsuarioId compradorId, @TipoProposta tipo, BigDecimal valor, @JogoId jogoTrocaId);
-            @PropostaNegociacao aceitar(@ConversaId conversaId, @PropostaId propostaId, @UsuarioId vendedorId);
+            @PropostaNegociacao enviarProposta(@ConversaId conversaId, @UsuarioId compradorId, @TipoProposta tipo, BigDecimal valor, String jogoOferecido, String mensagem);
+            @PropostaNegociacao aceitar(@ConversaId conversaId, @PropostaId propostaId, @UsuarioId vendedorId);    // RN 9
             @PropostaNegociacao recusar(@ConversaId conversaId, @PropostaId propostaId, @UsuarioId vendedorId);
+            @PropostaNegociacao cancelar(@ConversaId conversaId, @PropostaId propostaId, @UsuarioId compradorId);
+            @PropostaNegociacao liberarReserva(@ConversaId conversaId, @PropostaId propostaId, @UsuarioId vendedorId);   // RN 10
+            Integer expirarReservas(DateTime agora);                                                                    // RN 10, rotina agendada
         }
 
         Service ConsultaConversasService {
-            List<@ResumoConversa> consultarAtivas(@UsuarioId usuarioId);
-            List<@MensagemChat> consultarMensagens(@ConversaId conversaId, @UsuarioId solicitante);   // RN 3
+            List<@ResumoConversa> consultarConversas(@UsuarioId usuarioId);
+            Integer contarNaoLidas(@UsuarioId usuarioId);                                  // total do menu
+            @ConversaChat consultarConversa(@ConversaId conversaId, @UsuarioId solicitante);   // RN 3: 403 para terceiros
         }
 
-        // Porta ACL para o ContextoAnuncios.
+        // Porta ACL para o ContextoAnuncios (F-18): le o anuncio e muda o status pelo ciclo de vida dele.
         Service IAnuncioGateway {
-            Boolean estaAtivo(@AnuncioId anuncioId);
-            @UsuarioId obterVendedor(@AnuncioId anuncioId);
-            void reservar(@AnuncioId anuncioId);
+            @AnuncioNegociavel buscar(@AnuncioId anuncioId);
+            void reservar(@AnuncioId anuncioId);                  // ATIVO -> EM_NEGOCIACAO
+            void liberar(@AnuncioId anuncioId);                   // EM_NEGOCIACAO -> ATIVO
+        }
+
+        ValueObject AnuncioNegociavel {
+            - @AnuncioId        anuncioId
+            - @UsuarioId        vendedorId
+            String              titulo
+            String              status                            // RN 1: ATIVO; RN 5: VENDIDO ou CANCELADO encerra a conversa
         }
 
         DomainEvent PropostaAceitaEvent {
-            - @ConversaId   conversaId
-            - @PropostaId   propostaId
-            - @AnuncioId    anuncioId
-            - @UsuarioId    compradorId
-            BigDecimal      valorAcordado
+            - @ConversaId       conversaId
+            - @PropostaId       propostaId
+            - @AnuncioId        anuncioId
+            - @UsuarioId        compradorId
+            - @UsuarioId        vendedorId
+            BigDecimal          valorAcordado                     // nulo na troca
         }
 
-        Repository IConversaRepositorio {
-            @ConversaChat salvar(@ConversaChat conversa);
-            Optional<@ConversaChat> buscarPorId(@ConversaId conversaId);
-            Boolean existePorAnuncioECompradorEVendedor(@AnuncioId anuncioId, @UsuarioId compradorId, @UsuarioId vendedorId);
-            List<@ConversaChat> listarPorParticipante(@UsuarioId usuarioId);
-        }
     }
 }
-
 
 BoundedContext ContextoPedidos implements MarketplaceSubdomain {
     type = FEATURE
 
     // F-20 Processamento do pedido, checkout de pagamento e confirmacao de entrega
+    //
+    // O pedido nasce ja pago (o checkout gera o pedido e o pagamento juntos):
+    //   AGUARDANDO_ENVIO -> ENVIADO -> CONCLUIDO
+    //   AGUARDANDO_ENVIO -> CANCELADO (prazo de envio vencido, RN 9)
+    // Pagamento: EM_CUSTODIA -> LIBERADO (conclusao) ou REEMBOLSADO (cancelamento).
     Aggregate PedidoMarketplace {
 
         Entity PedidoMarketplace {
             aggregateRoot
             - @PedidoId                 pedidoId
-            - @AnuncioId                anuncioId
-            - @PropostaId               propostaId
+            - @OrigemPedido             origem                    // RN 1: proposta aceita ou compra direta
+            - @AnuncioId                anuncioId                 // RN 2: um pedido ativo por anuncio
+            - @JogoId                   jogoId                    // para o journal (F-16) e as estatisticas (F-17)
+            String                      tituloAnuncio
+            - @PropostaId               propostaId                // so na origem PROPOSTA
+            String                      jogoOferecidoEmTroca      // proposta de TROCA: o item sai por R$ 0,00
             - @UsuarioId                compradorId
             - @UsuarioId                vendedorId
-            BigDecimal                  valor
-            - @EnderecoEntrega          enderecoEntrega
-            - @FormaPagamento           formaPagamento
+            BigDecimal                  valorItem                 // preco do anuncio ou valor da proposta
+            - @OpcaoFrete               frete
+            BigDecimal                  valorFrete
+            BigDecimal                  total                     // RN 4: item + frete, duas casas
+            - @EnderecoEntrega          enderecoEntrega           // RN 3
+            - @TransacaoPagamento       pagamento                 // RN 5 e RN 7
             - @StatusPedido             status
-            String                      codigoRastreio            // RN 2: ate 3 dias uteis apos o pagamento
-            DateTime                    pagoEm
-            DateTime                    prazoEnvio
-            DateTime                    entregueEm
-            DateTime                    concluidoEm
+            String                      codigoRastreio            // RN 8: 3 a 60 caracteres
+            DateTime                    criadoEm                  // = momento do pagamento
+            DateTime                    prazoEnvio                // RN 8: criadoEm + 3 dias uteis
+            DateTime                    enviadoEm                 // RN 7: inicio dos 7 dias de tolerancia
+            DateTime                    concluidoEm               // F-21: inicio do prazo de 15 dias para avaliar
+            DateTime                    canceladoEm
+
+            Repository PedidoMarketplaceRepository {
+                @PedidoMarketplace salvar(@PedidoMarketplace pedido);
+                Optional<@PedidoMarketplace> buscarPorId(@PedidoId pedidoId);
+                Boolean existeAtivoParaAnuncio(@AnuncioId anuncioId);    // RN 2
+                List<@PedidoMarketplace> listarPorParticipante(@UsuarioId usuarioId);
+                List<@PedidoMarketplace> listarComPrazoDeEnvioVencido(DateTime agora);
+                List<@PedidoMarketplace> listarEnviadosAte(DateTime limite);
+            }
         }
 
+        // RN 3: destinatario (3 a 80), CEP 00000-000, rua, numero, cidade e UF obrigatorios; complemento opcional.
         ValueObject EnderecoEntrega {
-            String logradouro
-            String numero
-            String cidade
-            String estado
+            String destinatario
             String cep
+            String rua
+            String numero
+            String complemento
+            String cidade
+            String uf
         }
 
-        enum FormaPagamento { CARTAO_SIMULADO, PIX, SALDO_CARTEIRA }
-        enum StatusPedido   { AGUARDANDO_PAGAMENTO, PAGO, ENVIADO, ENTREGUE, CONCLUIDO, CANCELADO }
+        // RN 5: pagamento simulado, sem gateway real.
+        Entity TransacaoPagamento {
+            - @FormaPagamento           forma
+            BigDecimal                  valor
+            - @StatusPagamento          status                    // RN 7: EM_CUSTODIA ate a liberacao
+            String                      finalCartao               // cartao: so os 4 ultimos digitos sao guardados
+            DateTime                    pagoEm
+            DateTime                    liberadoEm
+            DateTime                    reembolsadoEm
+        }
+
+        // Dados do cartao ficticio: validados e descartados (o numero nunca e gravado).
+        ValueObject CartaoSimulado {
+            String numero                                         // 13 a 19 digitos, valido pelo algoritmo de Luhn
+            String nomeImpresso
+            String validade                                       // MM/AA, nao vencida
+            String cvv                                            // 3 ou 4 digitos
+        }
+
+        enum OrigemPedido   { PROPOSTA, COMPRA_DIRETA }
+        enum OpcaoFrete     { ENVIO_SEGURO, EXPRESSO }            // RN 4: R$ 18,90 e R$ 32,90
+        enum FormaPagamento { CARTAO, PIX, SALDO_CARTEIRA }
+        enum StatusPedido   { AGUARDANDO_ENVIO, ENVIADO, CONCLUIDO, CANCELADO }
+        enum StatusPagamento { EM_CUSTODIA, LIBERADO, REEMBOLSADO }
         ValueObject PedidoId { String id }
 
         Service CheckoutService {
-            @PedidoMarketplace gerarPedido(@PropostaId propostaId, @UsuarioId compradorId, @EnderecoEntrega endereco, @FormaPagamento forma);
-            @PedidoMarketplace pagar(@PedidoId pedidoId, @UsuarioId compradorId);
+            // RN 1 a 6: valida a origem, calcula o total, cobra pela estrategia da forma escolhida e reserva o anuncio.
+            @PedidoMarketplace gerarPedido(@AnuncioId anuncioId, @PropostaId propostaId, @UsuarioId compradorId, @EnderecoEntrega endereco, @OpcaoFrete frete, @FormaPagamento forma, @CartaoSimulado cartao);
         }
 
         Service EntregaPedidoService {
-            @PedidoMarketplace registrarEnvio(@PedidoId pedidoId, @UsuarioId vendedorId, String codigoRastreio);
-            @PedidoMarketplace confirmarRecebimento(@PedidoId pedidoId, @UsuarioId compradorId);   // RN 1 e RN 3
+            @PedidoMarketplace registrarEnvio(@PedidoId pedidoId, @UsuarioId vendedorId, String codigoRastreio);   // RN 8
+            @PedidoMarketplace confirmarRecebimento(@PedidoId pedidoId, @UsuarioId compradorId);                   // RN 10 e RN 11
         }
 
-        // Rotinas agendadas: RN 2 (cancelar sem rastreio em 3 dias uteis) e RN 1 (liberar apos 7 dias).
+        // Rotinas agendadas (de hora em hora; nos testes, chamadas direto com um "agora" fixo).
         Service PrazosPedidoService {
-            Integer cancelarPedidosSemRastreio(DateTime agora);
-            Integer liberarCustodiaPorTolerancia(DateTime agora);
+            Integer cancelarPedidosSemRastreio(DateTime agora);          // RN 9: reembolsa e o anuncio volta a ATIVO
+            Integer liberarCustodiaPorTolerancia(DateTime agora);        // RN 7: ENVIADO ha 7 dias -> CONCLUIDO
         }
 
+        // RN 8: dias uteis de segunda a sexta, sem feriados.
+        Service CalendarioDiasUteis {
+            DateTime somarDiasUteis(DateTime inicio, Integer dias);
+        }
+
+        // Consulta: abas Compras, Vendas e Concluidos, do mais recente para o mais antigo.
         Service ConsultaPedidosService {
-            List<@PedidoMarketplace> consultarCompras(@UsuarioId compradorId);
-            List<@PedidoMarketplace> consultarVendas(@UsuarioId vendedorId);
+            List<@PedidoMarketplace> consultarPedidos(@UsuarioId usuarioId);
+            @PedidoMarketplace consultarPedido(@PedidoId pedidoId, @UsuarioId solicitante);   // so as partes
         }
 
-        // RN 3: dispara a F-16 (journal do comprador), a F-17 (estatisticas) e a F-18 (anuncio VENDIDO).
+        // RN 11: na conclusao, na mesma transacao, o anuncio passa a VENDIDO (AnuncioStatusAlterado, que a
+        // F-17 consome) e a compra vai para o journal do comprador (CompraConcluida, que a F-16 consome).
+        // O "estoque" e o proprio anuncio: cada anuncio e um item unico.
         DomainEvent PedidoConcluidoEvent {
             - @PedidoId     pedidoId
             - @AnuncioId    anuncioId
@@ -1482,79 +1566,39 @@ BoundedContext ContextoPedidos implements MarketplaceSubdomain {
             DateTime        concluidoEm
         }
 
-        DomainEvent PedidoCanceladoEvent {
-            - @PedidoId     pedidoId
-            - @AnuncioId    anuncioId
-        }
-
-        Repository IPedidoRepositorio {
-            @PedidoMarketplace salvar(@PedidoMarketplace pedido);
-            Optional<@PedidoMarketplace> buscarPorId(@PedidoId pedidoId);
-            List<@PedidoMarketplace> listarPorComprador(@UsuarioId compradorId);
-            List<@PedidoMarketplace> listarPorVendedor(@UsuarioId vendedorId);
-            List<@PedidoMarketplace> listarPagosSemRastreioAte(DateTime limite);
-            List<@PedidoMarketplace> listarEntreguesAte(DateTime limite);
-            Boolean existeConcluidoEntre(@PedidoId pedidoId, @UsuarioId avaliadorId, @UsuarioId avaliadoId);
-        }
-    }
-
-    Aggregate TransacaoPagamento {
-
-        Entity TransacaoPagamento {
-            aggregateRoot
-            - @TransacaoId              transacaoId
-            - @PedidoId                 pedidoId
-            BigDecimal                  valor
-            - @FormaPagamento           forma
-            - @StatusTransacao          status                    // RN 1: EM_CUSTODIA ate a liberacao
-            DateTime                    criadaEm
-            DateTime                    liberadaEm
-        }
-
-        enum StatusTransacao { PENDENTE, EM_CUSTODIA, LIBERADA, REEMBOLSADA }
-        ValueObject TransacaoId { String id }
-
         // Padrao Strategy (GoF): cada forma de pagamento e uma estrategia.
-        // Implementacoes: PagamentoCartaoSimuladoStrategy, PagamentoPixStrategy e PagamentoSaldoCarteiraStrategy.
+        //  - PagamentoCartao: valida o cartao (RN 5) e aprova na hora; reembolso e um estorno simulado.
+        //  - PagamentoPix: simulado e aprovado na confirmacao do checkout; reembolso e uma devolucao simulada.
+        //  - PagamentoSaldoCarteira: debita a Carteira do comprador ("Saldo insuficiente na carteira" quando
+        //    nao cobre o total); reembolso devolve o valor a Carteira.
         Service IFormaPagamentoStrategy {
-            @TransacaoPagamento processar(@PedidoId pedidoId, @UsuarioId pagadorId, BigDecimal valor);
-            void reembolsar(@TransacaoId transacaoId);
-        }
-
-        Service CustodiaService {
-            void reterEmCustodia(@TransacaoId transacaoId);
-            void liberarParaVendedor(@TransacaoId transacaoId, @UsuarioId vendedorId);
-            void reembolsarComprador(@TransacaoId transacaoId, @UsuarioId compradorId);
-        }
-
-        Repository ITransacaoRepositorio {
-            @TransacaoPagamento salvar(@TransacaoPagamento transacao);
-            Optional<@TransacaoPagamento> buscarPorPedido(@PedidoId pedidoId);
+            @TransacaoPagamento cobrar(@UsuarioId compradorId, BigDecimal total, @CartaoSimulado cartao, DateTime agora);
+            void reembolsar(@UsuarioId compradorId, @TransacaoPagamento pagamento, DateTime agora);
         }
     }
 
+    // RN 6: criada na primeira transacao do usuario, com saldo inicial de simulacao de R$ 500,00.
     Aggregate Carteira {
 
         Entity Carteira {
             aggregateRoot
-            - @CarteiraId   carteiraId
-            - @UsuarioId    donoId
-            BigDecimal      saldo
+            - @UsuarioId    donoId                                // uma carteira por usuario
+            BigDecimal      saldo                                 // nunca negativo
+            DateTime        criadaEm
             DateTime        atualizadaEm
-        }
 
-        ValueObject CarteiraId { String id }
+            Repository CarteiraRepository {
+                @Carteira salvar(@Carteira carteira);
+                Optional<@Carteira> buscarPorDono(@UsuarioId donoId);   // com trava de linha ao debitar ou creditar
+            }
+        }
 
         Service CarteiraService {
-            void creditar(@UsuarioId donoId, BigDecimal valor);
+            BigDecimal consultarSaldo(@UsuarioId donoId);         // R$ 500,00 se ainda nao existir
             void debitar(@UsuarioId donoId, BigDecimal valor);
-            BigDecimal consultarSaldo(@UsuarioId donoId);
+            void creditar(@UsuarioId donoId, BigDecimal valor);   // RN 7: liberacao ao vendedor; reembolso
         }
 
-        Repository ICarteiraRepositorio {
-            @Carteira salvar(@Carteira carteira);
-            Optional<@Carteira> buscarPorDono(@UsuarioId donoId);
-        }
     }
 }
 
@@ -1653,7 +1697,7 @@ BoundedContext ContextoNotificacao implements NotificacaoSubdomain {
             DateTime                lidaEm
         }
 
-        enum TipoNotificacao   { LANCAMENTO_PROXIMO, LANCAMENTO_ADIADO, PROPOSTA_RECEBIDA, PROPOSTA_ACEITA, PEDIDO_ATUALIZADO, ADVERTENCIA }
+        enum TipoNotificacao   { LANCAMENTO_PROXIMO, LANCAMENTO_ADIADO, ADVERTENCIA }
         enum StatusNotificacao { PENDENTE, ENVIADA, LIDA }
         ValueObject NotificacaoId { String id }
 
@@ -1726,6 +1770,7 @@ ContextMap GameTrackerContextMap {
     ContextoCatalogoJogos [U,OHS,PL]->[D,CF] ContextoForum
     ContextoCatalogoJogos [U,OHS,PL]->[D,ACL] ContextoSimilaridade
     ContextoCatalogoJogos [U,OHS,PL]->[D,CF] ContextoAnuncios
+    ContextoCatalogoJogos [U,OHS,PL]->[D,CF] ContextoPedidos
 
     // F-01 RN 3: a verificacao de vinculos antes da exclusao (reviews, journal, listas) e feita
     // pela porta IVinculosJogoGateway, implementada na camada de aplicacao para nao criar ciclo
@@ -1751,12 +1796,10 @@ ContextMap GameTrackerContextMap {
     // Fluxo do marketplace: anuncio -> negociacao -> pedido -> reputacao.
     ContextoAnuncios [U,OHS]->[D,ACL] ContextoNegociacao
     ContextoNegociacao [U,PL]->[D,CF] ContextoPedidos
-    ContextoPedidos [U,PL]->[D,CF] ContextoAnuncios
+    ContextoAnuncios [U,OHS]->[D,ACL] ContextoPedidos      // F-20: compra direta, reserva e VENDIDO pelo ciclo de vida do anuncio
     ContextoPedidos [U,OHS]->[D,ACL] ContextoReputacao
 
-    // Notificacoes geradas por outros contextos.
+    // Notificacoes geradas por outros contextos (o marketplace nao gera notificacoes: o chat mostra as nao lidas).
     ContextoLancamentos [U,PL]->[D,CF] ContextoNotificacao
-    ContextoNegociacao [U,PL]->[D,CF] ContextoNotificacao
-    ContextoPedidos [U,PL]->[D,CF] ContextoNotificacao
     ContextoModeracao [U,PL]->[D,CF] ContextoNotificacao
 }

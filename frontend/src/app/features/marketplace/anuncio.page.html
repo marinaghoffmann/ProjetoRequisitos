@@ -1,0 +1,84 @@
+<main class="pagina-detalhe-anuncio">
+  <a class="voltar" routerLink="/marketplace">← Anúncios</a>
+
+  @if (erro(); as mensagem) {
+    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+  } @else if (anuncio(); as a) {
+    <div class="detalhe-anuncio">
+      <section class="galeria" aria-label="Fotos do anúncio">
+        @if (imagem(a.fotos[fotoAtual()])) {
+          <img class="galeria__principal" [src]="imagem(a.fotos[fotoAtual()])" [alt]="'Foto de ' + a.titulo" />
+        } @else {
+          <div class="galeria__principal galeria__vazia" aria-label="Anúncio sem foto">GT</div>
+        }
+        @if (a.fotos.length > 1) {
+          <ul class="galeria__miniaturas">
+            @for (foto of a.fotos; track foto; let i = $index) {
+              <li>
+                <button type="button" [class.ativa]="i === fotoAtual()" (click)="fotoAtual.set(i)"
+                  [attr.aria-label]="'Ver foto ' + (i + 1)">
+                  @if (imagem(foto)) {
+                    <img [src]="imagem(foto)" alt="" />
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <section class="informacoes">
+        <span class="status" [class.status--alerta]="a.status !== 'ATIVO'">{{ statusAnuncio[a.status] }}</span>
+        <h1>{{ a.titulo }}</h1>
+        <p class="preco">{{ a.preco | currency: 'BRL' }}</p>
+        <p class="etiquetas">
+          <span class="etiqueta">{{ estados[a.estado] }}</span>
+          <span class="etiqueta">{{ tipos[a.tipoNegociacao] }}</span>
+          <span class="etiqueta">{{ midias[a.midia] }}</span>
+        </p>
+        <p class="detalhe">Envio a partir de {{ a.localidade }}</p>
+        <a class="detalhe" [routerLink]="['/marketplace/vendedores', a.vendedorId]">Ver reputação do vendedor</a>
+
+        <div class="negociar">
+          @if (dono()) {
+            <p class="aviso">Este anúncio é seu. As propostas chegam em <a routerLink="/marketplace/mensagens">Mensagens</a>.</p>
+            <a class="botao botao--secundario" [routerLink]="['/marketplace', a.id, 'editar']">Editar anúncio</a>
+          } @else if (!autenticacao.usuarioAtual()) {
+            <a class="botao" routerLink="/login">Entrar para negociar</a>
+          } @else {
+            @if (!negociavel()) {
+              <p class="aviso">
+                @if (a.status === 'EM_NEGOCIACAO') {
+                  Item reservado para um comprador. Se você já conversava sobre ele, a conversa continua disponível.
+                } @else {
+                  Este anúncio não está disponível para novas negociações.
+                }
+              </p>
+            }
+            <div class="acoes">
+              <button class="botao--secundario" type="button" (click)="conversar()">Conversar</button>
+              @if (negociavel()) {
+                <button class="botao--secundario" type="button" (click)="abrirProposta()">Fazer proposta</button>
+              }
+              @if (compraDireta()) {
+                <button type="button" (click)="comprar()">Comprar por {{ a.preco | currency: 'BRL' }}</button>
+              }
+            </div>
+          }
+          @if (erroAcao(); as mensagem) {
+            @if (!dialogoAberto()) {
+              <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+            }
+          }
+        </div>
+      </section>
+    </div>
+
+    @if (dialogoAberto()) {
+      <app-proposta-dialog [tipoNegociacao]="a.tipoNegociacao" [precoAnuncio]="a.preco" [erro]="erroAcao()"
+        [enviando]="enviando()" (enviar)="enviarProposta($event)" (fechar)="dialogoAberto.set(false)" />
+    }
+  } @else {
+    <p class="estado">Carregando anúncio…</p>
+  }
+</main>

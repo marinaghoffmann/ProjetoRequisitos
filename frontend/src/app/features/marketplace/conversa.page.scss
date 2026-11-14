@@ -1,0 +1,207 @@
+.pagina-conversa {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: min(48rem, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 4rem;
+}
+
+.topo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.topo__foto {
+  flex: 0 0 auto;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+.topo__foto--vazia {
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  font: 700 1rem var(--font-title);
+}
+
+.topo__texto {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.topo__titulo {
+  overflow: hidden;
+  color: var(--text);
+  font: 700 1.1rem var(--font-title);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detalhe {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.status--alerta {
+  background: rgb(255 116 72 / 12%);
+  color: var(--orange);
+}
+
+.linha-do-tempo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-height: 12rem;
+  padding: 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: #0d1015;
+}
+
+.balao {
+  align-self: flex-start;
+  max-width: min(80%, 32rem);
+  padding: 0.6rem 0.85rem;
+  border-radius: 12px 12px 12px 4px;
+  background: var(--surface-3);
+
+  p {
+    margin: 0;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+
+  small {
+    font-size: 0.7rem;
+  }
+}
+
+.balao--minha {
+  align-self: flex-end;
+  border-radius: 12px 12px 4px;
+  background: rgb(217 255 67 / 14%);
+}
+
+.proposta {
+  align-self: flex-start;
+  display: grid;
+  gap: 0.4rem;
+  width: min(100%, 26rem);
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .acoes {
+    align-items: center;
+    margin-top: 0.25rem;
+  }
+}
+
+.proposta--minha {
+  align-self: flex-end;
+}
+
+.proposta__status {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.proposta--pendente {
+  border-color: rgb(217 255 67 / 40%);
+
+  .proposta__status {
+    background: rgb(217 255 67 / 12%);
+    color: var(--accent);
+  }
+}
+
+.proposta--aceita {
+  border-color: rgb(92 255 146 / 40%);
+
+  .proposta__status {
+    background: rgb(92 255 146 / 12%);
+    color: var(--success);
+  }
+}
+
+.proposta--recusada .proposta__status,
+.proposta--expirada .proposta__status {
+  background: rgb(255 92 108 / 12%);
+  color: var(--danger);
+}
+
+.proposta__oferta {
+  margin: 0;
+  font: 700 1.15rem var(--font-title);
+}
+
+.proposta__motivo {
+  margin: 0;
+  color: var(--orange);
+  font-size: 0.8rem;
+}
+
+.reserva {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 9px;
+  background: rgb(92 255 146 / 7%);
+  color: var(--text);
+  font-size: 0.85rem;
+
+  p {
+    margin: 0;
+  }
+}
+
+.encerrada {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+  text-align: center;
+}
+
+.escrever {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.escrever__acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

@@ -1,0 +1,180 @@
+.pagina-pedidos {
+  width: min(56rem, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+}
+
+.carteira {
+  display: grid;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: right;
+
+  strong {
+    color: var(--accent);
+    font: 700 1.4rem var(--font-title);
+  }
+}
+
+.abas {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0 1rem;
+
+  button {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--line);
+
+    &.ativa {
+      border-color: var(--accent);
+      background: rgb(217 255 67 / 8%);
+      color: var(--accent);
+    }
+  }
+}
+
+.pedidos {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pedido {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+
+  .acoes {
+    margin-top: 0;
+  }
+
+  form {
+    margin-top: 0;
+  }
+}
+
+.pedido--destaque {
+  border-color: var(--accent);
+}
+
+.pedido__topo {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pedido__titulo {
+  color: var(--text);
+  font: 700 1.1rem var(--font-title);
+}
+
+.pedido__total {
+  font: 700 1.25rem var(--font-title);
+  white-space: nowrap;
+}
+
+.detalhe {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.rastreio {
+  color: var(--text);
+  font-family: monospace;
+}
+
+.entrega--enviado,
+.pagamento--em_custodia {
+  border-color: rgb(217 255 67 / 35%);
+  color: var(--accent);
+}
+
+.entrega--concluido,
+.pagamento--liberado {
+  border-color: rgb(92 255 146 / 35%);
+  color: var(--success);
+}
+
+.entrega--cancelado,
+.pagamento--reembolsado {
+  border-color: rgb(255 116 72 / 35%);
+  color: var(--orange);
+}
+
+.aviso {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 0.85rem;
+
+  strong {
+    color: var(--text);
+  }
+}
+
+.aviso--ok {
+  background: rgb(92 255 146 / 7%);
+  color: var(--success);
+}
+
+.aviso--alerta {
+  background: rgb(255 116 72 / 7%);
+  color: #ffc0aa;
+}
+
+.envio {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+
+  label {
+    flex: 1;
+  }
+}
+
+.avaliacao {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.estrela {
+  min-height: auto;
+  padding: 0 0.1rem;
+  background: transparent;
+  color: var(--line);
+  font-size: 1.5rem;
+
+  &.cheia {
+    color: var(--accent);
+  }
+}
+
+.etiqueta--botao {
+  min-height: auto;
+  cursor: pointer;
+
+  &.marcada {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+}
+
+@media (max-width: 42rem) {
+  .envio {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

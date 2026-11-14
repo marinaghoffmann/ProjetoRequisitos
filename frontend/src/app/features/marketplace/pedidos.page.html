@@ -1,0 +1,173 @@
+<main class="pagina-pedidos">
+  <header class="cabecalho">
+    <div>
+      <a class="voltar" routerLink="/marketplace">← Anúncios</a>
+      <h1>Meus pedidos</h1>
+      <p>Compras e vendas do marketplace, com a entrega e o pagamento.</p>
+    </div>
+    @if (saldo() !== null) {
+      <div class="carteira">
+        <span>Saldo da carteira</span>
+        <strong>{{ saldo() | currency: 'BRL' }}</strong>
+      </div>
+    }
+  </header>
+
+  @if (erro(); as mensagem) {
+    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+  } @else if (pedidos()) {
+    <nav class="abas" role="tablist" aria-label="Tipos de pedido">
+      <button role="tab" type="button" [class.ativa]="aba() === 'COMPRAS'" [attr.aria-selected]="aba() === 'COMPRAS'"
+        (click)="aba.set('COMPRAS')">Compras ({{ porAba().COMPRAS.length }})</button>
+      <button role="tab" type="button" [class.ativa]="aba() === 'VENDAS'" [attr.aria-selected]="aba() === 'VENDAS'"
+        (click)="aba.set('VENDAS')">Vendas ({{ porAba().VENDAS.length }})</button>
+      <button role="tab" type="button" [class.ativa]="aba() === 'CONCLUIDOS'"
+        [attr.aria-selected]="aba() === 'CONCLUIDOS'" (click)="aba.set('CONCLUIDOS')">
+        Concluídos ({{ porAba().CONCLUIDOS.length }})
+      </button>
+    </nav>
+
+    @if (!porAba()[aba()].length) {
+      <p class="estado">
+        @switch (aba()) {
+          @case ('COMPRAS') { Nenhuma compra em andamento. }
+          @case ('VENDAS') { Nenhuma venda em andamento. }
+          @default { Nenhum pedido concluído ainda. }
+        }
+      </p>
+    }
+
+    <ul class="pedidos">
+      @for (p of porAba()[aba()]; track p.id) {
+        <li class="pedido" [class.pedido--destaque]="p.id === destaque">
+          <div class="pedido__topo">
+            <div>
+              <a class="pedido__titulo" [routerLink]="['/marketplace', p.anuncioId]">{{ p.tituloAnuncio }}</a>
+              <p class="detalhe">
+                {{ p.papel === 'COMPRA' ? 'Vendedor' : 'Comprador' }}: {{ p.nomeOutraParte ?? 'usuário removido' }}
+                · pedido de {{ p.criadoEm | date: 'dd/MM/yyyy' }}
+              </p>
+            </div>
+            <strong class="pedido__total">{{ p.total | currency: 'BRL' }}</strong>
+          </div>
+
+          <p class="etiquetas">
+            <span class="etiqueta entrega--{{ p.status.toLowerCase() }}">{{ statusPedido[p.status] }}</span>
+            <span class="etiqueta pagamento--{{ p.statusPagamento.toLowerCase() }}">
+              Pagamento {{ statusPagamento[p.statusPagamento].toLowerCase() }}
+            </span>
+            <span class="etiqueta">{{ formas[p.formaPagamento] }}@if (p.finalCartao) { final {{ p.finalCartao }} }</span>
+            <span class="etiqueta">{{ fretes[p.frete] }}</span>
+            @if (p.jogoOferecidoEmTroca) {
+              <span class="etiqueta">Troca por {{ p.jogoOferecidoEmTroca }}</span>
+            }
+          </p>
+
+          @if (p.codigoRastreio) {
+            <p class="detalhe">Rastreio: <strong class="rastreio">{{ p.codigoRastreio }}</strong></p>
+          }
+
+          @switch (p.status) {
+            @case ('AGUARDANDO_ENVIO') {
+              @if (p.papel === 'VENDA') {
+                <p class="aviso">
+                  Envie até <strong>{{ p.prazoEnvio | date: 'dd/MM/yyyy HH:mm' }}</strong> (3 dias úteis após o
+                  pagamento) para {{ p.endereco.destinatario }} — {{ p.endereco.rua }},
+                  {{ p.endereco.numero }}{{ p.endereco.complemento ? ' (' + p.endereco.complemento + ')' : '' }},
+                  {{ p.endereco.cidade }}/{{ p.endereco.uf }}, CEP {{ p.endereco.cep }}.
+                </p>
+                <form class="envio" (ngSubmit)="registrarEnvio(p)">
+                  <label>
+                    Código de rastreio ou método de entrega
+                    <input [name]="'rastreio-' + p.id" required minlength="3" maxlength="60"
+                      [(ngModel)]="rastreios[p.id]" placeholder="Ex.: BR123456789BR" />
+                  </label>
+                  <button type="submit" [disabled]="ocupado() === p.id">Registrar envio</button>
+                </form>
+              } @else {
+                <p class="aviso">
+                  Aguardando o vendedor enviar até {{ p.prazoEnvio | date: 'dd/MM/yyyy HH:mm' }}. Sem envio no prazo,
+                  o pedido é cancelado e você é reembolsado.
+                </p>
+              }
+            }
+            @case ('ENVIADO') {
+              @if (p.papel === 'COMPRA') {
+                <p class="aviso">
+                  Recebeu? Confirme para liberar o valor ao vendedor. Sem confirmação, ele é liberado
+                  automaticamente em {{ p.liberacaoAutomaticaEm | date: 'dd/MM/yyyy' }}.
+                </p>
+                <div class="acoes">
+                  <button type="button" [disabled]="ocupado() === p.id" (click)="confirmarRecebimento(p)">
+                    Confirmar recebimento
+                  </button>
+                </div>
+              } @else {
+                <p class="aviso">
+                  Valor em custódia até o comprador confirmar o recebimento, ou até
+                  {{ p.liberacaoAutomaticaEm | date: 'dd/MM/yyyy' }}.
+                </p>
+              }
+            }
+            @case ('CONCLUIDO') {
+              <p class="aviso aviso--ok">
+                @if (p.papel === 'VENDA') {
+                  Pagamento liberado na sua carteira em {{ p.concluidoEm | date: 'dd/MM/yyyy' }}.
+                } @else {
+                  Compra concluída em {{ p.concluidoEm | date: 'dd/MM/yyyy' }}; o pagamento foi liberado ao vendedor.
+                }
+              </p>
+              @if (avaliados().has(p.id)) {
+                <p class="detalhe">Avaliação enviada. Obrigado!</p>
+              } @else if (avaliando() === p.id) {
+                <form class="avaliacao" (ngSubmit)="avaliar(p)">
+                  <fieldset>
+                    <legend>Avalie {{ p.papel === 'COMPRA' ? 'o vendedor' : 'o comprador' }}</legend>
+                    <span class="estrelas">
+                      @for (n of escala; track n) {
+                        <button type="button" class="estrela" [class.cheia]="n <= avaliacao.estrelas"
+                          [attr.aria-label]="n + ' estrela(s)'" (click)="avaliacao.estrelas = n">★</button>
+                      }
+                    </span>
+                  </fieldset>
+                  <p class="etiquetas">
+                    @for (t of listaDeTags; track t) {
+                      <button type="button" class="etiqueta etiqueta--botao" [class.marcada]="avaliacao.tags.has(t)"
+                        (click)="alternarTag(t)">{{ tags[t] }}</button>
+                    }
+                  </p>
+                  <label>
+                    Comentário (opcional)
+                    <textarea [name]="'comentario-' + p.id" rows="2" maxlength="1000" [(ngModel)]="avaliacao.comentario"></textarea>
+                  </label>
+                  <div class="acoes">
+                    <button type="submit" [disabled]="ocupado() === p.id">Enviar avaliação</button>
+                    <button class="botao--secundario" type="button" (click)="avaliando.set(null)">Cancelar</button>
+                  </div>
+                </form>
+              } @else {
+                <div class="acoes">
+                  <button class="botao--secundario" type="button" (click)="abrirAvaliacao(p)">
+                    Avaliar {{ p.papel === 'COMPRA' ? 'vendedor' : 'comprador' }}
+                  </button>
+                </div>
+              }
+            }
+            @case ('CANCELADO') {
+              <p class="aviso aviso--alerta">
+                Cancelado em {{ p.canceladoEm | date: 'dd/MM/yyyy' }}: o prazo de envio expirou sem rastreio e o valor
+                foi reembolsado ao comprador.
+              </p>
+            }
+          }
+
+          @if (erros()[p.id]; as mensagem) {
+            <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+          }
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="estado">Carregando pedidos…</p>
+  }
+</main>
