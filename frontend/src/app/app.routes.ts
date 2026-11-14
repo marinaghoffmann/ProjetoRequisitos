@@ -2,7 +2,13 @@ import { Routes } from '@angular/router';
 import { papelGuard } from './core/auth/papel.guard';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'catalogo' },
+  { path: '', pathMatch: 'full', redirectTo: 'inicio' },
+  { path: 'inicio', loadComponent: () => import('./features/inicio/inicio.page').then((m) => m.InicioPage) },
+  {
+    path: 'perfil',
+    canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
+    loadComponent: () => import('./features/perfil/perfil.page').then((m) => m.PerfilPage),
+  },
   { path: 'login', loadComponent: () => import('./features/identidade/login.page').then((m) => m.LoginPage) },
   { path: 'cadastro', loadComponent: () => import('./features/identidade/cadastro.page').then((m) => m.CadastroPage) },
   {
@@ -21,9 +27,5 @@ export const routes: Routes = [
     canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
     loadComponent: () => import('./features/biblioteca/jogando-agora.page').then((m) => m.JogandoAgoraPage),
   },
-  { path: 'timeline',
-    canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
-    loadComponent: () => import('./features/journal/timeline.page').then((m) => m.TimelinePage),
-  },
-  { path: '**', redirectTo: 'catalogo' },
+  { path: '**', redirectTo: 'inicio' }
 ];
