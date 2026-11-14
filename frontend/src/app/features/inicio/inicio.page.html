@@ -1,23 +1,205 @@
-<section class="inicio">
-  <nav class="conta">
-    @if (autenticacao.usuarioAtual(); as usuario) {
-      <span>Olá, {{ usuario.nome }} ({{ usuario.papel }})</span>
-      <button type="button" (click)="autenticacao.sair()">Sair</button>
-    } @else {
-      <a routerLink="/login">Entrar</a>
-      <a routerLink="/cadastro">Criar conta</a>
-    }
-  </nav>
-  <h1>Game Tracker</h1>
-  <p>Registre, avalie e negocie os jogos que você joga.</p>
-  <p><a routerLink="/catalogo">Ver o catálogo de jogos →</a></p>
-  <p><a routerLink="/marketplace">Comprar e trocar jogos no marketplace →</a></p>
+<header class="hm-topo">
+  <label class="hm-busca">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input type="search" placeholder="Buscar jogos, pessoas e listas..." aria-label="Buscar" />
+    <kbd>⌘ K</kbd>
+  </label>
 
-  @if (status(); as s) {
-    <p class="api api--ok">API: {{ s }}</p>
-  } @else if (erro(); as e) {
-    <p class="api api--erro">API indisponível: {{ e }}</p>
-  } @else {
-    <p class="api">Verificando a API…</p>
+  <div class="hm-topo__acoes">
+    <button type="button" class="hm-sino" aria-label="Notificações">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 20a2 2 0 0 0 3.4 0"/></svg>
+      <i class="hm-sino__ponto"></i>
+    </button>
+    <button type="button" class="hm-registrar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      Registrar
+    </button>
+  </div>
+</header>
+
+<main class="hm-pagina">
+  <!-- Destaque da semana -->
+  @if (destaqueAtual(); as d) {
+    <section class="hm-hero" [style.background]="fundoHero(d)" aria-label="Destaque da semana">
+      <div class="hm-hero__conteudo">
+        <p class="hm-hero__rotulo"><span></span>DESTAQUE DA SEMANA</p>
+        <h1 class="hm-hero__titulo">
+          <span>{{ d.linha1 }}</span>
+          @if (d.linha2) { <span class="hm-hero__contorno">{{ d.linha2 }}</span> }
+        </h1>
+        <p class="hm-hero__descricao">{{ d.descricao }}</p>
+
+        <ul class="hm-hero__meta">
+          <li class="hm-hero__nota">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z"/></svg>
+            –
+          </li>
+          @if (d.ano) { <li>{{ d.ano }}</li> }
+        </ul>
+
+        <div class="hm-hero__botoes">
+          <a class="hm-btn hm-btn--primario" [routerLink]="['/catalogo', d.id]">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h4M8 9v4M15 12h.01M18 10h.01"/><path d="M17.3 5H6.7a4 4 0 0 0-3.9 3.2l-1.1 5.4A3 3 0 0 0 4.6 17L8 14.5h8l3.4 2.5a3 3 0 0 0 2.9-3.4l-1.1-5.4A4 4 0 0 0 17.3 5Z"/></svg>
+            Ver jogo
+          </a>
+          <button type="button" class="hm-btn hm-btn--fantasma">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            Wishlist
+          </button>
+        </div>
+      </div>
+
+      @if (destaques().length > 1) {
+        <div class="hm-hero__paginacao" role="tablist" aria-label="Destaques">
+          @for (item of destaques(); track item.id; let i = $index) {
+            <button
+              type="button"
+              role="tab"
+              class="hm-pag"
+              [class.hm-pag--ativo]="i === indice()"
+              [attr.aria-selected]="i === indice()"
+              [attr.aria-label]="'Destaque ' + rotulo(i)"
+              (click)="ir(i)"
+            >
+              @if (i === 0 || i === destaques().length - 1 || i === indice()) {
+                <span class="hm-pag__num">{{ rotulo(i) }}</span>
+              }
+              <span class="hm-pag__barra"></span>
+            </button>
+          }
+        </div>
+      }
+    </section>
+  } @else if (carregando()) {
+    <section class="hm-hero hm-hero--vazio" aria-busy="true"></section>
   }
-</section>
+
+  <!-- Em alta agora -->
+  <section class="hm-secao">
+    <div class="hm-secao__cab">
+      <div>
+        <h2>Em alta agora</h2>
+        <p>O que a comunidade está jogando</p>
+      </div>
+      <a routerLink="/catalogo" class="hm-link">
+        Ver catálogo
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
+    </div>
+
+    @if (carregando()) {
+      <p class="hm-estado">Carregando jogos…</p>
+    } @else if (erro(); as mensagem) {
+      <p class="hm-estado hm-estado--erro" role="alert">{{ mensagem }}</p>
+    } @else if (!emAlta().length) {
+      <p class="hm-estado">Nenhum jogo cadastrado ainda.</p>
+    } @else {
+      <ul class="hm-trilho">
+        @for (jogo of emAlta(); track jogo.id; let i = $index) {
+          <li class="hm-jogo">
+            <a [routerLink]="['/catalogo', jogo.id]" class="hm-jogo__link">
+              <div class="hm-jogo__capa" [style.background]="fundoCard(jogo, i)">
+                <div class="hm-jogo__rodape">
+                  <span class="hm-jogo__nota">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z"/></svg>
+                    –
+                  </span>
+                </div>
+              </div>
+              <strong class="hm-jogo__titulo">{{ jogo.titulo }}</strong>
+              <span class="hm-jogo__meta">{{ jogo.ano }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <!-- Comunidade + lateral -->
+  <div class="hm-duas">
+    <section class="hm-secao hm-secao--feed">
+      <div class="hm-secao__cab">
+        <h2>Da sua comunidade</h2>
+        <a href="#" class="hm-link">
+          Ver timeline
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </a>
+      </div>
+
+      <article class="hm-post">
+        <header class="hm-post__cab">
+          <span class="hm-avatar">RN</span>
+          <p>
+            <strong>Rafa Nunes</strong>
+            <span>terminou <b>Eclipse: Fallen Order</b> · 2h</span>
+          </p>
+          <button type="button" class="hm-post__mais" aria-label="Mais opções">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>
+          </button>
+        </header>
+
+        <div class="hm-resenha">
+          <div class="hm-resenha__capa" [style.background]="gradienteResenha"></div>
+          <div class="hm-resenha__corpo">
+            <p class="hm-resenha__nota">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z"/></svg>
+              4.5
+            </p>
+            <p class="hm-resenha__texto">“Um mundo fascinante e uma trilha que fica na cabeça. A reta final é incrível.”</p>
+            <p class="hm-resenha__stats"><span>♡ 128</span><span>12 comentários</span></p>
+          </div>
+        </div>
+      </article>
+
+      <article class="hm-post">
+        <header class="hm-post__cab">
+          <span class="hm-avatar hm-avatar--b">MO</span>
+          <p>
+            <strong>Maya Okada</strong>
+            <span>adicionou 4 jogos à lista <b>Direção de arte impecável</b> · 4h</span>
+          </p>
+        </header>
+        <ul class="hm-miniaturas">
+          @for (m of miniaturasLista; track $index) {
+            <li [style.background]="m"></li>
+          }
+        </ul>
+      </article>
+    </section>
+
+    <aside class="hm-lateral">
+      <section class="hm-painel">
+        <div class="hm-painel__cab">
+          <h2>Em breve</h2>
+          <a href="#" class="hm-link">
+            Todos
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+          </a>
+        </div>
+        <ul class="hm-breve">
+          @for (l of emBreve; track l.titulo) {
+            <li>
+              <time class="hm-breve__data"><b>{{ l.dia }}</b>{{ l.mes }}</time>
+              <span class="hm-breve__capa" [style.background]="l.capa"></span>
+              <p>
+                <strong>{{ l.titulo }}</strong>
+                <span>{{ l.meta }}</span>
+              </p>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <section class="hm-desafio">
+        <div>
+          <p class="hm-desafio__rotulo">DESAFIO DO MÊS</p>
+          <strong>Feche 3 jogos indie</strong>
+          <span>2 de 3 concluídos</span>
+        </div>
+        <div class="hm-anel" style="--p: 67" role="img" aria-label="67% concluído">
+          <span><b>67</b><i>%</i></span>
+        </div>
+      </section>
+    </aside>
+  </div>
+</main>

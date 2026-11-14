@@ -1,21 +1,43 @@
 <div class="shell">
   <aside class="sidebar">
-    <a class="marca" routerLink="/catalogo">
+    <a class="marca" routerLink="/inicio">
       <span class="marca__icone">G</span>
       <span class="marca__nome">GAME<em>TRACK</em></span>
     </a>
 
     <nav class="menu" aria-label="Navegação principal">
-      <a routerLink="/catalogo" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: true }">Catálogo</a>
-      @if (autenticacao.temPapel('DESENVOLVEDOR', 'ADMINISTRADOR')) {
-        <a routerLink="/catalogo/novo" routerLinkActive="ativo">Cadastrar jogo</a>
+      @for (item of principal; track item.rotulo) {
+        @if (item.rota) {
+          <a [routerLink]="item.rota" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: item.exato ?? true }">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="item.icone" /></svg>
+            <span class="menu__texto">{{ item.rotulo }}</span>
+            @if (item.contador) { <span class="menu__contador menu__contador--destaque">{{ item.contador }}</span> }
+          </a>
+        } @else {
+          <span class="menu__item menu__item--breve" title="Em breve">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="item.icone" /></svg>
+            <span class="menu__texto">{{ item.rotulo }}</span>
+            @if (item.contador) { <span class="menu__contador menu__contador--destaque">{{ item.contador }}</span> }
+          </span>
+        }
       }
 
-      <p class="menu__rotulo">Marketplace</p>
-      <a routerLink="/marketplace" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: true }">Anúncios</a>
-      @if (autenticacao.usuarioAtual()) {
-        <a routerLink="/marketplace/meus" routerLinkActive="ativo">Meus anúncios</a>
-        <a routerLink="/marketplace/novo" routerLinkActive="ativo">Anunciar jogo</a>
+      <p class="menu__rotulo">Minha biblioteca</p>
+      @for (item of biblioteca; track item.rotulo) {
+        @if (item.rota) {
+          <a [routerLink]="item.rota" routerLinkActive="ativo">
+            @if (item.icone) { <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="item.icone" /></svg> }
+            @else { <i class="menu__ponto"></i> }
+            <span class="menu__texto">{{ item.rotulo }}</span>
+            @if (item.contador) { <span class="menu__contador">{{ item.contador }}</span> }
+          </a>
+        } @else {
+          <span class="menu__item menu__item--breve" title="Em breve">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="item.icone" /></svg>
+            <span class="menu__texto">{{ item.rotulo }}</span>
+            @if (item.contador) { <span class="menu__contador">{{ item.contador }}</span> }
+          </span>
+        }
       }
     </nav>
 
@@ -26,7 +48,27 @@
           <strong>{{ usuario.nome }}</strong>
           <span>{{ usuario.papel }}</span>
         </div>
-        <button type="button" (click)="autenticacao.sair()">Sair</button>
+        <button
+          type="button"
+          class="conta__mais"
+          aria-label="Opções da conta"
+          [attr.aria-expanded]="menuConta()"
+          (click)="menuConta.set(!menuConta())"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+        </button>
+
+        @if (menuConta()) {
+          <div class="conta__fundo" (click)="menuConta.set(false)"></div>
+          <div class="conta__menu" role="menu" (click)="menuConta.set(false)">
+            @if (autenticacao.temPapel('DESENVOLVEDOR', 'ADMINISTRADOR')) {
+              <a role="menuitem" routerLink="/catalogo/novo">Cadastrar jogo</a>
+            }
+            <a role="menuitem" routerLink="/marketplace/meus">Meus anúncios</a>
+            <a role="menuitem" routerLink="/marketplace/novo">Anunciar jogo</a>
+            <button role="menuitem" type="button" class="conta__sair" (click)="autenticacao.sair()">Sair</button>
+          </div>
+        }
       } @else {
         <a class="botao" routerLink="/login">Entrar</a>
         <a class="botao botao--secundario" routerLink="/cadastro">Criar conta</a>
