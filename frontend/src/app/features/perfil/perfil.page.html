@@ -84,7 +84,7 @@
           <ul class="pf-jogando">
             @for (e of emAndamento(); track e.jogoId; let i = $index) {
               <li class="pf-jogo">
-                <a class="pf-jogo__capa" [routerLink]="['/catalogo', e.jogoId]" [style.background]="gradiente(i)" [attr.aria-label]="'Abrir ' + e.titulo"></a>
+                <a class="pf-jogo__capa" [routerLink]="['/catalogo', e.jogoId]" [style.background]="fundo(e, i)" [attr.aria-label]="'Abrir ' + e.titulo"></a>
                 <div class="pf-jogo__corpo">
                   <a class="pf-jogo__titulo" [routerLink]="['/catalogo', e.jogoId]">{{ e.titulo }}</a>
                   <select
