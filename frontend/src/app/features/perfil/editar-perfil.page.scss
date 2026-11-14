@@ -1,0 +1,46 @@
+// Tela Editar perfil — tokens vêm de src/styles.scss. Classes com prefixo "ep".
+
+:host { display: block; min-height: 100vh; }
+
+.ep {
+  width: min(640px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 40px 0 80px;
+
+  h1 { margin: 14px 0 6px; font: 700 24px/1.1 var(--font-title); letter-spacing: -0.03em; }
+}
+
+.ep__voltar { color: var(--muted); font-size: 12px; font-weight: 700; }
+.ep__intro { margin: 0 0 24px; color: var(--muted); font-size: 12px; }
+
+form { display: grid; gap: 6px; }
+
+label { margin-top: 10px; font-size: 12px; font-weight: 700; }
+
+input,
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: 500 13px var(--font-body);
+  &:focus { outline: none; border-color: var(--accent); }
+}
+textarea { resize: vertical; }
+
+.ep__contador { color: var(--faint); font-size: 10px; text-align: right; }
+.ep__campo-erro { color: #ffc0aa; font-size: 11px; }
+.ep__erro {
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  border: 1px solid rgb(255 116 72 / 25%);
+  border-radius: 9px;
+  background: rgb(255 116 72 / 7%);
+  color: #ffc0aa;
+  font-size: 12px;
+}
+
+.ep__acoes { display: flex; align-items: center; gap: 16px; margin-top: 18px; }
+.ep__cancelar { color: var(--muted); font-size: 12px; font-weight: 700; &:hover { color: var(--accent); text-decoration: none; } }

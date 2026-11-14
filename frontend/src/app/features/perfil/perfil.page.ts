@@ -92,4 +92,9 @@ export class PerfilPage implements OnInit {
       },
     });
   }
+
+  protected fundo(e: JogoEmAndamento, i: number): string {
+    const degrade = this.gradiente(i);
+    return e.capaUrl ? `url("${encodeURI(e.capaUrl)}") center / cover no-repeat, ${degrade}` : degrade;
+  }
 }

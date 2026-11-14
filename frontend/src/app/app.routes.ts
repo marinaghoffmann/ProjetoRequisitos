@@ -9,6 +9,11 @@ export const routes: Routes = [
     canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
     loadComponent: () => import('./features/perfil/perfil.page').then((m) => m.PerfilPage),
   },
+  {
+    path: 'perfil/editar',
+    canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
+    loadComponent: () => import('./features/perfil/editar-perfil.page').then((m) => m.EditarPerfilPage),
+  },
   { path: 'login', loadComponent: () => import('./features/identidade/login.page').then((m) => m.LoginPage) },
   { path: 'cadastro', loadComponent: () => import('./features/identidade/cadastro.page').then((m) => m.CadastroPage) },
   {

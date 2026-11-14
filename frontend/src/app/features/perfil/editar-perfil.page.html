@@ -1,0 +1,31 @@
+<main class="ep">
+  <a class="ep__voltar" routerLink="/perfil">← Perfil</a>
+  <h1>Editar perfil</h1>
+  <p class="ep__intro">Essas informações aparecem no topo do seu perfil.</p>
+
+  <form [formGroup]="formulario" (ngSubmit)="salvar()">
+    <label for="nome">Nome *</label>
+    <input id="nome" type="text" formControlName="nome" maxlength="80" autocomplete="name" />
+    @if (formulario.controls.nome.touched && formulario.controls.nome.errors?.['required']) {
+      <small class="ep__campo-erro">Informe seu nome.</small>
+    }
+
+    <label for="bio">Bio</label>
+    <textarea id="bio" rows="4" formControlName="bio" [maxLength]="limiteBio" placeholder="Fale um pouco sobre você e os jogos que curte"></textarea>
+    <small class="ep__contador">{{ formulario.controls.bio.value.length }}/{{ limiteBio }}</small>
+
+    <label for="localizacao">Localização</label>
+    <input id="localizacao" type="text" formControlName="localizacao" maxlength="80" placeholder="Ex.: Recife, PE" />
+
+    @if (erro(); as mensagem) {
+      <p class="ep__erro" role="alert">{{ mensagem }}</p>
+    }
+
+    <div class="ep__acoes">
+      <button type="submit" [disabled]="formulario.invalid || salvando()">
+        {{ salvando() ? 'Salvando…' : 'Salvar alterações' }}
+      </button>
+      <a class="ep__cancelar" routerLink="/perfil">Cancelar</a>
+    </div>
+  </form>
+</main>
