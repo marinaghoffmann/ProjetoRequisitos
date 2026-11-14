@@ -1,0 +1,155 @@
+<header class="pf-topo">
+  <label class="pf-busca">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input type="search" placeholder="Buscar jogos, pessoas e listas..." aria-label="Buscar" />
+    <kbd>⌘ K</kbd>
+  </label>
+  <div class="pf-topo__acoes">
+    <button type="button" class="pf-sino" aria-label="Notificações">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 20a2 2 0 0 0 3.4 0"/></svg>
+      <i class="pf-sino__ponto"></i>
+    </button>
+    <button type="button" class="pf-registrar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      Registrar
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="pf-banner" aria-hidden="true"></div>
+
+  @if (usuario(); as u) {
+    <div class="pf-miolo">
+      <!-- Cabeçalho do perfil -->
+      <section class="pf-cabecalho">
+        <span class="pf-avatar">{{ iniciais() }}</span>
+
+        <div class="pf-id">
+          <h1>
+            {{ u.nome }}
+            <span class="pf-chip">{{ papel() }}</span>
+          </h1>
+          <p class="pf-bio"><span class="pf-fazendo">Fazendo</span> bio e localização</p>
+
+          <ul class="pf-stats">
+            @for (s of estatisticas; track s) {
+              <li><b>–</b> {{ s }}</li>
+            }
+            <li><span class="pf-fazendo">Fazendo</span></li>
+          </ul>
+        </div>
+
+        <div class="pf-acoes">
+          <button type="button" class="pf-btn" disabled title="Fazendo">Editar perfil</button>
+          <button type="button" class="pf-btn" disabled title="Fazendo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg>
+            Meus pedidos
+          </button>
+          <button type="button" class="pf-mais" disabled aria-label="Mais opções" title="Fazendo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- Abas -->
+      <nav class="pf-abas" aria-label="Seções do perfil">
+        <span class="pf-aba pf-aba--ativa">Atividade</span>
+        @for (a of abas; track a) {
+          <span class="pf-aba pf-aba--breve" title="Fazendo">{{ a }} <i>Fazendo</i></span>
+        }
+      </nav>
+
+      <!-- Jogando agora (dados reais) -->
+      <section class="pf-secao">
+        <div class="pf-secao__cab">
+          <div>
+            <h2>Jogando agora</h2>
+            <p>{{ emAndamento().length }} de {{ limite }} em destaque</p>
+          </div>
+        </div>
+
+        @if (erro(); as mensagem) {
+          <p class="pf-aviso" role="alert">{{ mensagem }}</p>
+        }
+
+        @if (carregando()) {
+          <p class="pf-estado">Carregando…</p>
+        } @else if (!emAndamento().length) {
+          <p class="pf-estado">
+            Você ainda não marcou nenhum jogo como "Jogando agora".
+            <a routerLink="/catalogo">Explorar o catálogo</a>
+          </p>
+        } @else {
+          <ul class="pf-jogando">
+            @for (e of emAndamento(); track e.jogoId; let i = $index) {
+              <li class="pf-jogo">
+                <a class="pf-jogo__capa" [routerLink]="['/catalogo', e.jogoId]" [style.background]="gradiente(i)" [attr.aria-label]="'Abrir ' + e.titulo"></a>
+                <div class="pf-jogo__corpo">
+                  <a class="pf-jogo__titulo" [routerLink]="['/catalogo', e.jogoId]">{{ e.titulo }}</a>
+                  <select
+                    class="pf-select"
+                    [attr.aria-label]="'Progresso em ' + e.titulo"
+                    (change)="alterar(e.jogoId, $any($event.target).value)"
+                  >
+                    @for (p of progressos; track p) {
+                      <option [value]="p" [selected]="p === e.progresso">{{ rotulos[p] }}</option>
+                    }
+                  </select>
+                  <button type="button" class="pf-link" (click)="remover(e.jogoId)">Remover do destaque</button>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <!-- Quatro favoritos -->
+      <section class="pf-secao">
+        <div class="pf-secao__cab">
+          <div>
+            <h2>Quatro favoritos <span class="pf-fazendo">Fazendo</span></h2>
+            <p>Os jogos que definem seu gosto</p>
+          </div>
+        </div>
+        <ul class="pf-favoritos">
+          @for (n of favoritos; track n) {
+            <li class="pf-vazio"><span class="pf-num">#{{ n }}</span></li>
+          }
+        </ul>
+      </section>
+
+      <!-- Atividade recente + Resumo -->
+      <div class="pf-duas">
+        <section>
+          <div class="pf-secao__cab">
+            <h2>Atividade recente <span class="pf-fazendo">Fazendo</span></h2>
+          </div>
+          @for (n of atividades; track n) {
+            <article class="pf-post">
+              <span class="pf-avatar pf-avatar--p">{{ iniciais() }}</span>
+              <p>
+                <strong>{{ u.nome }}</strong>
+                <span class="pf-esqueleto"></span>
+              </p>
+            </article>
+          }
+        </section>
+
+        <aside class="pf-resumo">
+          <h2>Resumo de 2026 <span class="pf-fazendo">Fazendo</span></h2>
+          <ul class="pf-resumo__nums">
+            <li><b>–</b>reviews</li>
+            <li><b>–</b>zerados</li>
+            <li><b>–</b>média</li>
+          </ul>
+          <div class="pf-barras" aria-hidden="true">
+            @for (b of barras; track $index) {
+              <i [style.height.%]="b"></i>
+            }
+          </div>
+        </aside>
+      </div>
+    </div>
+  }
+</main>

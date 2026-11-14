@@ -1,0 +1,208 @@
+// Tela Perfil — tokens vêm de src/styles.scss. Classes com prefixo "pf-".
+
+:host { display: block; min-height: 100vh; }
+
+button {
+  min-height: 0; padding: 0; border-radius: 0; background: none; color: inherit;
+  font: inherit; transform: none; filter: none;
+  &:hover { transform: none; filter: none; }
+}
+h1, h2, p, ul { margin: 0; padding: 0; }
+ul { list-style: none; }
+svg { flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+// ===== Selo "Fazendo" =====
+.pf-fazendo {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 8px;
+  border: 1px dashed rgb(217 255 67 / 45%);
+  border-radius: 999px;
+  background: rgb(217 255 67 / 8%);
+  color: var(--accent);
+  font: 800 9px var(--font-body);
+  letter-spacing: 0.3px;
+  vertical-align: middle;
+}
+
+// ===== Topo =====
+.pf-topo {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  height: 70px; padding: 0 38px;
+  border-bottom: 1px solid var(--line-soft);
+  background: rgb(9 11 15 / 88%);
+  backdrop-filter: blur(14px);
+}
+.pf-busca {
+  display: flex; flex-direction: row; align-items: center; gap: 12px;
+  width: min(500px, 100%); height: 40px; padding: 0 14px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--muted);
+  svg { width: 17px; height: 17px; }
+  input { flex: 1; min-width: 0; min-height: 0; padding: 0; border: 0; background: none; font-size: 12px; &:focus { outline: none; } }
+  kbd { padding: 3px 7px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); color: var(--faint); font: 600 9px var(--font-body); }
+  &:focus-within { border-color: var(--accent); }
+}
+.pf-topo__acoes { display: flex; align-items: center; gap: 12px; }
+.pf-sino {
+  position: relative; display: grid; place-items: center; width: 38px; height: 38px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); cursor: pointer;
+  svg { width: 17px; height: 17px; }
+}
+.pf-sino__ponto { position: absolute; top: 6px; right: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.pf-registrar {
+  display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px;
+  border-radius: 9px; background: var(--accent); color: #0a0d10; font: 800 12px var(--font-body); cursor: pointer;
+  svg { width: 15px; height: 15px; stroke-width: 2.2; }
+  &:hover { filter: brightness(1.08); }
+}
+
+// ===== Banner =====
+.pf-banner {
+  height: 240px;
+  background:
+    radial-gradient(1.5px 1.5px at 12% 28%, #fff, transparent),
+    radial-gradient(1px 1px at 24% 62%, #cfd8ff, transparent),
+    radial-gradient(2px 2px at 38% 20%, #fff, transparent),
+    radial-gradient(1px 1px at 52% 70%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 63% 35%, #e6dcff, transparent),
+    radial-gradient(1px 1px at 76% 18%, #fff, transparent),
+    radial-gradient(2px 2px at 88% 55%, #fff, transparent),
+    radial-gradient(ellipse at 30% 40%, rgb(150 120 220 / 45%), transparent 60%),
+    radial-gradient(ellipse at 75% 70%, rgb(80 120 230 / 35%), transparent 55%),
+    linear-gradient(120deg, #131a3d, #2b2a63 50%, #1a2250);
+}
+
+// ===== Miolo =====
+.pf-miolo { width: min(1050px, calc(100% - 64px)); margin: 0 auto; padding-bottom: 80px; }
+
+.pf-cabecalho {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-top: -44px;
+}
+.pf-avatar {
+  display: grid; flex: 0 0 auto; place-items: center;
+  width: 104px; height: 104px;
+  border: 4px solid var(--bg); border-radius: 50%;
+  background: linear-gradient(140deg, #6375ff, #ee5bc2);
+  color: #fff; font: 700 30px var(--font-title);
+}
+.pf-id { flex: 1; min-width: 0; padding-top: 18px; }
+.pf-id h1 {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0; font: 700 24px/1.1 var(--font-title); letter-spacing: -0.03em;
+}
+.pf-chip {
+  padding: 3px 7px; border-radius: 4px; background: var(--accent); color: #0a0d10;
+  font: 800 8px var(--font-body); letter-spacing: 0.4px; text-transform: uppercase;
+}
+.pf-bio { margin-top: 10px; color: var(--muted); font-size: 11px; display: flex; align-items: center; gap: 8px; }
+.pf-stats {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; margin-top: 16px;
+  color: var(--muted); font-size: 11px;
+  b { color: var(--text); font-weight: 800; }
+}
+.pf-acoes { display: flex; align-items: center; gap: 10px; padding-top: 52px; }
+.pf-btn {
+  display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px;
+  border: 1px solid rgb(255 255 255 / 16%); border-radius: 8px; background: rgb(255 255 255 / 4%);
+  color: var(--text); font: 800 11px var(--font-body);
+  svg { width: 15px; height: 15px; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+.pf-mais {
+  display: grid; place-items: center; width: 34px; height: 34px; color: var(--muted);
+  svg { width: 18px; height: 18px; fill: currentColor; stroke: none; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+// ===== Abas =====
+.pf-abas {
+  display: flex; align-items: center; gap: 28px; margin-top: 24px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.pf-aba {
+  position: relative; display: flex; align-items: center; gap: 6px; padding: 12px 0;
+  color: var(--muted); font-size: 11px; font-weight: 600;
+  &--ativa { color: var(--text); font-weight: 800; &::after { content: ''; position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: var(--accent); } }
+  &--breve { color: var(--faint); cursor: default; }
+  i { padding: 1px 5px; border-radius: 999px; background: rgb(217 255 67 / 8%); color: rgb(217 255 67 / 70%); font: 800 7px var(--font-body); font-style: normal; }
+}
+
+// ===== Seções =====
+.pf-secao { padding: 28px 0 32px; & + & { border-top: 1px solid var(--line-soft); } }
+.pf-secao__cab {
+  display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 18px;
+  h2 { display: flex; align-items: center; gap: 10px; font: 700 18px var(--font-title); letter-spacing: -0.02em; }
+  p { margin-top: 4px; color: var(--muted); font-size: 11px; }
+}
+.pf-estado { padding: 12px 0; color: var(--muted); font-size: 12px; a { margin-left: 6px; font-weight: 700; } }
+.pf-aviso { margin-bottom: 14px; padding: 10px 14px; border: 1px solid rgb(255 116 72 / 25%); border-radius: 9px; background: rgb(255 116 72 / 7%); color: #ffc0aa; font-size: 12px; }
+
+// Jogando agora
+.pf-jogando { display: grid; grid-template-columns: repeat(auto-fill, minmax(254px, 1fr)); gap: 14px; }
+.pf-jogo {
+  display: flex; gap: 12px; padding: 10px;
+  border: 1px solid var(--line-soft); border-radius: 12px; background: var(--surface);
+}
+.pf-jogo__capa { flex: 0 0 52px; height: 84px; border-radius: 6px; background-size: cover; }
+.pf-jogo__corpo { display: flex; flex: 1; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
+.pf-jogo__titulo {
+  max-width: 100%; overflow: hidden; color: var(--text); font-size: 12px; font-weight: 800;
+  text-overflow: ellipsis; white-space: nowrap;
+  &:hover { color: var(--accent); text-decoration: none; }
+}
+.pf-select {
+  width: auto; min-height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface-2); color: var(--text); font: 600 11px var(--font-body);
+}
+.pf-link { padding: 0; color: var(--muted); font-size: 9px; cursor: pointer; &:hover { color: var(--accent); } }
+
+// Favoritos (placeholders)
+.pf-favoritos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.pf-vazio {
+  display: flex; align-items: flex-start; height: 176px; padding: 12px;
+  border: 1px dashed var(--line); border-radius: 12px;
+  background: repeating-linear-gradient(135deg, transparent 0 10px, rgb(255 255 255 / 1.5%) 10px 20px);
+}
+.pf-num { padding: 3px 7px; border-radius: 5px; background: var(--accent); color: #0a0d10; font: 800 9px var(--font-body); }
+
+// Atividade + resumo
+.pf-duas { display: grid; grid-template-columns: minmax(0, 1fr) 338px; gap: 34px; padding-top: 28px; border-top: 1px solid var(--line-soft); align-items: start; }
+.pf-post {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding: 16px 18px;
+  border: 1px solid var(--line-soft); border-radius: 14px; background: var(--surface);
+  p { display: flex; flex-direction: column; gap: 8px; }
+  strong { font-size: 11px; font-weight: 800; }
+  .pf-avatar--p { width: 36px; height: 36px; margin: 0; border: 0; font-size: 10px; }
+}
+.pf-esqueleto { display: block; width: 220px; height: 8px; border-radius: 4px; background: var(--surface-3); }
+
+.pf-resumo {
+  padding: 18px; border: 1px solid var(--line-soft); border-radius: 14px; background: var(--surface);
+  h2 { display: flex; align-items: center; gap: 10px; font: 700 17px var(--font-title); letter-spacing: -0.02em; }
+}
+.pf-resumo__nums {
+  display: flex; justify-content: space-around; margin-top: 18px; color: var(--muted); font-size: 8px; text-align: center;
+  li { display: flex; flex-direction: column; gap: 3px; }
+  b { color: var(--text); font: 700 17px var(--font-title); }
+}
+.pf-barras {
+  display: flex; align-items: flex-end; gap: 6px; height: 70px; margin-top: 16px;
+  i { flex: 1; border-radius: 2px; background: rgb(217 255 67 / 18%); }
+}
+
+// ===== Responsivo =====
+@media (max-width: 1100px) { .pf-duas { grid-template-columns: 1fr; } }
+@media (max-width: 900px) {
+  .pf-topo { padding: 0 20px; }
+  .pf-miolo { width: calc(100% - 40px); }
+  .pf-cabecalho { flex-wrap: wrap; }
+  .pf-acoes { width: 100%; padding-top: 0; }
+  .pf-favoritos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pf-abas { gap: 16px; overflow-x: auto; }
+}

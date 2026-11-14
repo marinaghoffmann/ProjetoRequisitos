@@ -43,11 +43,13 @@
 
     <div class="conta">
       @if (autenticacao.usuarioAtual(); as usuario) {
-        <span class="conta__avatar">{{ usuario.nome.slice(0, 2).toUpperCase() }}</span>
-        <div class="conta__dados">
-          <strong>{{ usuario.nome }}</strong>
-          <span>{{ usuario.papel }}</span>
-        </div>
+        <a class="conta__perfil" routerLink="/perfil" aria-label="Abrir meu perfil">
+          <span class="conta__avatar">{{ usuario.nome.slice(0, 2).toUpperCase() }}</span>
+          <div class="conta__dados">
+            <strong>{{ usuario.nome }}</strong>
+            <span>{{ usuario.papel }}</span>
+          </div>
+        </a>
         <button
           type="button"
           class="conta__mais"
@@ -61,6 +63,7 @@
         @if (menuConta()) {
           <div class="conta__fundo" (click)="menuConta.set(false)"></div>
           <div class="conta__menu" role="menu" (click)="menuConta.set(false)">
+            <a role="menuitem" routerLink="/perfil">Meu perfil</a>
             @if (autenticacao.temPapel('DESENVOLVEDOR', 'ADMINISTRADOR')) {
               <a role="menuitem" routerLink="/catalogo/novo">Cadastrar jogo</a>
             }

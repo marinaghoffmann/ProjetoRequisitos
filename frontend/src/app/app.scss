@@ -107,3 +107,5 @@ $largura-menu: 236px;
   a, button { display: flex; align-items: center; width: 100%; min-height: 36px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: var(--text); font: 600 12px var(--font-body); text-align: left; text-decoration: none; cursor: pointer; transform: none; &:hover { background: var(--surface-3); text-decoration: none; filter: none; transform: none; } }
   .conta__sair { justify-content: flex-start; margin-top: 4px; border-top: 1px solid var(--line-soft); border-radius: 0 0 8px 8px; color: var(--danger); }
 }
+
+.conta .conta__perfil { display: flex; flex: 1; align-items: center; gap: 10px; min-width: 0; color: inherit; border-radius: 8px; &:hover { text-decoration: none; background: var(--surface); } }
