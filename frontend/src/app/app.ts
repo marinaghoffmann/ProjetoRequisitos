@@ -39,6 +39,8 @@ export class App {
     { rotulo: 'Journal', icone: 'M5 3h14v18H5zM9 8h6M9 12h6' },
     {
       rotulo: 'Comunidade',
+      rota: '/forum',
+      exato: false,
       contador: 3,
       icone: 'M16 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM21 20v-1a4 4 0 0 0-3-3.9M16 4.1a3.5 3.5 0 0 1 0 6.8',
     },

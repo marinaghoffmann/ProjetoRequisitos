@@ -3,6 +3,8 @@ import { RouterLink } from '@angular/router';
 
 import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
 import { ErroApi } from '../../core/http/erro-api';
+import { AutenticacaoService } from '../../core/auth/autenticacao.service';
+
 
 interface Destaque {
   id: Jogo['id'];
@@ -46,6 +48,7 @@ const GRADIENTES = [
 })
 export class InicioPage implements OnInit, OnDestroy {
   private readonly catalogo = inject(CatalogoService);
+  protected readonly autenticacao = inject(AutenticacaoService);
 
   // ===== Dados vindos da API (mesmo CatalogoService do catálogo) =====
   protected readonly carregando = signal(true);
