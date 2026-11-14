@@ -1,0 +1,119 @@
+<main class="pagina-topico">
+  <a class="voltar" routerLink="/forum">← Fórum</a>
+
+  @if (carregando()) {
+    <p class="estado">Carregando tópico…</p>
+  } @else if (topico(); as t) {
+    <article class="topico">
+      <p class="etiquetas">
+        <span class="etiqueta" [class.etiqueta--alerta]="t.status === 'ENCERRADO'"
+          [class.etiqueta--ok]="t.status === 'RESOLVIDO'">{{ status[t.status] }}</span>
+        <span class="etiqueta">{{ t.categoria }}</span>
+      </p>
+      <h1>{{ t.titulo }}</h1>
+      <p class="autoria">
+        {{ t.nomeAutor ?? 'usuário removido' }} · {{ t.publicadoEm | date: 'dd/MM/yyyy HH:mm' }}
+        @if (t.editadoEm) {
+          <span>(editado)</span>
+        }
+      </p>
+      <p class="texto">{{ t.conteudo }}</p>
+
+      @if (ehAutor(t.autorId) && t.status !== 'ENCERRADO') {
+        <div class="acoes">
+          @if (dentroDoPrazo(t.editavelAte)) {
+            <a class="acao" [routerLink]="['/forum', t.id, 'editar']">Editar</a>
+          }
+          @if (t.status === 'ABERTO') {
+            <button class="acao" type="button" (click)="alterarStatus('RESOLVIDO')">Marcar como resolvido</button>
+          } @else {
+            <button class="acao" type="button" (click)="alterarStatus('ABERTO')">Reabrir</button>
+          }
+          <button class="acao" type="button" (click)="alterarStatus('ENCERRADO')">Encerrar</button>
+          <button class="acao acao--perigo" type="button" (click)="excluirTopico()">Excluir</button>
+        </div>
+      }
+    </article>
+
+    @if (erro(); as mensagem) {
+      <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+    }
+
+    <section aria-label="Respostas">
+      <h2>{{ t.totalRespostas }} resposta(s)</h2>
+      @if (!t.respostas.length) {
+        <p class="estado">Ninguém respondeu ainda.</p>
+      }
+      <ng-container [ngTemplateOutlet]="arvore" [ngTemplateOutletContext]="{ $implicit: filhas().get('') ?? [] }" />
+    </section>
+
+    @if (encerrado()) {
+      <p class="aviso">Este tópico está encerrado e não aceita novas respostas.</p>
+    } @else if (autenticacao.usuarioAtual()) {
+      <form class="formulario" (ngSubmit)="responder()">
+        <label for="nova-resposta">Sua resposta</label>
+        <textarea id="nova-resposta" name="novaResposta" rows="4" maxlength="5000" [(ngModel)]="novaResposta"></textarea>
+        <button type="submit" [disabled]="enviando() || !novaResposta.trim()">Responder</button>
+      </form>
+    } @else {
+      <p class="aviso"><a routerLink="/login">Entre na sua conta</a> para responder.</p>
+    }
+  } @else if (erro(); as mensagem) {
+    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+  }
+</main>
+
+<ng-template #arvore let-respostas>
+  <ul class="respostas">
+    @for (resposta of respostas; track resposta.id) {
+      <li class="resposta">
+        <p class="autoria">
+          {{ resposta.nomeAutor ?? 'usuário removido' }} · {{ resposta.publicadaEm | date: 'dd/MM/yyyy HH:mm' }}
+          @if (resposta.editadaEm && !resposta.removida) {
+            <span>(editada)</span>
+          }
+        </p>
+
+        @if (resposta.removida) {
+          <p class="texto texto--removido">Resposta removida pelo autor.</p>
+        } @else if (editando() === resposta.id) {
+          <form class="formulario" (ngSubmit)="salvarEdicao(resposta)">
+            <textarea name="textoEditado" rows="3" maxlength="5000" [(ngModel)]="textoEditado"></textarea>
+            <div class="acoes">
+              <button class="acao" type="submit" [disabled]="enviando() || !textoEditado.trim()">Salvar</button>
+              <button class="acao acao--secundaria" type="button" (click)="editando.set(null)">Cancelar</button>
+            </div>
+          </form>
+        } @else {
+          <p class="texto">{{ resposta.conteudo }}</p>
+          @if (!encerrado() && autenticacao.usuarioAtual()) {
+            <div class="acoes">
+              <button class="acao acao--secundaria" type="button" (click)="abrirReplica(resposta)">Responder</button>
+              @if (ehAutor(resposta.autorId)) {
+                @if (dentroDoPrazo(resposta.editavelAte)) {
+                  <button class="acao acao--secundaria" type="button" (click)="abrirEdicao(resposta)">Editar</button>
+                }
+                <button class="acao acao--perigo" type="button" (click)="excluirResposta(resposta)">Excluir</button>
+              }
+            </div>
+          }
+        }
+
+        @if (respondendoA() === resposta.id) {
+          <form class="formulario" (ngSubmit)="enviarReplica(resposta)">
+            <textarea name="replica" rows="3" maxlength="5000" [(ngModel)]="replica"
+              [placeholder]="'Respondendo a ' + (resposta.nomeAutor ?? 'esta resposta')"></textarea>
+            <div class="acoes">
+              <button class="acao" type="submit" [disabled]="enviando() || !replica.trim()">Enviar</button>
+              <button class="acao acao--secundaria" type="button" (click)="respondendoA.set(null)">Cancelar</button>
+            </div>
+          </form>
+        }
+
+        @if (filhas().get(resposta.id); as respostasFilhas) {
+          <ng-container [ngTemplateOutlet]="arvore" [ngTemplateOutletContext]="{ $implicit: respostasFilhas }" />
+        }
+      </li>
+    }
+  </ul>
+</ng-template>

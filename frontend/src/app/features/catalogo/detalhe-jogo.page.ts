@@ -9,6 +9,7 @@ import {
 } from '../../core/api/jogando-agora.service';
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
+import { EstatisticasJogoComponent } from './estatisticas-jogo.component';
 
 interface Jogo {
   id: string;
@@ -21,7 +22,7 @@ interface Jogo {
 
 @Component({
   selector: 'app-detalhe-jogo',
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, EstatisticasJogoComponent],
   template: `
     <a class="voltar" routerLink="/catalogo">← Catálogo</a>
     @if (erro()) {
@@ -34,7 +35,7 @@ interface Jogo {
         <div class="info">
           <h1>{{ j.titulo }}</h1>
           <p class="sub">
-            @if (j.dataLancamento) { {{ j.dataLancamento | date: 'yyyy' }} }
+            @if (j.dataLancamento) { {{ j.dataLancamento | date: 'dd/MM/yyyy' }} }
           </p>
           <p>{{ j.resumo }}</p>
           <div class="acoes">
@@ -101,8 +102,7 @@ interface Jogo {
           <p>Reviews em breve.</p>
         </div>
         <aside>
-          <h3>Notas por categoria</h3>
-          <p>As estatísticas públicas aparecem a partir de 3 avaliações.</p>
+          <app-estatisticas-jogo [jogoId]="j.id" />
         </aside>
       </section>
     } @else {

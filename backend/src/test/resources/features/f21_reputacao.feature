@@ -1,5 +1,4 @@
 # language: pt
-@pendente
 Funcionalidade: F-21 Sistema de reputação e avaliações de vendedores e compradores
   Como participante de uma negociação, quero avaliar a outra parte, construindo a
   reputação dos usuários no marketplace.

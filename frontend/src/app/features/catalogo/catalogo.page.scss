@@ -10,3 +10,11 @@
 }
 
 .card .acoes { position: relative; z-index: 1; }
+
+.card__titulo {
+  color: var(--text);
+
+  &:hover {
+    color: var(--accent);
+  }
+}

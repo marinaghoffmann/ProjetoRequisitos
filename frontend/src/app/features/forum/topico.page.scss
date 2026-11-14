@@ -1,0 +1,93 @@
+// Botões, campos e etiquetas vêm do tema global (styles.scss).
+.pagina-topico {
+  width: min(50rem, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+}
+
+.topico {
+  margin: 1.5rem 0;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+h1 {
+  margin: 0.4rem 0;
+}
+
+h2 {
+  font-size: 1.1rem;
+}
+
+.autoria {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Mantém quebras de linha e espaços do texto digitado. */
+.texto {
+  margin: 0.6rem 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.texto--removido {
+  color: var(--faint);
+  font-style: italic;
+}
+
+.etiqueta--ok {
+  border-color: rgb(92 255 146 / 35%);
+  background: rgb(92 255 146 / 10%);
+  color: var(--success);
+}
+
+.respostas {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resposta {
+  padding: 0.75rem 0 0.25rem 1rem;
+  border-left: 3px solid var(--line);
+}
+
+.resposta .respostas {
+  margin-top: 0.75rem;
+}
+
+.acoes {
+  margin-top: 0.5rem;
+}
+
+.acao {
+  display: inline-flex;
+  align-items: center;
+}
+
+.acao--secundaria {
+  border: 1px solid var(--line);
+  background: transparent;
+}
+
+.formulario {
+  margin-top: 1rem;
+}
+
+.formulario > button {
+  justify-self: start;
+}
+
+.aviso {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--muted);
+}

@@ -1,9 +1,27 @@
+<<<<<<< HEAD
 <header class="hm-topo">
   <label class="hm-busca">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     <input type="search" placeholder="Buscar jogos, pessoas e listas..." aria-label="Buscar" />
     <kbd>⌘ K</kbd>
   </label>
+=======
+<section class="inicio">
+  <nav class="conta">
+    @if (autenticacao.usuarioAtual(); as usuario) {
+      <span>Olá, {{ usuario.nome }} ({{ usuario.papel }})</span>
+      <button type="button" (click)="autenticacao.sair()">Sair</button>
+    } @else {
+      <a routerLink="/login">Entrar</a>
+      <a routerLink="/cadastro">Criar conta</a>
+    }
+  </nav>
+  <h1>Game Tracker</h1>
+  <p>Registre, avalie e negocie os jogos que você joga.</p>
+  <p><a routerLink="/catalogo">Ver o catálogo de jogos →</a></p>
+  <p><a routerLink="/marketplace">Comprar e trocar jogos no marketplace →</a></p>
+  <p><a routerLink="/forum">Conversar com a comunidade no fórum →</a></p>
+>>>>>>> main
 
   <div class="hm-topo__acoes">
     <button type="button" class="hm-sino" aria-label="Notificações">

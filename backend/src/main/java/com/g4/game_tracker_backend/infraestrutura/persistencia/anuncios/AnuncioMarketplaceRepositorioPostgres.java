@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplace;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplaceRepositorio;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.FiltroAnuncios;
+import com.g4.game_tracker_backend.dominio.marketplace.anuncios.StatusAnuncio;
 
 @Repository
 public class AnuncioMarketplaceRepositorioPostgres implements AnuncioMarketplaceRepositorio {
@@ -40,6 +41,11 @@ public class AnuncioMarketplaceRepositorioPostgres implements AnuncioMarketplace
     public List<AnuncioMarketplace> listarPorVendedor(UUID vendedorId) {
         return springData.findByVendedorIdOrderByAtualizadoEmDesc(vendedorId).stream()
                 .map(AnuncioMarketplaceJpa::paraDominio).toList();
+    }
+
+    @Override
+    public int contarPorJogoEStatus(UUID jogoId, StatusAnuncio status) {
+        return springData.countByJogoIdAndStatus(jogoId, status);
     }
 
     private static String vazioSeNulo(String valor) {

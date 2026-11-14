@@ -1,0 +1,56 @@
+<main class="pagina-mensagens">
+  <header class="cabecalho">
+    <div>
+      <a class="voltar" routerLink="/marketplace">← Anúncios</a>
+      <h1>Mensagens</h1>
+      <p>Negociações em que você é comprador ou vendedor.</p>
+    </div>
+  </header>
+
+  @if (erro(); as mensagem) {
+    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+  } @else if (conversas(); as lista) {
+    @if (!lista.length) {
+      <p class="estado">Nenhuma conversa ainda. Abra um anúncio e clique em Conversar ou Fazer proposta.</p>
+    } @else {
+      <ul class="conversas">
+        @for (c of lista; track c.id) {
+          <li>
+            <a class="conversa" [class.conversa--nao-lida]="c.naoLidas > 0" [routerLink]="['/marketplace/mensagens', c.id]">
+              @if (imagem(c.fotoAnuncio)) {
+                <img class="conversa__foto" [src]="imagem(c.fotoAnuncio)" alt="" />
+              } @else {
+                <span class="conversa__foto conversa__foto--vazia" aria-hidden="true">GT</span>
+              }
+              <span class="conversa__texto">
+                <span class="conversa__topo">
+                  <strong>{{ c.tituloAnuncio ?? 'Anúncio removido' }}</strong>
+                  <small>{{ c.ultimaAtividadeEm | date: 'dd/MM HH:mm' }}</small>
+                </span>
+                <span class="conversa__parte">
+                  {{ c.papel === 'COMPRADOR' ? 'Vendedor' : 'Comprador' }}: {{ c.nomeOutraParte ?? 'usuário removido' }}
+                </span>
+                <span class="conversa__ultima">{{ c.ultimaMensagem ?? 'Nenhuma mensagem ainda' }}</span>
+                <span class="etiquetas">
+                  @if (c.statusUltimaProposta) {
+                    <span class="etiqueta proposta--{{ c.statusUltimaProposta.toLowerCase() }}">
+                      Proposta {{ statusProposta[c.statusUltimaProposta].toLowerCase() }}
+                    </span>
+                  }
+                  @if (c.statusAnuncio && c.statusAnuncio !== 'ATIVO') {
+                    <span class="etiqueta etiqueta--alerta">{{ statusAnuncio[c.statusAnuncio] }}</span>
+                  }
+                </span>
+              </span>
+              @if (c.naoLidas > 0) {
+                <span class="contador" [attr.aria-label]="c.naoLidas + ' mensagens não lidas'">{{ c.naoLidas }}</span>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <p class="estado">Carregando conversas…</p>
+  }
+</main>

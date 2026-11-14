@@ -1,0 +1,51 @@
+<section aria-labelledby="titulo-estatisticas">
+  <h2 id="titulo-estatisticas">Estatísticas da comunidade</h2>
+
+  @if (erroEstatisticas(); as mensagem) {
+    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+  } @else if (estatisticas(); as ficha) {
+    @if (!ficha.elegivel) {
+      <p class="aviso">
+        Estatísticas disponíveis a partir de {{ ficha.minimoDeReviews }} reviews.
+        Este jogo tem {{ ficha.totalReviewsAtivas }} no momento.
+      </p>
+    } @else {
+      <dl class="indicadores">
+        <div class="indicador indicador--destaque">
+          <dt>Média geral</dt>
+          <dd>{{ nota(ficha.mediaGeral) }}</dd>
+        </div>
+        <div class="indicador">
+          <dt>Reviews</dt>
+          <dd>{{ ficha.totalReviewsAtivas }}</dd>
+        </div>
+        <div class="indicador">
+          <dt>Conclusões</dt>
+          <dd>{{ ficha.totalConclusoes }}</dd>
+        </div>
+        <div class="indicador">
+          <dt>Em wishlists</dt>
+          <dd>{{ ficha.totalEmWishlists }}</dd>
+        </div>
+        <div class="indicador">
+          <dt>Negociações</dt>
+          <dd>{{ ficha.totalNegociacoes }}</dd>
+        </div>
+      </dl>
+
+      @if (ficha.mediasPorCategoria; as medias) {
+        <h3>Notas por categoria</h3>
+        <ul class="categorias">
+          @for (categoria of categorias; track categoria.chave) {
+            <li>
+              <span>{{ categoria.rotulo }}</span>
+              <strong>{{ nota(medias[categoria.chave]) }}</strong>
+            </li>
+          }
+        </ul>
+      }
+    }
+  } @else {
+    <p class="estado">Carregando estatísticas…</p>
+  }
+</section>

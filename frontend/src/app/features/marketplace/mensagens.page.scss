@@ -1,0 +1,107 @@
+.pagina-mensagens {
+  width: min(52rem, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+}
+
+.conversas {
+  display: grid;
+  gap: 0.6rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.conversa {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-color: #46505e;
+    text-decoration: none;
+  }
+}
+
+.conversa--nao-lida {
+  border-color: rgb(217 255 67 / 35%);
+}
+
+.conversa__foto {
+  flex: 0 0 auto;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+.conversa__foto--vazia {
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  font: 700 1.1rem var(--font-title);
+}
+
+.conversa__texto {
+  display: grid;
+  flex: 1;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.conversa__topo {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+
+  strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.conversa__parte,
+.conversa__ultima {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversa--nao-lida .conversa__ultima {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.proposta--pendente {
+  border-color: rgb(217 255 67 / 35%);
+  color: var(--accent);
+}
+
+.proposta--aceita {
+  border-color: rgb(92 255 146 / 35%);
+  color: var(--success);
+}
+
+.contador {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #0a0d10;
+  font-size: 0.75rem;
+  font-weight: 800;
+}

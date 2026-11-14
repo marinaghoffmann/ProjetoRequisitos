@@ -1,6 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter, merge, timer } from 'rxjs';
 
+import { NaoLidasService } from './core/api/nao-lidas.service';
 import { AutenticacaoService } from './core/auth/autenticacao.service';
 
 interface ItemMenu {

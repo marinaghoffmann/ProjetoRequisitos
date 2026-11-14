@@ -7,24 +7,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
-import com.g4.game_tracker_backend.aplicacao.identidade.CodificadorDeSenha;
 import com.g4.game_tracker_backend.aplicacao.marketplace.anuncios.AlterarStatusAnuncio;
 import com.g4.game_tracker_backend.aplicacao.marketplace.anuncios.ConsultarAnuncios;
 import com.g4.game_tracker_backend.aplicacao.marketplace.anuncios.CriarAnuncio;
 import com.g4.game_tracker_backend.aplicacao.marketplace.anuncios.EditarAnuncio;
-import com.g4.game_tracker_backend.dominio.catalogo.Desenvolvedora;
-import com.g4.game_tracker_backend.dominio.catalogo.DesenvolvedoraRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.Jogo;
-import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
-import com.g4.game_tracker_backend.dominio.identidade.Papel;
 import com.g4.game_tracker_backend.dominio.identidade.Usuario;
-import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplace;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplaceRepositorio;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.EstadoConservacao;
@@ -40,11 +31,10 @@ import io.cucumber.java.pt.Quando;
 
 /**
  * Steps da F-18 (anúncios do marketplace). O banco H2 é compartilhado entre os cenários, por isso
- * cada cenário cria os seus próprios jogos de apoio e filtra as buscas por eles.
+ * cada cenário cria os seus próprios jogos de apoio (via DadosDoCenario) e filtra as buscas por eles.
  */
 public class PassosAnunciosMarketplace {
 
-    private static final String ESTUDIO_DE_APOIO = "Estúdio BDD";
     private static final String LOCALIDADE = "Recife - PE";
 
     private final CriarAnuncio criarAnuncio;
@@ -52,32 +42,22 @@ public class PassosAnunciosMarketplace {
     private final AlterarStatusAnuncio alterarStatusAnuncio;
     private final ConsultarAnuncios consultarAnuncios;
     private final AnuncioMarketplaceRepositorio anuncios;
-    private final JogoRepositorio jogos;
-    private final DesenvolvedoraRepositorio desenvolvedoras;
-    private final UsuarioRepositorio usuarios;
-    private final CodificadorDeSenha codificadorDeSenha;
+    private final DadosDoCenario dados;
     private final ContextoDoCenario contexto;
 
-    private final Map<String, Usuario> jogadores = new HashMap<>();
-    private final Map<String, Jogo> jogosDoCenario = new HashMap<>();
-    private Usuario jogadorAtual;
     private AnuncioMarketplace anuncioAtual;
     private Jogo jogoDaBusca;
     private List<AnuncioMarketplace> resultadoDaBusca;
 
     public PassosAnunciosMarketplace(CriarAnuncio criarAnuncio, EditarAnuncio editarAnuncio,
             AlterarStatusAnuncio alterarStatusAnuncio, ConsultarAnuncios consultarAnuncios,
-            AnuncioMarketplaceRepositorio anuncios, JogoRepositorio jogos, DesenvolvedoraRepositorio desenvolvedoras,
-            UsuarioRepositorio usuarios, CodificadorDeSenha codificadorDeSenha, ContextoDoCenario contexto) {
+            AnuncioMarketplaceRepositorio anuncios, DadosDoCenario dados, ContextoDoCenario contexto) {
         this.criarAnuncio = criarAnuncio;
         this.editarAnuncio = editarAnuncio;
         this.alterarStatusAnuncio = alterarStatusAnuncio;
         this.consultarAnuncios = consultarAnuncios;
         this.anuncios = anuncios;
-        this.jogos = jogos;
-        this.desenvolvedoras = desenvolvedoras;
-        this.usuarios = usuarios;
-        this.codificadorDeSenha = codificadorDeSenha;
+        this.dados = dados;
         this.contexto = contexto;
     }
 
@@ -91,14 +71,6 @@ public class PassosAnunciosMarketplace {
     @ParameterType("-?\\d+(?:\\.\\d+)?")
     public BigDecimal valor(String valor) {
         return new BigDecimal(valor);
-    }
-
-    // ---- Jogadores ----
-
-    @Dado("o jogador {string} autenticado")
-    public void jogadorAutenticado(String nome) {
-        jogadorAtual = jogador(nome);
-        SessaoDeTeste.autenticarComo(jogadorAtual);
     }
 
     // ---- RN 1: vínculo com o catálogo e fotos ----
@@ -146,7 +118,7 @@ public class PassosAnunciosMarketplace {
 
     @Dado("que o jogador possui um anúncio com status {string}")
     public void jogadorPossuiAnuncio(String status) {
-        anuncioAtual = anuncioDe(jogadorAtual, jogo("Anúncio de apoio"), EstadoConservacao.USADO,
+        anuncioAtual = anuncioDe(dados.jogadorAtual(), jogo("Anúncio de apoio"), EstadoConservacao.USADO,
                 new BigDecimal("120.00"), StatusAnuncio.valueOf(status));
     }
 
@@ -249,23 +221,13 @@ public class PassosAnunciosMarketplace {
         return Collections.nCopies(quantidade, "/uploads/catalogo/foto-bdd.jpg");
     }
 
-    /** Um jogo novo por nome em cada cenário, para as buscas não contarem anúncios de outros cenários. */
+    /** Lembra o último jogo usado, que é o jogo filtrado na busca por estado e preço. */
     private Jogo jogo(String titulo) {
-        Jogo jogo = jogosDoCenario.computeIfAbsent(titulo, nome -> jogos.salvar(Jogo.criarManual(
-                nome + " " + UUID.randomUUID(), null, null, estudioDeApoio().id(), Set.of(), null, null, null)));
-        jogoDaBusca = jogo;
-        return jogo;
-    }
-
-    private Desenvolvedora estudioDeApoio() {
-        return desenvolvedoras.buscarPorNome(ESTUDIO_DE_APOIO)
-                .orElseGet(() -> desenvolvedoras.salvar(Desenvolvedora.criar(ESTUDIO_DE_APOIO, null, null, null,
-                        null)));
+        jogoDaBusca = dados.jogo(titulo);
+        return jogoDaBusca;
     }
 
     private Usuario jogador(String nome) {
-        return jogadores.computeIfAbsent(nome, apelido -> usuarios.salvar(Usuario.reconstituir(UUID.randomUUID(),
-                apelido, UUID.randomUUID() + "@bdd.example", codificadorDeSenha.codificar("senha-segura-123"),
-                Papel.COMUM, true, null)));
+        return dados.jogador(nome);
     }
 }

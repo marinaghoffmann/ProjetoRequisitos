@@ -17,6 +17,8 @@ public interface AnuncioMarketplaceSpringDataRepository extends JpaRepository<An
 
     List<AnuncioMarketplaceJpa> findByVendedorIdOrderByAtualizadoEmDesc(UUID vendedorId);
 
+    int countByJogoIdAndStatus(UUID jogoId, StatusAnuncio status);
+
     @Query("""
             select a from AnuncioMarketplaceJpa a
             where a.status in :status
