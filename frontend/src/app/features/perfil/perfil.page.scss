@@ -242,3 +242,9 @@ svg { flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; strok
   .pf-jogando { grid-template-columns: 1fr; }
   .pf-abas { gap: 16px; overflow-x: auto; }
 }
+
+// Abas que já funcionam (botões com o visual dos rótulos)
+button.pf-aba {
+  min-height: auto; border-radius: 0; background: transparent; cursor: pointer;
+  &:hover { transform: none; filter: none; color: var(--text); }
+}

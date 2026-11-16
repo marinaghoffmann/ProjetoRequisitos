@@ -50,6 +50,8 @@ public class SegurancaConfig {
                         .requestMatchers(HttpMethod.GET, "/api/marketplace/anuncios/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/marketplace/usuarios/*/reputacao").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/forum/**").permitAll()
+                        // F-02: reviews de um jogo (a review do próprio usuário, ".../reviews/minha", exige login)
+                        .requestMatchers(HttpMethod.GET, "/api/avaliacao/jogos/*/reviews").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/catalogo/**", "/uploads/marketplace/**",
