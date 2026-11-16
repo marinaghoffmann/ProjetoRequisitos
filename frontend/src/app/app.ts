@@ -55,4 +55,12 @@ export class App {
     { rotulo: 'Zerados', contador: 5, icone: 'm5 12 5 5 9-10' },
     { rotulo: 'Timeline', icone: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM15.5 8.5l-2 5-5 2 2-5z' },
   ];
+
+  /** Mesma regra do catálogo: só aceita /uploads/ ou http(s). */
+  protected imagemUrl(caminho?: string | null): string {
+    if (!caminho) return '';
+    if (caminho.startsWith('/uploads/')) return caminho;
+    if (caminho.startsWith('http://') || caminho.startsWith('https://')) return caminho;
+    return '';
+  }
 }
