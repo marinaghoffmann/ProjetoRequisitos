@@ -1,71 +1,202 @@
-:host { display: block; padding: 24px; max-width: 1100px; margin: 0 auto; }
+// Detalhe do jogo — usa os tokens globais (--bg, --surface, --accent, --line, --muted)
+// com fallback para os valores antigos, caso algum não exista.
 
-.voltar { color: inherit; opacity: .7; text-decoration: none; }
+$accent: var(--accent, #d4ff3a);
+$bg: var(--bg, #090b0f);
+$surface: var(--surface, #14141a);
+$line: var(--line, #262630);
 
-.topo { display: flex; gap: 32px; margin: 24px 0; flex-wrap: wrap; }
-
-.capa {
-  width: 220px;
-  aspect-ratio: 3 / 4;
-  background: #1a1a22;
-  border-radius: 12px;
-  overflow: hidden;
-
-  img { width: 100%; height: 100%; object-fit: cover; }
+:host {
+  display: block;
+  position: relative;
+  min-height: 100vh;
+  padding-bottom: 64px;
+  overflow-x: clip;
 }
 
-.info { flex: 1; min-width: 260px; }
+// ===== Fundo =====
+.fundo {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 0;
+  height: 640px;
+  background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
+  animation: aparecer .5s ease both;
+  pointer-events: none;
 
-.meta { color: #d4ff3a; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+  // leitura do texto à esquerda + fusão com o fundo da página embaixo
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgb(9 11 15 / 90%) 0%, rgb(9 11 15 / 55%) 45%, transparent 85%),
+      linear-gradient(0deg, #{$bg} 0%, rgb(9 11 15 / 40%) 45%, transparent 100%);
+  }
 
-h1 { font-size: 48px; margin: 4px 0; }
+  // sem arte HD: usa a capa desfocada como ambiente
+  &--capa {
+    filter: blur(36px) saturate(1.3);
+    transform: scale(1.25);
+    opacity: .5;
+  }
+}
 
-.sub { opacity: .7; font-size: 13px; }
+@keyframes aparecer { from { opacity: 0; } }
+
+.conteudo {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.voltar {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgb(9 11 15 / 55%);
+  backdrop-filter: blur(8px);
+  color: inherit;
+  font-size: 13px;
+  text-decoration: none;
+  opacity: .85;
+  transition: opacity .15s ease;
+
+  &:hover { opacity: 1; }
+}
+
+// ===== Topo =====
+.topo {
+  display: flex;
+  align-items: flex-end;
+  gap: 36px;
+  flex-wrap: wrap;
+  margin: 0 0 32px;
+  padding-top: 110px;
+}
+
+.capa {
+  flex: none;
+  width: 240px;
+  aspect-ratio: 2 / 3;
+  background: $surface;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 55%);
+  overflow: hidden;
+
+  img { display: block; width: 100%; height: 100%; object-fit: cover; }
+}
+
+.info { flex: 1; min-width: 280px; }
+
+.meta {
+  margin: 0 0 8px;
+  color: $accent;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+
+  &__sep { margin: 0 6px; opacity: .6; }
+}
+
+.titulo {
+  margin: 0 0 12px;
+  font-size: clamp(36px, 5vw, 56px);
+  line-height: 1;
+
+  &__logo {
+    display: block;
+    width: min(100%, 480px);
+    max-height: 170px;
+    object-fit: contain;
+    object-position: left center;
+    filter: drop-shadow(0 4px 24px rgb(0 0 0 / 60%));
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: 4px 10px;
+    border: 1px solid rgb(255 255 255 / 18%);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 6%);
+    font-size: 11px;
+    font-weight: 600;
+  }
+}
+
+.resumo {
+  max-width: 640px;
+  margin: 0;
+  color: #dfe5ec;
+  font-size: 14px;
+  line-height: 1.65;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 .acoes {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-top: 16px;
+  margin-top: 20px;
 
   button,
-  a {
-    padding: 8px 14px;
+  a,
+  select {
+    padding: 9px 16px;
     border-radius: 8px;
     border: 1px solid #333;
-    background: #14141a;
+    background: rgb(20 20 26 / 85%);
     color: inherit;
     text-decoration: none;
     font-size: 13px;
+    cursor: pointer;
+    transition: border-color .15s ease, transform .15s ease;
+
+    &:hover:not(:disabled) { border-color: $accent; }
   }
 
-  button:first-child { background: #d4ff3a; color: #111; border-color: #d4ff3a; font-weight: 600; }
-  button:disabled { opacity: .6; cursor: not-allowed; }
+  .primario {
+    background: $accent;
+    border-color: $accent;
+    color: #111;
+    font-weight: 700;
+  }
+
+  button:disabled { opacity: .55; cursor: not-allowed; }
 }
 
+.erro { margin: 10px 0 0; color: #ff7b7b; font-size: 13px; }
+
+// ===== Abas =====
 .abas {
   display: flex;
   gap: 20px;
-  border-bottom: 1px solid #262630;
+  border-bottom: 1px solid $line;
   padding-bottom: 8px;
   font-size: 13px;
-  opacity: .85;
+  opacity: .9;
 
-  .ativa { color: #d4ff3a; border-bottom: 2px solid #d4ff3a; padding-bottom: 6px; }
+  .ativa { color: $accent; border-bottom: 2px solid $accent; padding-bottom: 6px; }
 }
 
-.grade { display: grid; grid-template-columns: 1fr 300px; gap: 24px; margin-top: 24px; }
-
-.vazio { text-align: center; padding: 48px 0; opacity: .8; }
-
-aside {
-  background: #14141a;
-  border: 1px solid #262630;
-  border-radius: 12px;
-  padding: 16px;
-  font-size: 13px;
-}
-
+// ===== Galeria =====
 .galeria {
   display: flex;
   gap: 12px;
@@ -79,40 +210,81 @@ aside {
   &::-webkit-scrollbar { height: 6px; }
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb { background: #3a3a46; border-radius: 3px; }
-  &::-webkit-scrollbar-thumb:hover { background: #d4ff3a; }
+  &::-webkit-scrollbar-thumb:hover { background: $accent; }
 
   button {
     flex: none;
     padding: 0;
-    border: 1px solid #262630;
+    border: 1px solid $line;
     border-radius: 10px;
-    background: #14141a;
+    background: $surface;
     overflow: hidden;
     cursor: zoom-in;
     scroll-snap-align: start;
     transition: transform .15s ease, border-color .15s ease;
 
-    &:hover, &:focus-visible {
+    &:hover,
+    &:focus-visible {
       transform: translateY(-2px);
-      border-color: #d4ff3a;
+      border-color: $accent;
       outline: none;
     }
   }
 
   img {
     display: block;
-    height: 120px;
+    height: 140px;
     width: auto;
     aspect-ratio: 16 / 9;
     object-fit: cover;
   }
 }
 
+// ===== Conteúdo =====
+.grade {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  margin-top: 24px;
+  align-items: start;
+}
+
+.principal,
+.lateral { display: grid; gap: 16px; min-width: 0; }
+
+.painel {
+  padding: 20px;
+  border: 1px solid $line;
+  border-radius: 12px;
+  background: $surface;
+  font-size: 13px;
+
+  h2 { margin: 0 0 12px; font-size: 18px; }
+  p { margin: 0; }
+}
+
+.sobre { color: #cfd6de; font-size: 14px; line-height: 1.7; }
+
+.vazio { opacity: .85; }
+
+.ficha dl { display: grid; gap: 12px; margin: 0; }
+.ficha dl > div { display: grid; gap: 2px; }
+.ficha dt {
+  color: var(--muted, #8b93a1);
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.ficha dd { margin: 0; font-size: 14px; }
+
+.carregando { margin-top: 120px; text-align: center; opacity: .7; }
+
+// ===== Lightbox / modal =====
 .lightbox {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(0, 0, 0, .88);
+  background: rgb(0 0 0 / 88%);
   display: grid;
   place-items: center;
   padding: 24px;
@@ -122,6 +294,42 @@ aside {
     max-width: min(1200px, 100%);
     max-height: 100%;
     border-radius: 10px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
+    box-shadow: 0 20px 60px rgb(0 0 0 / 60%);
   }
+}
+
+.modal {
+  display: grid;
+  gap: 10px;
+  width: min(420px, 100%);
+  padding: 24px;
+  border: 1px solid $line;
+  border-radius: 14px;
+  background: $surface;
+  cursor: default;
+
+  h3, p { margin: 0; }
+
+  button {
+    padding: 9px 14px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background: rgb(255 255 255 / 5%);
+    color: inherit;
+    cursor: pointer;
+
+    &:hover { border-color: $accent; }
+  }
+}
+
+// ===== Responsivo =====
+@media (max-width: 860px) {
+  .grade { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .conteudo { padding: 16px; }
+  .topo { padding-top: 70px; gap: 20px; }
+  .capa { width: 150px; }
+  .fundo { height: 460px; }
 }
