@@ -66,14 +66,15 @@ public class ForumController {
     @PostMapping("/topicos")
     public ResponseEntity<TopicoResponse> criar(@Valid @RequestBody TopicoRequest request) {
         TopicoDeForum topico = criarTopico.executar(request.jogoId(), request.categoria(), request.titulo(),
-                request.conteudo());
+                request.conteudo(), request.imagens());
         return ResponseEntity.created(URI.create("/api/forum/topicos/" + topico.id())).body(detalhar(topico));
     }
 
-    /** Na edição, jogoId é ignorado: o tópico continua no mesmo jogo. */
+    /** Na edição, jogoId é ignorado: o tópico continua no mesmo jogo. imagens nulo mantém as atuais. */
     @PutMapping("/topicos/{id}")
     public TopicoResponse editar(@PathVariable UUID id, @Valid @RequestBody TopicoRequest request) {
-        return detalhar(editarTopico.executar(id, request.titulo(), request.conteudo(), request.categoria()));
+        return detalhar(editarTopico.executar(id, request.titulo(), request.conteudo(), request.categoria(),
+                request.imagens()));
     }
 
     @PatchMapping("/topicos/{id}/status")
@@ -92,7 +93,7 @@ public class ForumController {
     @PostMapping("/topicos/{id}/respostas")
     public ResponseEntity<TopicoResponse> responder(@PathVariable UUID id,
             @Valid @RequestBody RespostaRequest request) {
-        gerenciarRespostas.responder(id, request.respostaPaiId(), request.conteudo());
+        gerenciarRespostas.responder(id, request.respostaPaiId(), request.conteudo(), request.imagens());
         return ResponseEntity.status(201).body(detalhar(consultarForum.buscarPorId(id)));
     }
 

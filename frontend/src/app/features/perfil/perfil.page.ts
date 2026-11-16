@@ -41,6 +41,9 @@ export class PerfilPage implements OnInit {
     return ROTULOS_PAPEL[p] ?? p;
   });
 
+  protected readonly avatar = computed(() => this.imagem(this.usuario()?.avatarUrl));
+  protected readonly banner = computed(() => this.imagem(this.usuario()?.bannerUrl));
+
   protected readonly emAndamento = signal<JogoEmAndamento[]>([]);
   protected readonly carregando = signal(true);
   protected readonly erro = signal<string | null>(null);
@@ -58,6 +61,11 @@ export class PerfilPage implements OnInit {
 
   ngOnInit(): void {
     this.recarregar();
+  }
+
+  /** Imagem enviada pelo usuário; nulo mantém o degradê padrão do CSS. */
+  private imagem(url: string | null | undefined): string | null {
+    return url ? `url("${encodeURI(url)}") center / cover no-repeat` : null;
   }
 
   protected gradiente(i: number): string {
