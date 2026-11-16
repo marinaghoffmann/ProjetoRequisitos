@@ -72,6 +72,12 @@ export class PerfilPage implements OnInit {
     return GRADIENTES[i % GRADIENTES.length];
   }
 
+  /** Preenchimento da barra segundo a posição do progresso na lista (ordem do enum). */
+  protected percentual(p: Progresso): number {
+    const i = this.progressos.indexOf(p);
+    return i < 0 ? 0 : Math.round(((i + 1) / this.progressos.length) * 100);
+  }
+
   protected alterar(jogoId: string, progresso: string): void {
     this.erro.set(null);
     this.jogando.alterarProgresso(jogoId, progresso as Progresso).subscribe({
@@ -101,8 +107,8 @@ export class PerfilPage implements OnInit {
     });
   }
 
-  protected fundo(e: JogoEmAndamento, i: number): string {
-    const degrade = this.gradiente(i);
-    return e.capaUrl ? `url("${encodeURI(e.capaUrl)}") center / cover no-repeat, ${degrade}` : degrade;
+  /** Valor da variável CSS --capa (imagem da API); "none" mantém só o degradê. */
+  protected capa(e: JogoEmAndamento): string {
+    return e.capaUrl ? `url("${encodeURI(e.capaUrl)}")` : 'none';
   }
 }
