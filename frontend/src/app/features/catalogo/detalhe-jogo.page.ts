@@ -11,12 +11,16 @@ import { ErroApi } from '../../core/http/erro-api';
 import { AdicionarAListaComponent } from './adicionar-a-lista.component';
 import { EstatisticasJogoComponent } from './estatisticas-jogo.component';
 import { ReviewsJogoComponent } from './reviews-jogo.component';
+import { SimilaresJogoComponent } from './similares-jogo.component';
 
 const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
 
 @Component({
   selector: 'app-detalhe-jogo',
-  imports: [RouterLink, DatePipe, EstatisticasJogoComponent, ReviewsJogoComponent, AdicionarAListaComponent],
+  imports: [
+    RouterLink, DatePipe, EstatisticasJogoComponent, ReviewsJogoComponent, AdicionarAListaComponent,
+    SimilaresJogoComponent,
+  ],
   template: `
     <!-- Fundo do jogo (arte HD da Steam; sem appid cai na capa desfocada) -->
     @if (fundo(); as f) {
@@ -150,6 +154,8 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
             <app-estatisticas-jogo [jogoId]="j.id" />
           </div>
         </section>
+
+        <app-similares-jogo [jogoId]="j.id" />
       } @else {
         <p class="carregando">Carregando…</p>
       }

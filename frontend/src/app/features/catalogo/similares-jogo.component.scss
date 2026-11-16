@@ -1,0 +1,80 @@
+// Mesmo visual dos painéis da página do jogo (o fundo da página é a arte do jogo)
+:host {
+  display: block;
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.similares__cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  h2 { margin: 0; font-size: 1.3rem; }
+}
+
+.filtro { width: 12rem; }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card-similar {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+
+  &--rebaixada { opacity: 0.7; }
+}
+
+.capa {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 4.5rem;
+  height: 6rem;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--accent);
+  font: 700 1.4rem var(--font-title);
+
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+.dados { display: grid; gap: 0.35rem; align-content: start; min-width: 0; }
+
+.titulo { color: var(--text); font-weight: 800; &:hover { color: var(--accent); text-decoration: none; } }
+
+.grau { color: var(--accent); font-size: 0.8rem; font-weight: 700; }
+
+.feedback { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+
+.acao.marcado { background: rgb(217 255 67 / 14%); color: var(--accent); }
+
+.vazio { padding: 1.5rem 0; color: var(--muted); }
+
+.admin {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+
+  h3 { margin: 0; font-size: 0.95rem; }
+}
+
+.admin__campos { display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem; }
