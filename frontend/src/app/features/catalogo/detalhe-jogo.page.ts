@@ -10,6 +10,7 @@ import {
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
 import { EstatisticasJogoComponent } from './estatisticas-jogo.component';
+import { SimilaresJogoComponent } from './similares-jogo.component';
 
 interface Jogo {
   id: string;
@@ -22,7 +23,7 @@ interface Jogo {
 
 @Component({
   selector: 'app-detalhe-jogo',
-  imports: [RouterLink, DatePipe, EstatisticasJogoComponent],
+  imports: [RouterLink, DatePipe, EstatisticasJogoComponent, SimilaresJogoComponent],
   template: `
     <a class="voltar" routerLink="/catalogo">← Catálogo</a>
     @if (erro()) {
@@ -105,6 +106,8 @@ interface Jogo {
           <app-estatisticas-jogo [jogoId]="j.id" />
         </aside>
       </section>
+
+      <app-similares-jogo [jogoId]="j.id" />
     } @else {
       <p>Carregando…</p>
     }

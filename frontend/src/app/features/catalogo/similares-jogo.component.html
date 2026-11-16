@@ -1,0 +1,82 @@
+<section class="similares" aria-labelledby="titulo-similares">
+  <header class="similares__cab">
+    <h2 id="titulo-similares">Jogos similares</h2>
+    <label class="filtro">
+      Avaliação da comunidade
+      <select (change)="filtrar($any($event.target).value)">
+        <option value="">Qualquer nota</option>
+        <option value="3">3 ou mais</option>
+        <option value="4">4 ou mais</option>
+        <option value="4.5">4,5 ou mais</option>
+      </select>
+    </label>
+  </header>
+
+  @if (erro(); as mensagem) {
+    <p class="erro" role="alert">{{ mensagem }}</p>
+  }
+
+  @if (carregando()) {
+    <p class="vazio">Procurando jogos parecidos…</p>
+  } @else {
+    <ul class="cards">
+      @for (s of similares(); track s.similaridadeId) {
+        <li class="card-similar" [class.card-similar--rebaixada]="s.rebaixada">
+          <a class="capa" [routerLink]="['/catalogo', s.jogoId]" [attr.aria-label]="'Abrir ' + s.titulo">
+            @if (s.capaUrl) { <img [src]="s.capaUrl" alt="" loading="lazy" /> } @else { <span>{{ s.titulo.slice(0, 1) }}</span> }
+          </a>
+          <div class="dados">
+            <a class="titulo" [routerLink]="['/catalogo', s.jogoId]">{{ s.titulo }}</a>
+            <span class="grau" [attr.aria-label]="'Grau de relevância ' + percentual(s.grau)">
+              {{ percentual(s.grau) }} similar
+              @if (s.origem === 'MANUAL') { <small>· curadoria</small> }
+            </span>
+            @if (autenticacao.usuarioAtual()) {
+              <div class="feedback" role="group" aria-label="Esta sugestão foi útil?">
+                <button type="button" class="acao" [class.marcado]="s.meuFeedback === 'UTIL'" [attr.aria-pressed]="s.meuFeedback === 'UTIL'" (click)="feedback(s, 'UTIL')">
+                  Útil · {{ s.totalUteis }}
+                </button>
+                <button type="button" class="acao" [class.marcado]="s.meuFeedback === 'NAO_RELEVANTE'" [attr.aria-pressed]="s.meuFeedback === 'NAO_RELEVANTE'" (click)="feedback(s, 'NAO_RELEVANTE')">
+                  Não relevante · {{ s.totalNaoRelevantes }}
+                </button>
+              </div>
+            }
+            @if (ehAdmin()) {
+              <button type="button" class="acao acao--perigo" (click)="remover(s)">Remover conexão</button>
+            }
+          </div>
+        </li>
+      } @empty {
+        <li class="vazio">Nenhum jogo similar encontrado ainda.</li>
+      }
+    </ul>
+  }
+
+  @if (ehAdmin()) {
+    <form class="admin" (submit)="$event.preventDefault(); criarManual()">
+      <h3>Conexão manual (administrador)</h3>
+      <div class="admin__campos">
+        <label>
+          Jogo
+          <select [value]="jogoEscolhido()" (change)="jogoEscolhido.set($any($event.target).value)">
+            <option value="">Escolha um jogo</option>
+            @for (j of jogosDoCatalogo(); track j.id) {
+              <option [value]="j.id">{{ j.titulo }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Grau (0 a 1)
+          <input type="number" min="0" max="1" step="0.05" [value]="grau()" (input)="grau.set($any($event.target).value)" />
+        </label>
+      </div>
+      @if (erroAdmin(); as mensagem) {
+        <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+      }
+      <div class="acoes">
+        <button type="submit" [disabled]="!jogoEscolhido()">Adicionar conexão</button>
+        <button type="button" class="botao--secundario" (click)="recalcular()">Recalcular similares</button>
+      </div>
+    </form>
+  }
+</section>
