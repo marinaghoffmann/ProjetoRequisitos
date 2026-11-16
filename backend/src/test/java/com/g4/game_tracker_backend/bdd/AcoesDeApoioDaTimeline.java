@@ -14,12 +14,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 import com.g4.game_tracker_backend.dominio.journal.eventos.CompraConcluida;
 import com.g4.game_tracker_backend.dominio.journal.eventos.ConclusaoExcluida;
 import com.g4.game_tracker_backend.dominio.journal.eventos.JogoZerado;
-import com.g4.game_tracker_backend.dominio.journal.eventos.ReviewPublicada;
 
 /**
- * Faz o papel de F-02 (review), F-11 (conclusão) e F-20 (pedido) nos cenários da F-16 enquanto elas não
- * existem. Cada ação roda em uma transação de verdade e publica o evento dentro dela, como os casos de uso
- * reais vão fazer; a ação só conta como gravada se a transação confirmar.
+ * Faz o papel de F-11 (conclusão) e F-20 (pedido) nos cenários da F-16 enquanto elas não estão ligadas aqui.
+ * Cada ação roda em uma transação de verdade e publica o evento dentro dela, como os casos de uso reais vão
+ * fazer; a ação só conta como gravada se a transação confirmar. A review (F-02) já usa o caso de uso real.
  *
  * Quando a funcionalidade real chegar, troque o método correspondente pelo caso de uso dela nos steps
  * de PassosTimelineAutomatica e apague-o daqui.
@@ -36,20 +35,15 @@ public class AcoesDeApoioDaTimeline {
         this.eventos = eventos;
     }
 
-    /** Publica a review; com falhar = true a gravação quebra depois do evento e tudo sofre rollback. */
-    String publicarReview(String reviewId, UUID autorId, UUID jogoId, Instant quando, boolean falhar) {
+    /**
+     * Roda uma ação real (o caso de uso, que entra nesta transação) e quebra a transação logo depois dela,
+     * já com o evento publicado: tudo sofre rollback, como numa falha de gravação.
+     */
+    void executarEFalharDepois(Runnable acao) {
         transacao.executeWithoutResult(status -> {
-            gravarAoConfirmar(reviewId);
-            eventos.publishEvent(new ReviewPublicada(autorId, jogoId, reviewId, quando));
-            if (falhar) {
-                throw new FalhaSimulada("Falha simulada ao gravar a review");
-            }
+            acao.run();
+            throw new FalhaSimulada("Falha simulada ao gravar a review");
         });
-        return reviewId;
-    }
-
-    String publicarReview(UUID autorId, UUID jogoId, Instant quando) {
-        return publicarReview("review-" + UUID.randomUUID(), autorId, jogoId, quando, false);
     }
 
     String registrarConclusao(UUID jogadorId, UUID jogoId, Instant quando) {

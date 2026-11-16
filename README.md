@@ -254,6 +254,46 @@ Pendências conhecidas da F-21:
 - Não há como editar nem excluir uma avaliação (as histórias não pedem).
 - O perfil lista todas as avaliações de uma vez, sem paginação.
 
+## Reviews e avaliações categoriais (F-02)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/avaliacao/jogos/{jogoId}/reviews` | Reviews do jogo, da mais recente para a mais antiga (`pagina` a partir de 1, `tamanho` até 50), com `totalReviews`, `mediaGeral` e `mediasPorCategoria` de todas as reviews | qualquer um |
+| `GET` | `/api/avaliacao/jogos/{jogoId}/reviews/minha` | A review do usuário para o jogo (200) ou nenhuma (204) | autenticado |
+| `GET` | `/api/avaliacao/reviews/minhas` | Reviews do usuário, com título e capa de cada jogo | autenticado |
+| `POST` | `/api/avaliacao/reviews` | Publicar `{ "jogoId", "notaGeral", "notasPorCategoria": [{ "categoria", "nota" }], "texto" }` | autenticado |
+| `PUT` | `/api/avaliacao/reviews/{id}` | Editar as notas e o texto (mesmo corpo; `jogoId` é ignorado) | autor |
+| `DELETE` | `/api/avaliacao/reviews/{id}` | Excluir de vez a review e as notas por categoria | autor |
+
+- Categorias: `GRAFICOS`, `SOM`, `JOGABILIDADE`, `DIVERSAO` e `INOVACAO`. São opcionais e aparecem no máximo uma vez
+  ("Cada categoria só pode receber uma nota"). Toda nota vai de 1 a 5 ("A nota deve estar entre 1 e 5"); o texto é
+  opcional, com até 5000 caracteres. O jogo precisa existir (404) e estar `ATIVO` ("O jogo precisa estar ativo no catálogo").
+- RN 1: uma review por usuário e jogo. Quem tenta publicar de novo recebe 409 com
+  `{ "detail": "Você já publicou uma review deste jogo", "reviewExistenteId": "..." }`, e a tela abre a edição da
+  review existente. A restrição única `(autor_id, jogo_id)` em `reviews` cobre requisições simultâneas.
+- RN 2: o autor é sempre o usuário autenticado; editar ou excluir a review de outra pessoa dá 403 "Apenas o autor pode
+  alterar a review" (checado no agregado `Review`).
+- RN 3: a exclusão é física. As notas (`reviews_notas_categoria`) saem junto, pelo JPA (`cascade = ALL` e
+  `orphanRemoval`) e pelo banco (FK com `ON DELETE CASCADE`).
+- As médias (geral e por categoria) usam todas as reviews do jogo, com duas casas e `HALF_UP`; categoria sem nota vem `null`.
+- F-16 ligada: `PublicarReview` publica `ReviewPublicada` e `GerenciarReview.excluir` publica `ReviewExcluida`, dentro
+  da transação. Os steps da F-16 usam o caso de uso real, inclusive no cenário de falha, que roda a publicação numa
+  transação que quebra logo depois (`AcoesDeApoioDaTimeline.executarEFalharDepois`).
+- F-17 ligada: criar, editar e excluir publicam `MetricasDoJogoAlteradas`, e `ReviewsParaEstatisticas` implementa
+  `FonteDeReviews`. A porta saiu de `MetricasDeApoioDosCenarios`, e `PassosEstatisticas` publica reviews de verdade.
+- Frontend: `/catalogo/{id}` mostra as médias, as reviews paginadas e o botão "Escrever review" (ou "Editar minha
+  review"), que abre o modal com a nota geral, as 5 categorias e o texto; o autor vê Editar e Excluir (com
+  confirmação), e a aba Reviews leva à seção. Em `/perfil`, a aba Reviews lista as reviews do usuário.
+- Cenários BDD em `f02_reviews.feature`, com steps em `PassosReviews`.
+
+Pendências conhecidas da F-02:
+
+- Editar a review não atualiza o texto da entrada automática da timeline (pendência já registrada na F-16).
+- Duas publicações exatamente simultâneas do mesmo usuário para o mesmo jogo: a segunda esbarra na restrição única e
+  volta como erro genérico, e não como o 409 da RN 1.
+- A ficha de estatísticas da página do jogo só mostra as novas médias ao recarregar a página.
+- Não há curtidas, comentários nem moderação de reviews (fora do escopo da F-02).
+
 ## Estatísticas dos jogos (F-17)
 
 | Método | Rota | Objetivo | Quem pode |
@@ -358,6 +398,41 @@ Pendências conhecidas da F-13 (algumas são escopo da F-14):
   outros usuários fica para a central de moderação (F-14), que pode reaproveitar os campos `removido` e `removida`.
 - A "formatação de texto" é só a preservação de quebras de linha; não há Markdown nem editor rico.
 - A listagem mostra o nome do jogo procurando no catálogo carregado pela tela; não há busca por título do tópico.
+
+## Listas personalizadas (F-04)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/biblioteca/listas` | Minhas listas, da atualizada mais recentemente para a mais antiga, com `totalJogos` e os itens | autenticado |
+| `POST` | `/api/biblioteca/listas` | Criar `{ "titulo", "descricao" }` | autenticado |
+| `GET` | `/api/biblioteca/listas/{id}` | Uma lista com os itens (título e capa do jogo, nota explicativa, data de inclusão) | qualquer um |
+| `PUT` | `/api/biblioteca/listas/{id}` | Renomear: título e descrição | dono |
+| `DELETE` | `/api/biblioteca/listas/{id}` | Excluir a lista e os itens (exclusão física) | dono |
+| `POST` | `/api/biblioteca/listas/{id}/itens` | Adicionar `{ "jogoId", "notaExplicativa" }` (nota opcional) | dono |
+| `PATCH` | `/api/biblioteca/listas/{id}/itens/{jogoId}` | Editar a nota explicativa `{ "notaExplicativa" }` | dono |
+| `DELETE` | `/api/biblioteca/listas/{id}/itens/{jogoId}` | Remover o jogo da lista | dono |
+| `GET` | `/api/biblioteca/usuarios/{usuarioId}/listas` | Listas públicas de um usuário | qualquer um |
+
+- Título obrigatório, com até 80 caracteres e sem os espaços das pontas; descrição e nota explicativa com até 500.
+  O jogo precisa existir (404) e estar `ATIVO` ("O jogo precisa estar ativo no catálogo"). Quem não é o dono recebe
+  403 "Apenas o dono pode alterar esta lista"; o dono é sempre o usuário autenticado.
+- RN 1: título único por usuário, sem diferenciar maiúsculas e minúsculas e também ao renomear ("Você já possui uma
+  lista com este título"). Outro usuário pode usar o mesmo título. No banco, `titulo_chave` (minúsculas, sem os espaços
+  das pontas) tem restrição única com `dono_id`.
+- RN 2: um jogo uma vez por lista ("Este jogo já está na lista"), com restrição única `(lista_id, jogo_id)` em `listas_itens`.
+- RN 3: até 100 jogos por lista, no agregado `ListaPersonalizada` ("A lista atingiu o limite de 100 jogos"). A lista tem
+  versão (bloqueio otimista), para duas adições simultâneas não passarem do limite.
+- Excluir a lista remove os itens pelo JPA (`cascade = ALL` e `orphanRemoval`) e pelo banco (FK com `ON DELETE CASCADE`).
+- Frontend: `/biblioteca/listas` ("Minhas listas", com `papelGuard`: criar, renomear, excluir e o total de cada lista),
+  `/biblioteca/listas/{id}` (itens com capa e nota editável, remover item e o contador "N/100"; quem não é dono só
+  vê), o botão "Adicionar à lista" na página do jogo, o item "Listas" do menu e a aba Listas do perfil.
+- Cenários BDD em `f04_listas_personalizadas.feature`, com steps em `PassosListasPersonalizadas`.
+
+Pendências conhecidas da F-04:
+
+- Não há como reordenar os itens: a lista segue a ordem de inclusão.
+- A exclusão lógica de um jogo do catálogo (F-01) não mexe nas listas: o item continua, com o status do jogo na resposta.
+- Ainda não existe perfil público para ver as listas de outra pessoa; a API já oferece a rota pública.
 
 ## Entregáveis
 

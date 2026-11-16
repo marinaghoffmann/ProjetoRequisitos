@@ -333,3 +333,14 @@ $line: var(--line, #262630);
   .capa { width: 150px; }
   .fundo { height: 460px; }
 }
+
+// F-02: as abas que já funcionam são botões, com o mesmo visual dos rótulos
+.abas button {
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 400;
+  &:hover { transform: none; color: $accent; }
+}

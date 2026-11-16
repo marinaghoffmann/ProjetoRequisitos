@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,14 +20,18 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import com.g4.game_tracker_backend.aplicacao.avaliacao.estatisticas.ConsultarEstatisticas;
 import com.g4.game_tracker_backend.aplicacao.avaliacao.estatisticas.RecalcularEstatisticas;
+import com.g4.game_tracker_backend.aplicacao.avaliacao.reviews.GerenciarReview;
+import com.g4.game_tracker_backend.aplicacao.avaliacao.reviews.PublicarReview;
 import com.g4.game_tracker_backend.apresentacao.avaliacao.estatisticas.EstatisticaJogoResponse;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.EstatisticaJogo;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.EstatisticaJogoRepositorio;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.MetricasDoJogoAlteradas;
+import com.g4.game_tracker_backend.dominio.avaliacao.reviews.Review;
 import com.g4.game_tracker_backend.dominio.catalogo.Desenvolvedora;
 import com.g4.game_tracker_backend.dominio.catalogo.DesenvolvedoraRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.Jogo;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
+import com.g4.game_tracker_backend.dominio.identidade.Usuario;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplace;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplaceRepositorio;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.EstadoConservacao;
@@ -41,9 +45,10 @@ import io.cucumber.java.pt.Entao;
 import io.cucumber.java.pt.Quando;
 
 /**
- * Steps da F-17. Reviews, conclusões e wishlists vêm de MetricasDeApoioDosCenarios e o evento é
- * publicado aqui, no lugar de F-02, F-06 e F-11. O marketplace é real: os anúncios vendidos são gravados e
- * a venda publica o evento que a F-20 vai publicar.
+ * Steps da F-17. Conclusões e wishlists vêm de MetricasDeApoioDosCenarios e o evento é publicado aqui, no
+ * lugar de F-06 e F-11. As reviews são reais: cada uma é publicada (ou excluída) pelo caso de uso da F-02,
+ * por um jogador diferente, e o próprio caso de uso publica o evento. O marketplace também é real: os
+ * anúncios vendidos são gravados e a venda publica o evento que a F-20 vai publicar.
  */
 public class PassosEstatisticas {
 
@@ -58,15 +63,21 @@ public class PassosEstatisticas {
     private final JogoRepositorio jogos;
     private final DesenvolvedoraRepositorio desenvolvedoras;
     private final ApplicationEventPublisher eventos;
+    private final PublicarReview publicarReview;
+    private final GerenciarReview gerenciarReview;
+    private final DadosDoCenario dados;
 
     private final Map<String, Jogo> jogosDoCenario = new HashMap<>();
+    private final List<Review> reviewsDoCenario = new ArrayList<>();
+    private final Map<UUID, Usuario> autoresDasReviews = new HashMap<>();
     private Jogo jogoAtual;
     private EstatisticaJogoResponse fichaConsultada;
 
     public PassosEstatisticas(RecalcularEstatisticas recalcular, ConsultarEstatisticas consultar,
             EstatisticaJogoRepositorio estatisticas, MetricasDeApoioDosCenarios metricas,
             AnuncioMarketplaceRepositorio anuncios, JogoRepositorio jogos,
-            DesenvolvedoraRepositorio desenvolvedoras, ApplicationEventPublisher eventos) {
+            DesenvolvedoraRepositorio desenvolvedoras, ApplicationEventPublisher eventos,
+            PublicarReview publicarReview, GerenciarReview gerenciarReview, DadosDoCenario dados) {
         this.recalcular = recalcular;
         this.consultar = consultar;
         this.estatisticas = estatisticas;
@@ -75,6 +86,9 @@ public class PassosEstatisticas {
         this.jogos = jogos;
         this.desenvolvedoras = desenvolvedoras;
         this.eventos = eventos;
+        this.publicarReview = publicarReview;
+        this.gerenciarReview = gerenciarReview;
+        this.dados = dados;
     }
 
     // ---- Situação inicial ----
@@ -82,15 +96,17 @@ public class PassosEstatisticas {
     @Dado("^que o jogo \"([^\"]*)\" possui reviews com notas gerais ([\\d, e]+)$")
     public void jogoPossuiReviewsComNotas(String titulo, String notas) {
         UUID jogoId = jogo(titulo).id();
-        metricas.adicionarNotas(jogoId, Arrays.stream(notas.split(",| e ")).map(String::trim)
-                .map(Integer::valueOf).toList());
+        Arrays.stream(notas.split(",| e ")).map(String::trim).map(Integer::valueOf)
+                .forEach(nota -> publicarReview(jogoId, nota));
         recalcular.executar(jogoId);
     }
 
     @Dado("que o jogo {string} possui {int} reviews ativas")
     public void jogoPossuiReviewsAtivas(String titulo, int quantidade) {
         UUID jogoId = jogo(titulo).id();
-        metricas.adicionarNotas(jogoId, Collections.nCopies(quantidade, NOTA_DE_APOIO));
+        for (int i = 0; i < quantidade; i++) {
+            publicarReview(jogoId, NOTA_DE_APOIO);
+        }
         recalcular.executar(jogoId);
     }
 
@@ -121,15 +137,19 @@ public class PassosEstatisticas {
 
     @Quando("um jogador publica uma review de {string} com nota geral {int}")
     public void jogadorPublicaReview(String titulo, int nota) {
-        UUID jogoId = jogo(titulo).id();
-        metricas.adicionarNotas(jogoId, List.of(nota));
-        eventos.publishEvent(new MetricasDoJogoAlteradas(jogoId));
+        publicarReview(jogo(titulo).id(), nota);
     }
 
     @Quando("a review com nota geral {int} é excluída")
     public void reviewEExcluida(int nota) {
-        metricas.removerNota(jogoAtual.id(), nota);
-        eventos.publishEvent(new MetricasDoJogoAlteradas(jogoAtual.id()));
+        Review review = reviewsDoCenario.stream()
+                .filter(publicada -> publicada.jogoId().equals(jogoAtual.id()))
+                .filter(publicada -> publicada.notaGeral().valor() == nota)
+                .findFirst()
+                .orElseThrow();
+        SessaoDeTeste.autenticarComo(autoresDasReviews.get(review.autorId()));
+        gerenciarReview.excluir(review.id());
+        reviewsDoCenario.remove(review);
     }
 
     @Quando("um jogador registra uma conclusão de {string}")
@@ -207,6 +227,14 @@ public class PassosEstatisticas {
     }
 
     // ---- Apoio ----
+
+    /** Cada review é de um jogador novo (RN 1 da F-02: uma review por jogador e jogo). */
+    private void publicarReview(UUID jogoId, int nota) {
+        Usuario autor = dados.jogador("revisor " + UUID.randomUUID());
+        autoresDasReviews.put(autor.id(), autor);
+        SessaoDeTeste.autenticarComo(autor);
+        reviewsDoCenario.add(publicarReview.executar(jogoId, nota, List.of(), null));
+    }
 
     private EstatisticaJogo gravada(String titulo) {
         return estatisticas.buscarPorJogo(jogo(titulo).id()).orElseThrow();
