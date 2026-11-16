@@ -10,6 +10,7 @@ import {
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
 import { EstatisticasJogoComponent } from './estatisticas-jogo.component';
+import { ReviewsJogoComponent } from './reviews-jogo.component';
 
 interface Jogo {
   id: string;
@@ -22,7 +23,7 @@ interface Jogo {
 
 @Component({
   selector: 'app-detalhe-jogo',
-  imports: [RouterLink, DatePipe, EstatisticasJogoComponent],
+  imports: [RouterLink, DatePipe, EstatisticasJogoComponent, ReviewsJogoComponent],
   template: `
     <a class="voltar" routerLink="/catalogo">← Catálogo</a>
     @if (erro()) {
@@ -77,7 +78,9 @@ interface Jogo {
       </section>
 
       <nav class="abas">
-        <span class="ativa">Visão geral</span><span>Reviews</span><span>Journal</span>
+        <button type="button" [class.ativa]="aba() === 'geral'" (click)="irParaAba('geral')">Visão geral</button>
+        <button type="button" [class.ativa]="aba() === 'reviews'" (click)="irParaAba('reviews')">Reviews</button>
+        <span>Journal</span>
         <span>Listas</span><span>Fórum</span>
       </nav>
 
@@ -97,10 +100,7 @@ interface Jogo {
       }
 
       <section class="grade">
-        <div class="vazio">
-          <h2>O que estão dizendo</h2>
-          <p>Reviews em breve.</p>
-        </div>
+        <app-reviews-jogo [jogoId]="j.id" />
         <aside>
           <app-estatisticas-jogo [jogoId]="j.id" />
         </aside>
@@ -126,6 +126,8 @@ export class DetalheJogoPage {
   protected readonly erroJogando = signal<string | null>(null);
   protected readonly progressos = Object.keys(ROTULOS_PROGRESSO) as Progresso[];
   protected readonly rotulos = ROTULOS_PROGRESSO;
+  /** Abas que já funcionam: "Reviews" leva à seção de reviews da página (F-02). */
+  protected readonly aba = signal<'geral' | 'reviews'>('geral');
   protected readonly atual = computed(
     () => this.emAndamento().find((e) => e.jogoId === this.jogo()?.id) ?? null,
   );
@@ -142,6 +144,12 @@ export class DetalheJogoPage {
         },
         error: () => this.erro.set('Jogo não encontrado.'),
       });
+  }
+
+  protected irParaAba(aba: 'geral' | 'reviews'): void {
+    this.aba.set(aba);
+    const alvo = aba === 'reviews' ? document.getElementById('reviews') : document.querySelector('.topo');
+    alvo?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   private recarregar(): void {
