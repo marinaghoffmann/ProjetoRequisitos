@@ -208,6 +208,46 @@ Pendências conhecidas da F-21:
 - Não há como editar nem excluir uma avaliação (as histórias não pedem).
 - O perfil lista todas as avaliações de uma vez, sem paginação.
 
+## Reviews e avaliações categoriais (F-02)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/avaliacao/jogos/{jogoId}/reviews` | Reviews do jogo, da mais recente para a mais antiga (`pagina` a partir de 1, `tamanho` até 50), com `totalReviews`, `mediaGeral` e `mediasPorCategoria` de todas as reviews | qualquer um |
+| `GET` | `/api/avaliacao/jogos/{jogoId}/reviews/minha` | A review do usuário para o jogo (200) ou nenhuma (204) | autenticado |
+| `GET` | `/api/avaliacao/reviews/minhas` | Reviews do usuário, com título e capa de cada jogo | autenticado |
+| `POST` | `/api/avaliacao/reviews` | Publicar `{ "jogoId", "notaGeral", "notasPorCategoria": [{ "categoria", "nota" }], "texto" }` | autenticado |
+| `PUT` | `/api/avaliacao/reviews/{id}` | Editar as notas e o texto (mesmo corpo; `jogoId` é ignorado) | autor |
+| `DELETE` | `/api/avaliacao/reviews/{id}` | Excluir de vez a review e as notas por categoria | autor |
+
+- Categorias: `GRAFICOS`, `SOM`, `JOGABILIDADE`, `DIVERSAO` e `INOVACAO`. São opcionais e aparecem no máximo uma vez
+  ("Cada categoria só pode receber uma nota"). Toda nota vai de 1 a 5 ("A nota deve estar entre 1 e 5"); o texto é
+  opcional, com até 5000 caracteres. O jogo precisa existir (404) e estar `ATIVO` ("O jogo precisa estar ativo no catálogo").
+- RN 1: uma review por usuário e jogo. Quem tenta publicar de novo recebe 409 com
+  `{ "detail": "Você já publicou uma review deste jogo", "reviewExistenteId": "..." }`, e a tela abre a edição da
+  review existente. A restrição única `(autor_id, jogo_id)` em `reviews` cobre requisições simultâneas.
+- RN 2: o autor é sempre o usuário autenticado; editar ou excluir a review de outra pessoa dá 403 "Apenas o autor pode
+  alterar a review" (checado no agregado `Review`).
+- RN 3: a exclusão é física. As notas (`reviews_notas_categoria`) saem junto, pelo JPA (`cascade = ALL` e
+  `orphanRemoval`) e pelo banco (FK com `ON DELETE CASCADE`).
+- As médias (geral e por categoria) usam todas as reviews do jogo, com duas casas e `HALF_UP`; categoria sem nota vem `null`.
+- F-16 ligada: `PublicarReview` publica `ReviewPublicada` e `GerenciarReview.excluir` publica `ReviewExcluida`, dentro
+  da transação. Os steps da F-16 usam o caso de uso real, inclusive no cenário de falha, que roda a publicação numa
+  transação que quebra logo depois (`AcoesDeApoioDaTimeline.executarEFalharDepois`).
+- F-17 ligada: criar, editar e excluir publicam `MetricasDoJogoAlteradas`, e `ReviewsParaEstatisticas` implementa
+  `FonteDeReviews`. A porta saiu de `MetricasDeApoioDosCenarios`, e `PassosEstatisticas` publica reviews de verdade.
+- Frontend: `/catalogo/{id}` mostra as médias, as reviews paginadas e o botão "Escrever review" (ou "Editar minha
+  review"), que abre o modal com a nota geral, as 5 categorias e o texto; o autor vê Editar e Excluir (com
+  confirmação), e a aba Reviews leva à seção. Em `/perfil`, a aba Reviews lista as reviews do usuário.
+- Cenários BDD em `f02_reviews.feature`, com steps em `PassosReviews`.
+
+Pendências conhecidas da F-02:
+
+- Editar a review não atualiza o texto da entrada automática da timeline (pendência já registrada na F-16).
+- Duas publicações exatamente simultâneas do mesmo usuário para o mesmo jogo: a segunda esbarra na restrição única e
+  volta como erro genérico, e não como o 409 da RN 1.
+- A ficha de estatísticas da página do jogo só mostra as novas médias ao recarregar a página.
+- Não há curtidas, comentários nem moderação de reviews (fora do escopo da F-02).
+
 ## Estatísticas dos jogos (F-17)
 
 | Método | Rota | Objetivo | Quem pode |
