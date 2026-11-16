@@ -151,20 +151,86 @@ form > button[type='submit'] { margin-top: 0.5rem; min-height: 2.75rem; }
 .filtros__botoes { display: flex; align-items: flex-end; gap: 0.5rem; }
 
 // ===== Grade e cards =====
-.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: 1.25rem; }
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 1.25rem; }
 .card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--line-soft);
   border-radius: var(--radius);
   background: var(--surface);
-  transition: transform 0.2s ease, border-color 0.2s ease;
-  &:hover { transform: translateY(-3px); border-color: #46505e; }
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  &:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--line-soft));
+    box-shadow: var(--shadow);
+  }
+  &:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
   h2 { margin: 0; font-size: 1.05rem; line-height: 1.25; }
 }
+.card--inativo { opacity: 0.6; }
+
+// Capa 16:9: mostra mais da arte e iguala a altura dos cards
+.card__midia {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--surface-2);
+  &::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 45%;
+    background: linear-gradient(to top, var(--surface), transparent);
+    pointer-events: none;
+  }
+  .card__capa, .card__sem-capa { height: 100%; }
+  .card__capa { transition: transform 0.4s ease; }
+  .card__sem-capa { background: linear-gradient(135deg, #1b1445, #0f2b4a); letter-spacing: 0.1em; }
+}
+.card:hover .card__midia .card__capa { transform: scale(1.05); }
+.card__selo {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  z-index: 1;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 70%);
+  backdrop-filter: blur(6px);
+  color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
 .card__capa, .card__sem-capa { display: block; width: 100%; height: 15rem; object-fit: cover; background: var(--surface-2); }
-.card__titulo { color: inherit; &:hover { color: var(--accent); text-decoration: none; } }
+.card__titulo {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  color: var(--text);
+  &:hover { color: var(--accent); text-decoration: none; }
+}
 .card__sem-capa { display: grid; place-items: center; color: var(--accent); font: 700 2rem var(--font-title); }
-.card__conteudo { display: flex; flex-direction: column; gap: 0.35rem; padding: 1rem; }
+.card__conteudo { flex: 1; display: flex; flex-direction: column; gap: 0.35rem; padding: 0.9rem 1rem 1rem; }
+.card__meta { margin: 0; color: var(--accent); font-size: 0.78rem; font-weight: 700; }
+.card__resumo {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+.card .acoes { position: relative; z-index: 2; margin-top: auto; padding-top: 0.75rem; }
+.link-card { color: inherit; text-decoration: none; &::after { content: ''; position: absolute; inset: 0; } }
+
 .original, .resumo, .data, .detalhe { margin: 0; color: var(--muted); font-size: 0.8rem; }
 .original { font-style: italic; }
 .resumo { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; }
@@ -227,3 +293,10 @@ form > button[type='submit'] { margin-top: 0.5rem; min-height: 2.75rem; }
   .card__capa, .card__sem-capa { height: 12rem; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+.hm-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
