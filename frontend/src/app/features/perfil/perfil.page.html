@@ -60,12 +60,16 @@
 
       <!-- Abas -->
       <nav class="pf-abas" aria-label="Seções do perfil">
-        <span class="pf-aba pf-aba--ativa">Atividade</span>
+        <button type="button" class="pf-aba" [class.pf-aba--ativa]="aba() === 'Atividade'" (click)="aba.set('Atividade')">Atividade</button>
+        <button type="button" class="pf-aba" [class.pf-aba--ativa]="aba() === 'Reviews'" (click)="aba.set('Reviews')">Reviews</button>
         @for (a of abas; track a) {
           <span class="pf-aba pf-aba--breve" title="Fazendo">{{ a }} <i>Fazendo</i></span>
         }
       </nav>
 
+      @if (aba() === 'Reviews') {
+      <app-perfil-reviews />
+      } @else {
       <!-- Jogando agora (dados reais) -->
       <section class="pf-secao">
         <div class="pf-secao__cab">
@@ -156,6 +160,7 @@
           </div>
         </aside>
       </div>
+      }
     </div>
   }
 </main>
