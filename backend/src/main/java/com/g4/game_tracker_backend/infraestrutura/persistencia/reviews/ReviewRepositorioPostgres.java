@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.g4.game_tracker_backend.dominio.avaliacao.reviews.CategoriaReview;
 import com.g4.game_tracker_backend.dominio.avaliacao.reviews.ResumoDeNotas;
@@ -18,7 +19,12 @@ import com.g4.game_tracker_backend.dominio.avaliacao.reviews.ReviewRepositorio;
 import com.g4.game_tracker_backend.dominio.avaliacao.reviews.SomaDeNotas;
 import com.g4.game_tracker_backend.dominio.compartilhado.Pagina;
 
+/**
+ * As notas por categoria são carregadas sob demanda; cada método roda numa transação (ou entra na do caso
+ * de uso) para a review sair daqui já convertida, com as notas, mesmo quando chamada fora de um caso de uso.
+ */
 @Repository
+@Transactional(readOnly = true)
 public class ReviewRepositorioPostgres implements ReviewRepositorio {
 
     private static final Sort MAIS_RECENTES_PRIMEIRO = Sort.by(Sort.Order.desc("criadaEm"), Sort.Order.desc("id"));
@@ -31,6 +37,7 @@ public class ReviewRepositorioPostgres implements ReviewRepositorio {
 
     /** A review existente é alterada no lugar, para as notas por categoria manterem a identidade. */
     @Override
+    @Transactional
     public Review salvar(Review review) {
         ReviewJpa jpa = springData.findById(review.id())
                 .map(existente -> {
@@ -80,6 +87,7 @@ public class ReviewRepositorioPostgres implements ReviewRepositorio {
 
     /** RN 3: exclusão física; as notas por categoria vão junto. */
     @Override
+    @Transactional
     public void remover(UUID id) {
         springData.deleteById(id);
     }
