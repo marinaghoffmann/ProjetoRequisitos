@@ -51,6 +51,8 @@ public class SegurancaConfig {
                         .requestMatchers(HttpMethod.GET, "/api/marketplace/anuncios/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/marketplace/usuarios/*/reputacao").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/forum/**").permitAll()
+                        // F-10: similares de um jogo (o feedback e os ajustes exigem login)
+                        .requestMatchers(HttpMethod.GET, "/api/descoberta/jogos/*/similares").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .anyRequest().authenticated())
