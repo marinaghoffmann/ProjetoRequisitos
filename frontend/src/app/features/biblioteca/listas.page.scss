@@ -1,0 +1,25 @@
+.nova {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+
+  h2 { margin: 0; font-size: 1.1rem; }
+  button { justify-self: start; }
+}
+
+.grade { margin-top: 1.5rem; }
+
+.capas {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  height: 7.5rem;
+  overflow: hidden;
+  background: var(--surface-2);
+
+  img { width: 100%; height: 100%; object-fit: cover; }
+  .card__sem-capa { grid-column: 1 / -1; height: 100%; }
+}
+
+.card__conteudo .acoes { margin-top: 0.5rem; }

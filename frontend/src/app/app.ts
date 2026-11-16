@@ -35,7 +35,7 @@ export class App {
       exato: true,
       icone: 'M6 11h4M8 9v4M15 12h.01M18 10h.01M17.3 5H6.7a4 4 0 0 0-3.9 3.2l-1.1 5.4A3 3 0 0 0 4.6 17L8 14.5h8l3.4 2.5a3 3 0 0 0 2.9-3.4l-1.1-5.4A4 4 0 0 0 17.3 5Z',
     },
-    { rotulo: 'Listas', icone: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01' },
+    { rotulo: 'Listas', rota: '/biblioteca/listas', icone: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01' },
     { rotulo: 'Journal', icone: 'M5 3h14v18H5zM9 8h6M9 12h6' },
     {
       rotulo: 'Comunidade',
