@@ -29,8 +29,12 @@
       <div class="hm-hero__conteudo">
         <p class="hm-hero__rotulo"><span></span>DESTAQUE DA SEMANA</p>
         <h1 class="hm-hero__titulo">
-          <span>{{ d.linha1 }}</span>
-          @if (d.linha2) { <span class="hm-hero__contorno">{{ d.linha2 }}</span> }
+          @if (logoHero(d); as logo) {
+            <img class="hm-hero__logo" [src]="logo" [alt]="d.linha1 + ' ' + d.linha2" />
+          } @else {
+            <span>{{ d.linha1 }}</span>
+            @if (d.linha2) { <span class="hm-hero__contorno">{{ d.linha2 }}</span> }
+          }
         </h1>
         <p class="hm-hero__descricao">{{ d.descricao }}</p>
 
