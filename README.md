@@ -353,6 +353,41 @@ Pendências conhecidas da F-13 (algumas são escopo da F-14):
 - A "formatação de texto" é só a preservação de quebras de linha; não há Markdown nem editor rico.
 - A listagem mostra o nome do jogo procurando no catálogo carregado pela tela; não há busca por título do tópico.
 
+## Listas personalizadas (F-04)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/biblioteca/listas` | Minhas listas, da atualizada mais recentemente para a mais antiga, com `totalJogos` e os itens | autenticado |
+| `POST` | `/api/biblioteca/listas` | Criar `{ "titulo", "descricao" }` | autenticado |
+| `GET` | `/api/biblioteca/listas/{id}` | Uma lista com os itens (título e capa do jogo, nota explicativa, data de inclusão) | qualquer um |
+| `PUT` | `/api/biblioteca/listas/{id}` | Renomear: título e descrição | dono |
+| `DELETE` | `/api/biblioteca/listas/{id}` | Excluir a lista e os itens (exclusão física) | dono |
+| `POST` | `/api/biblioteca/listas/{id}/itens` | Adicionar `{ "jogoId", "notaExplicativa" }` (nota opcional) | dono |
+| `PATCH` | `/api/biblioteca/listas/{id}/itens/{jogoId}` | Editar a nota explicativa `{ "notaExplicativa" }` | dono |
+| `DELETE` | `/api/biblioteca/listas/{id}/itens/{jogoId}` | Remover o jogo da lista | dono |
+| `GET` | `/api/biblioteca/usuarios/{usuarioId}/listas` | Listas públicas de um usuário | qualquer um |
+
+- Título obrigatório, com até 80 caracteres e sem os espaços das pontas; descrição e nota explicativa com até 500.
+  O jogo precisa existir (404) e estar `ATIVO` ("O jogo precisa estar ativo no catálogo"). Quem não é o dono recebe
+  403 "Apenas o dono pode alterar esta lista"; o dono é sempre o usuário autenticado.
+- RN 1: título único por usuário, sem diferenciar maiúsculas e minúsculas e também ao renomear ("Você já possui uma
+  lista com este título"). Outro usuário pode usar o mesmo título. No banco, `titulo_chave` (minúsculas, sem os espaços
+  das pontas) tem restrição única com `dono_id`.
+- RN 2: um jogo uma vez por lista ("Este jogo já está na lista"), com restrição única `(lista_id, jogo_id)` em `listas_itens`.
+- RN 3: até 100 jogos por lista, no agregado `ListaPersonalizada` ("A lista atingiu o limite de 100 jogos"). A lista tem
+  versão (bloqueio otimista), para duas adições simultâneas não passarem do limite.
+- Excluir a lista remove os itens pelo JPA (`cascade = ALL` e `orphanRemoval`) e pelo banco (FK com `ON DELETE CASCADE`).
+- Frontend: `/biblioteca/listas` ("Minhas listas", com `papelGuard`: criar, renomear, excluir e o total de cada lista),
+  `/biblioteca/listas/{id}` (itens com capa e nota editável, remover item e o contador "N/100"; quem não é dono só
+  vê), o botão "Adicionar à lista" na página do jogo, o item "Listas" do menu e a aba Listas do perfil.
+- Cenários BDD em `f04_listas_personalizadas.feature`, com steps em `PassosListasPersonalizadas`.
+
+Pendências conhecidas da F-04:
+
+- Não há como reordenar os itens: a lista segue a ordem de inclusão.
+- A exclusão lógica de um jogo do catálogo (F-01) não mexe nas listas: o item continua, com o status do jogo na resposta.
+- Ainda não existe perfil público para ver as listas de outra pessoa; a API já oferece a rota pública.
+
 ## Entregáveis
 
 | Artefato | Local |

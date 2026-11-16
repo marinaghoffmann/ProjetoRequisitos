@@ -8,6 +8,7 @@ import {
 } from '../../core/api/jogando-agora.service';
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
+import { AdicionarAListaComponent } from './adicionar-a-lista.component';
 import { EstatisticasJogoComponent } from './estatisticas-jogo.component';
 import { ReviewsJogoComponent } from './reviews-jogo.component';
 
@@ -15,7 +16,7 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
 
 @Component({
   selector: 'app-detalhe-jogo',
-  imports: [RouterLink, DatePipe, EstatisticasJogoComponent, ReviewsJogoComponent],
+  imports: [RouterLink, DatePipe, EstatisticasJogoComponent, ReviewsJogoComponent, AdicionarAListaComponent],
   template: `
     <!-- Fundo do jogo (arte HD da Steam; sem appid cai na capa desfocada) -->
     @if (fundo(); as f) {
@@ -71,6 +72,7 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
               } @else {
                 <a routerLink="/login" class="primario">Entre para marcar</a>
               }
+              @if (autenticacao.usuarioAtual()) { <app-adicionar-a-lista [jogoId]="j.id" /> }
               <button type="button" disabled title="Em breve">Wishlist</button>
               <button type="button" disabled title="Em breve">Marcar zerado</button>
               <button type="button" disabled title="Em breve">Favoritar</button>

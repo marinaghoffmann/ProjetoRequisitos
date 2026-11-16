@@ -1,0 +1,67 @@
+<main class="pagina-listagem">
+  @if (ehDono()) {
+    <a class="voltar" routerLink="/biblioteca/listas">← Minhas listas</a>
+  } @else {
+    <a class="voltar" routerLink="/catalogo">← Catálogo</a>
+  }
+
+  @if (erro(); as mensagem) {
+    <p class="erro" role="alert">{{ mensagem }}</p>
+  } @else if (lista(); as l) {
+    <header class="cabecalho">
+      <div>
+        <h1>{{ l.titulo }}</h1>
+        @if (l.descricao) { <p>{{ l.descricao }}</p> }
+        @if (!ehDono() && l.nomeDono) { <p>Lista de {{ l.nomeDono }}</p> }
+      </div>
+      <span class="contador" [class.contador--cheio]="l.totalJogos >= l.limiteDeJogos" aria-label="Jogos na lista">
+        {{ l.totalJogos }}/{{ l.limiteDeJogos }}
+      </span>
+    </header>
+
+    @if (erroItem(); as mensagem) {
+      <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+    }
+
+    <ol class="itens">
+      @for (item of l.itens; track item.itemId; let i = $index) {
+        <li class="item">
+          <span class="posicao">{{ i + 1 }}</span>
+          <a class="capa" [routerLink]="['/catalogo', item.jogoId]" [attr.aria-label]="'Abrir ' + (item.jogoTitulo ?? 'jogo')">
+            @if (item.jogoCapaUrl) { <img [src]="item.jogoCapaUrl" alt="" loading="lazy" /> }
+          </a>
+          <div class="dados">
+            <a class="titulo" [routerLink]="['/catalogo', item.jogoId]">{{ item.jogoTitulo ?? 'Jogo indisponível' }}</a>
+            <small>Incluído em {{ item.incluidoEm | date: 'dd/MM/yyyy' }}</small>
+            @if (ehDono()) {
+              <label>
+                Nota explicativa
+                <textarea
+                  rows="2"
+                  [maxLength]="limiteNota"
+                  [value]="nota(item)"
+                  (input)="escrever(item, $any($event.target).value)"
+                  placeholder="Por que este jogo está na lista?"
+                ></textarea>
+              </label>
+              <div class="acoes">
+                <button type="button" class="acao" [disabled]="!alterada(item)" (click)="salvarNota(item)">Salvar nota</button>
+                <button type="button" class="acao acao--perigo" (click)="remover(item)">Remover da lista</button>
+                @if (salvo() === item.jogoId) { <small>Nota salva.</small> }
+              </div>
+            } @else if (item.notaExplicativa) {
+              <p class="nota">{{ item.notaExplicativa }}</p>
+            }
+          </div>
+        </li>
+      } @empty {
+        <p class="estado">
+          Nenhum jogo nesta lista ainda.
+          @if (ehDono()) { <a routerLink="/catalogo">Escolha jogos no catálogo</a> e use "Adicionar à lista". }
+        </p>
+      }
+    </ol>
+  } @else {
+    <p class="estado">Carregando…</p>
+  }
+</main>
