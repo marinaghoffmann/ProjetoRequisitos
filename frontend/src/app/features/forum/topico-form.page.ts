@@ -7,6 +7,7 @@ import { ForumService } from '../../core/api/forum.service';
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
 import { AnexoImagens } from './anexo-imagens.component';
+import { formatarMarkdownForum } from './markdown-forum';
 
 /** Cria um tópico (rota forum/novo) ou edita um existente (rota forum/:id/editar). */
 @Component({
@@ -23,6 +24,7 @@ export class TopicoFormPage {
   protected readonly autenticacao = inject(AutenticacaoService);
   protected readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id');
 
+  protected readonly markdown = formatarMarkdownForum;
   protected readonly jogos = signal<Jogo[]>([]);
   protected readonly carregando = signal(true);
   protected readonly salvando = signal(false);

@@ -38,9 +38,18 @@ public class TopicoDeForumRepositorioPostgres implements TopicoDeForumRepositori
     }
 
     @Override
+    public Optional<TopicoDeForum> buscarPorIdParaAlteracao(UUID id) {
+        // Bloquear a raiz sem JOIN evita bloquear a árvore; carregá-la depois lê o estado atualizado.
+        if (springData.bloquearTopico(id).isEmpty()) {
+            return Optional.empty();
+        }
+        return springData.buscarComRespostas(id).map(TopicoForumJpa::paraDominio);
+    }
+
+    @Override
     public Pagina<ResumoTopico> listar(FiltroTopicos filtro, int pagina, int tamanho) {
         String categoria = filtro.categoria() == null ? "" : filtro.categoria().trim();
-        Page<TopicoForumJpa> resultado = springData.listar(filtro.jogoId(), categoria,
+        Page<TopicoForumJpa> resultado = springData.listar(filtro.jogoId(), categoria, filtro.apenasGerais(),
                 PageRequest.of(pagina - 1, tamanho, MAIS_ATIVOS_PRIMEIRO));
         return new Pagina<>(resultado.map(TopicoForumJpa::paraResumo).getContent(), pagina, tamanho,
                 resultado.getTotalElements());

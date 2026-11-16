@@ -33,13 +33,14 @@ public class GerenciarRespostas {
         this.eventos = eventos;
     }
 
+    @Transactional
     public RespostaForum responder(UUID topicoId, UUID respostaPaiId, String conteudo) {
         return responder(topicoId, respostaPaiId, conteudo, null);
     }
 
     @Transactional
     public RespostaForum responder(UUID topicoId, UUID respostaPaiId, String conteudo, List<String> imagens) {
-        TopicoDeForum atual = TopicosDoForum.visivel(topicos, topicoId);
+        TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, topicoId);
         TopicoDeForum atualizado = atual.responder(verificadorDeAcesso.usuarioAtualId(), respostaPaiId, conteudo,
                 imagens, Instant.now());
         topicos.salvar(atualizado);
@@ -50,7 +51,7 @@ public class GerenciarRespostas {
 
     @Transactional
     public RespostaForum editar(UUID topicoId, UUID respostaId, String conteudo) {
-        TopicoDeForum atual = TopicosDoForum.visivel(topicos, topicoId);
+        TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, topicoId);
         TopicoDeForum atualizado = atual.editarResposta(respostaId, verificadorDeAcesso.usuarioAtualId(), conteudo,
                 Instant.now());
         return topicos.salvar(atualizado).resposta(respostaId);
@@ -58,7 +59,7 @@ public class GerenciarRespostas {
 
     @Transactional
     public void excluir(UUID topicoId, UUID respostaId) {
-        TopicoDeForum atual = TopicosDoForum.visivel(topicos, topicoId);
+        TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, topicoId);
         topicos.salvar(atual.excluirResposta(respostaId, verificadorDeAcesso.usuarioAtualId(), Instant.now()));
     }
 }

@@ -317,7 +317,7 @@ e `/notificacoes`. Cenários BDD: `f12_lancamentos.feature`.
 
 | Método | Rota | Objetivo | Quem pode |
 |---|---|---|---|
-| `GET` | `/api/forum/topicos` | Tópicos paginados, do mais recentemente ativo para o menos (`jogoId`, `categoria`, `pagina` a partir de 1, `tamanho` até 50) | qualquer um |
+| `GET` | `/api/forum/topicos` | Tópicos paginados, do mais recentemente ativo para o menos (`jogoId`, `categoria`, `apenasGerais=true`, `pagina` a partir de 1, `tamanho` até 50) | qualquer um |
 | `GET` | `/api/forum/topicos/{id}` | Tópico com todas as respostas (o encadeamento vem em `respostaPaiId`) | qualquer um |
 | `POST` | `/api/forum/topicos` | Criar tópico geral (`jogoId` nulo) ou de um jogo `ATIVO` do catálogo; nasce `ABERTO` | autenticado |
 | `PUT` | `/api/forum/topicos/{id}` | Editar título, mensagem e categoria (até 48 horas após a publicação) | autor |
@@ -330,7 +330,12 @@ e `/notificacoes`. Cenários BDD: `f12_lancamentos.feature`.
 - RN 1: tópico `ENCERRADO` não aceita novas respostas, edições nem exclusões, e não pode ser reaberto pelo autor.
 - RN 2: só o autor edita ou exclui a sua postagem (403 "Apenas o autor pode alterar esta postagem"); a edição vale por 48 horas.
 - RN 3: criar, editar ou excluir uma resposta atualiza o contador do tópico e a data da última atividade. Os dois ficam
-  gravados no próprio tópico (`forum_topicos`), então a listagem não carrega as respostas.
+  gravados no próprio tópico (`forum_topicos`), então a listagem não carrega as respostas. Escritas no mesmo tópico
+  são serializadas por bloqueio da linha raiz dentro da transação.
+- `apenasGerais=true` seleciona tópicos sem jogo vinculado, independentemente da categoria. Pode ser combinado
+  com `categoria`, mas não com `jogoId`; essa combinação retorna erro de regra de negócio.
+- Conteúdo de tópicos e respostas é Markdown com negrito, itálico, listas, código e links. As telas oferecem prévia;
+  HTML bruto e imagens embutidas via Markdown não são renderizados. Imagens continuam no fluxo de anexos.
 - A exclusão de resposta é lógica: ela deixa de contar, volta sem conteúdo (`removida: true`) e continua na árvore
   para as respostas filhas não sumirem. Não é possível responder a uma resposta removida.
 - Toda resposta nova publica um `RespostaPublicada` pelo `ApplicationEventPublisher`, até o barramento da T04 existir.
@@ -343,7 +348,6 @@ Pendências conhecidas da F-13 (algumas são escopo da F-14):
 
 - Moderadores e administradores ainda não têm poderes no fórum: encerrar, reabrir, ocultar e remover conteúdo de
   outros usuários fica para a central de moderação (F-14), que pode reaproveitar os campos `removido` e `removida`.
-- A "formatação de texto" é só a preservação de quebras de linha; não há Markdown nem editor rico.
 - A listagem mostra o nome do jogo procurando no catálogo carregado pela tela; não há busca por título do tópico.
 
 ## Entregáveis

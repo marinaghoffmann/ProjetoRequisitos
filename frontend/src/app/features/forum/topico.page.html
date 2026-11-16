@@ -21,7 +21,7 @@
           }
         </p>
       </div>
-      <p class="texto">{{ t.conteudo }}</p>
+      <div class="texto markdown-forum" [innerHTML]="markdown(t.conteudo)"></div>
       @if (t.imagens.length) {
         <ul class="galeria" aria-label="Imagens do tópico">
           @for (url of t.imagens; track url) {
@@ -68,6 +68,11 @@
       <form class="formulario" (ngSubmit)="responder()">
         <label for="nova-resposta">Sua resposta</label>
         <textarea id="nova-resposta" name="novaResposta" rows="4" maxlength="5000" [(ngModel)]="novaResposta"></textarea>
+        <details class="ajuda-markdown">
+          <summary>Ajuda e prévia do texto</summary>
+          <p>Use **negrito**, *itálico*, listas, `código` e [links](https://exemplo.com).</p>
+          <div class="markdown-forum" [innerHTML]="markdown(novaResposta)"></div>
+        </details>
         <app-anexo-imagens [(imagens)]="imagensNovaResposta" [(enviando)]="anexando" />
         <button type="submit" [disabled]="enviando() || anexando() || !novaResposta.trim()">Responder</button>
       </form>
@@ -98,14 +103,19 @@
           <p class="texto texto--removido">Resposta removida pelo autor.</p>
         } @else if (editando() === resposta.id) {
           <form class="formulario" (ngSubmit)="salvarEdicao(resposta)">
-            <textarea name="textoEditado" rows="3" maxlength="5000" [(ngModel)]="textoEditado"></textarea>
+            <textarea name="textoEditado" aria-label="Editar resposta" rows="3" maxlength="5000" [(ngModel)]="textoEditado"></textarea>
+            <details class="ajuda-markdown">
+              <summary>Ajuda e prévia do texto</summary>
+              <p>Use **negrito**, *itálico*, listas, `código` e [links](https://exemplo.com).</p>
+              <div class="markdown-forum" [innerHTML]="markdown(textoEditado)"></div>
+            </details>
             <div class="acoes">
               <button class="acao" type="submit" [disabled]="enviando() || !textoEditado.trim()">Salvar</button>
               <button class="acao acao--secundaria" type="button" (click)="editando.set(null)">Cancelar</button>
             </div>
           </form>
         } @else {
-          <p class="texto">{{ resposta.conteudo }}</p>
+          <div class="texto markdown-forum" [innerHTML]="markdown(resposta.conteudo)"></div>
           @if (resposta.imagens.length) {
             <ul class="galeria galeria--resposta" aria-label="Imagens da resposta">
               @for (url of resposta.imagens; track url) {
@@ -132,8 +142,13 @@
 
         @if (respondendoA() === resposta.id) {
           <form class="formulario" (ngSubmit)="enviarReplica(resposta)">
-            <textarea name="replica" rows="3" maxlength="5000" [(ngModel)]="replica"
+            <textarea name="replica" aria-label="Responder à resposta" rows="3" maxlength="5000" [(ngModel)]="replica"
               [placeholder]="'Respondendo a ' + (resposta.nomeAutor ?? 'esta resposta')"></textarea>
+            <details class="ajuda-markdown">
+              <summary>Ajuda e prévia do texto</summary>
+              <p>Use **negrito**, *itálico*, listas, `código` e [links](https://exemplo.com).</p>
+              <div class="markdown-forum" [innerHTML]="markdown(replica)"></div>
+            </details>
             <app-anexo-imagens [(imagens)]="imagensReplica" [(enviando)]="anexando" />
             <div class="acoes">
               <button class="acao" type="submit" [disabled]="enviando() || anexando() || !replica.trim()">Enviar</button>

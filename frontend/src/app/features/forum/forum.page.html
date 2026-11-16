@@ -17,6 +17,7 @@
       Jogo
       <select name="jogoId" [(ngModel)]="filtro.jogoId">
         <option value="">Todos os tópicos</option>
+        <option value="__GERAIS__">Discussões gerais (sem jogo)</option>
         @for (jogo of jogos(); track jogo.id) {
           <option [value]="jogo.id">{{ jogo.titulo }}</option>
         }

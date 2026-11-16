@@ -17,4 +17,10 @@ final class TopicosDoForum {
                 .filter(topico -> !topico.removido())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Tópico não encontrado"));
     }
+
+    static TopicoDeForum visivelParaAlteracao(TopicoDeForumRepositorio topicos, UUID id) {
+        return topicos.buscarPorIdParaAlteracao(id)
+                .filter(topico -> !topico.removido())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Tópico não encontrado"));
+    }
 }

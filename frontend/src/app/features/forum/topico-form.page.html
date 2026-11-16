@@ -29,6 +29,11 @@
 
       <label for="conteudo">Mensagem *</label>
       <textarea id="conteudo" rows="8" formControlName="conteudo"></textarea>
+      <details class="ajuda-markdown">
+        <summary>Ajuda e prévia do texto</summary>
+        <p>Use **negrito**, *itálico*, listas, `código` e [links](https://exemplo.com).</p>
+        <div class="markdown-forum" [innerHTML]="markdown(formulario.controls.conteudo.value)"></div>
+      </details>
 
       <label for="imagens">Imagens (opcional)</label>
       <app-anexo-imagens id="imagens" [(imagens)]="imagens" [(enviando)]="anexando" />

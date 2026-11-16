@@ -50,9 +50,10 @@ public class ForumController {
     @GetMapping("/topicos")
     public PaginaResponse<TopicoResumoResponse> listar(@RequestParam(required = false) UUID jogoId,
             @RequestParam(required = false) String categoria,
+            @RequestParam(defaultValue = "false") boolean apenasGerais,
             @RequestParam(defaultValue = "1") int pagina,
             @RequestParam(defaultValue = "10") int tamanho) {
-        Pagina<ResumoTopico> resultado = consultarForum.listar(new FiltroTopicos(jogoId, categoria), pagina, tamanho);
+        Pagina<ResumoTopico> resultado = consultarForum.listar(new FiltroTopicos(jogoId, categoria, apenasGerais), pagina, tamanho);
         Map<UUID, String> nomes = consultarForum.nomesDosAutores(
                 resultado.itens().stream().map(ResumoTopico::autorId).toList());
         return PaginaResponse.de(resultado.map(resumo -> TopicoResumoResponse.de(resumo, nomes)));

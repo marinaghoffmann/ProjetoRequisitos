@@ -59,3 +59,20 @@ Funcionalidade: F-13 Gerenciamento completo do fórum de discussões
     Dado que o jogo "Elden Ring" possui 25 tópicos
     Quando o usuário consulta a página 1 de tópicos de "Elden Ring" com 10 itens por página
     Então a consulta deve retornar 10 tópicos com número de respostas e última interação
+
+  Cenário: Discussões gerais não incluem tópicos vinculados a jogos
+    Dado um tópico geral e outro de jogo na categoria "Geral"
+    Quando o usuário consulta apenas discussões gerais
+    Então a consulta deve conter somente o tópico sem jogo
+
+  Cenário: Editar resposta mantém o contador e atualiza a atividade
+    Dado um tópico aberto com uma resposta do jogador publicada há 2 horas
+    Quando o jogador edita a sua resposta para "Texto corrigido"
+    Então o tópico deve ter 1 respostas
+    E a última atividade deve ser a data da edição da resposta
+
+  Cenário: Remover resposta preserva a réplica
+    Dado um tópico aberto com uma resposta do jogador publicada há 2 horas
+    E uma réplica de "joao" à resposta do jogador
+    Quando o jogador exclui a sua resposta
+    Então a réplica deve continuar vinculada à resposta removida

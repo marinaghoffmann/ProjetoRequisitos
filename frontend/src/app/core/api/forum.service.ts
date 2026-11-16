@@ -83,6 +83,7 @@ export interface DadosTopico {
 export interface FiltroTopicos {
   jogoId?: string;
   categoria?: string;
+  apenasGerais?: boolean;
   pagina?: number;
   tamanho?: number;
 }

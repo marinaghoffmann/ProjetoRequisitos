@@ -8,6 +8,7 @@ import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
 import { urlDaImagem } from '../marketplace/imagem';
 import { AnexoImagens } from './anexo-imagens.component';
+import { formatarMarkdownForum } from './markdown-forum';
 
 /**
  * Tópico com as respostas em árvore. Os botões de editar e excluir só aparecem para o autor e,
@@ -26,6 +27,7 @@ export class TopicoPage {
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
 
   protected readonly status = STATUS_TOPICO;
+  protected readonly markdown = formatarMarkdownForum;
   protected readonly urlDaImagem = urlDaImagem;
   protected readonly topico = signal<Topico | null>(null);
   protected readonly carregando = signal(true);

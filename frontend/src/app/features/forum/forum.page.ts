@@ -27,6 +27,7 @@ export class ForumPage {
   protected readonly carregando = signal(true);
   protected readonly erro = signal<string | null>(null);
   protected filtro = { jogoId: '', categoria: '' };
+  private readonly valorGerais = '__GERAIS__';
 
   constructor() {
     this.catalogo.listarJogos().subscribe({ next: (jogos) => this.jogos.set(jogos) });
@@ -56,7 +57,11 @@ export class ForumPage {
     this.carregando.set(true);
     this.erro.set(null);
     this.forum
-      .listar({ jogoId: this.filtro.jogoId, categoria: this.filtro.categoria.trim(), pagina: numero, tamanho: this.tamanho })
+      .listar({
+        jogoId: this.filtro.jogoId === this.valorGerais ? undefined : this.filtro.jogoId,
+        apenasGerais: this.filtro.jogoId === this.valorGerais ? true : undefined,
+        categoria: this.filtro.categoria.trim(), pagina: numero, tamanho: this.tamanho,
+      })
       .subscribe({
         next: (pagina) => {
           this.pagina.set(pagina);
