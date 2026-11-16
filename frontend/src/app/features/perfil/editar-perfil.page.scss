@@ -13,6 +13,28 @@
 .ep__voltar { color: var(--muted); font-size: 12px; font-weight: 700; }
 .ep__intro { margin: 0 0 24px; color: var(--muted); font-size: 12px; }
 
+// Foto de perfil e banner
+.ep__midia { position: relative; margin-bottom: 60px; }
+.ep__banner {
+  position: relative; height: 140px;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--surface-2, var(--surface)) center / cover no-repeat;
+}
+.ep__avatar {
+  position: absolute; bottom: -44px; left: 20px;
+  width: 88px; height: 88px; overflow: hidden;
+  border: 4px solid var(--bg); border-radius: 50%;
+  background: linear-gradient(140deg, #6375ff, #ee5bc2) center / cover no-repeat;
+  .ep__trocar { inset: auto 0 0 0; justify-content: center; padding: 6px 0; border-radius: 0; }
+}
+.ep__trocar {
+  position: absolute; right: 10px; bottom: 10px;
+  display: flex; align-items: center; margin: 0; padding: 6px 12px;
+  border-radius: 8px; background: rgb(0 0 0 / 65%); color: #fff;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  &:hover { background: rgb(0 0 0 / 80%); }
+}
+
 form { display: grid; gap: 6px; }
 
 label { margin-top: 10px; font-size: 12px; font-weight: 700; }

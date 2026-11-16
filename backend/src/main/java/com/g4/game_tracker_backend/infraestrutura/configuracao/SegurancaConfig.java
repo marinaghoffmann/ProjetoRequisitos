@@ -46,7 +46,6 @@ public class SegurancaConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/status").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/catalogo/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/uploads/catalogo/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/marketplace/anuncios/meus").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/marketplace/anuncios/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/marketplace/usuarios/*/reputacao").permitAll()
@@ -55,6 +54,8 @@ public class SegurancaConfig {
                         .requestMatchers(HttpMethod.GET, "/api/descoberta/jogos/*/similares").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/catalogo/**", "/uploads/marketplace/**",
+                                "/uploads/forum/**", "/uploads/perfil/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(recurso -> recurso
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(conversorDeJwt))

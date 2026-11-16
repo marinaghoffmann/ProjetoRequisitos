@@ -17,13 +17,13 @@
 </header>
 
 <main>
-  <div class="pf-banner" aria-hidden="true"></div>
+  <div class="pf-banner" aria-hidden="true" [style.background]="banner()"></div>
 
   @if (usuario(); as u) {
     <div class="pf-miolo">
       <!-- Cabeçalho do perfil -->
       <section class="pf-cabecalho">
-        <span class="pf-avatar">{{ iniciais() }}</span>
+        <span class="pf-avatar" [style.background]="avatar()">{{ u.avatarUrl ? '' : iniciais() }}</span>
 
         <div class="pf-id">
           <h1>
@@ -90,18 +90,21 @@
           <ul class="pf-jogando">
             @for (e of emAndamento(); track e.jogoId; let i = $index) {
               <li class="pf-jogo">
-                <a class="pf-jogo__capa" [routerLink]="['/catalogo', e.jogoId]" [style.background]="fundo(e, i)" [attr.aria-label]="'Abrir ' + e.titulo"></a>
+                <a class="pf-jogo__capa" [routerLink]="['/catalogo', e.jogoId]" [style.--capa]="capa(e)" [style.background]="gradiente(i)" [attr.aria-label]="'Abrir ' + e.titulo"></a>
                 <div class="pf-jogo__corpo">
                   <a class="pf-jogo__titulo" [routerLink]="['/catalogo', e.jogoId]">{{ e.titulo }}</a>
-                  <select
-                    class="pf-select"
+                  <div class="pf-jogo__progresso">
+                    <div class="pf-jogo__barra" aria-hidden="true"><i [style.width.%]="percentual(e.progresso)"></i></div>
+                    <select
+                      class="pf-select"
                     [attr.aria-label]="'Progresso em ' + e.titulo"
                     (change)="alterar(e.jogoId, $any($event.target).value)"
                   >
                     @for (p of progressos; track p) {
                       <option [value]="p" [selected]="p === e.progresso">{{ rotulos[p] }}</option>
                     }
-                  </select>
+                    </select>
+                  </div>
                   <button type="button" class="pf-link" (click)="remover(e.jogoId)">Remover do destaque</button>
                 </div>
               </li>
@@ -133,7 +136,7 @@
           </div>
           @for (n of atividades; track n) {
             <article class="pf-post">
-              <span class="pf-avatar pf-avatar--p">{{ iniciais() }}</span>
+              <span class="pf-avatar pf-avatar--p" [style.background]="avatar()">{{ u.avatarUrl ? '' : iniciais() }}</span>
               <p>
                 <strong>{{ u.nome }}</strong>
                 <span class="pf-esqueleto"></span>

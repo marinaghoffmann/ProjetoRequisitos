@@ -1,6 +1,7 @@
 package com.g4.game_tracker_backend.aplicacao.forum;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -26,11 +27,17 @@ public class EditarTopico {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
     public TopicoDeForum executar(UUID id, String titulo, String conteudo, String categoria) {
+        return executar(id, titulo, conteudo, categoria, null);
+    }
+
+    /** imagens nulo mantém as imagens atuais do tópico; uma lista substitui todas. */
+    @Transactional
+    public TopicoDeForum executar(UUID id, String titulo, String conteudo, String categoria,
+            List<String> imagens) {
         TopicoDeForum atual = TopicosDoForum.visivel(topicos, id);
         return topicos.salvar(atual.editar(verificadorDeAcesso.usuarioAtualId(), titulo, conteudo, categoria,
-                Instant.now()));
+                imagens, Instant.now()));
     }
 
     @Transactional

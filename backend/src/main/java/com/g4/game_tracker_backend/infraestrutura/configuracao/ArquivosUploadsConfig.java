@@ -20,5 +20,13 @@ public class ArquivosUploadsConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/catalogo/**")
                 .addResourceLocations(diretorio);
+
+        String pastaDoForum = Path.of("uploads", "forum").toAbsolutePath().toUri().toString();
+        registry.addResourceHandler("/uploads/forum/**")
+                .addResourceLocations(pastaDoForum.endsWith("/") ? pastaDoForum : pastaDoForum + "/");
+
+        String pastaDoPerfil = Path.of("uploads", "perfil").toAbsolutePath().toUri().toString();
+        registry.addResourceHandler("/uploads/perfil/**")
+                .addResourceLocations(pastaDoPerfil.endsWith("/") ? pastaDoPerfil : pastaDoPerfil + "/");
     }
 }

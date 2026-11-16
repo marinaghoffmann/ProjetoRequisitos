@@ -5,30 +5,105 @@
   padding: 3rem 0 5rem;
 }
 
+.voltar {
+  color: var(--muted);
+  font-size: 0.8rem;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--accent);
+    text-decoration: none;
+  }
+}
+
+.estado {
+  padding: 1.25rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+  text-align: center;
+}
+
+// ===== Tópico (post principal) =====
 .topico {
-  margin: 1.5rem 0;
-  padding-bottom: 1.25rem;
-  border-bottom: 1px solid var(--line-soft);
+  margin: 1.25rem 0 2rem;
+  padding: 1.5rem 1.75rem;
+  border: 1px solid var(--line-soft);
+  border-radius: calc(var(--radius) + 2px);
+  background: var(--surface);
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
 }
 
 h1 {
-  margin: 0.4rem 0;
+  margin: 0.8rem 0 0.4rem;
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
 }
 
 h2 {
-  font-size: 1.1rem;
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+}
+
+.autor {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+}
+
+.avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: linear-gradient(140deg, #6375ff, #ee5bc2);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--line);
+  color: #fff;
+  font: 700 0.8rem var(--font-title);
+
+  &--p {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.65rem;
+  }
 }
 
 .autoria {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.6rem;
   margin: 0;
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
+
+  strong {
+    color: var(--text);
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
+
+  span {
+    color: var(--faint);
+  }
 }
 
 /* Mantém quebras de linha e espaços do texto digitado. */
 .texto {
-  margin: 0.6rem 0;
-  line-height: 1.5;
+  margin: 1rem 0 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -44,59 +119,47 @@ h2 {
   color: var(--success);
 }
 
-.respostas {
-  display: grid;
-  gap: 0.75rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.resposta {
-  padding: 0.75rem 0 0.25rem 1rem;
-  border-left: 3px solid var(--line);
-}
-
-.resposta .respostas {
-  margin-top: 0.75rem;
-}
-
+// ===== Ações =====
 .acoes {
-  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line-soft);
+
+  .resposta & {
+    margin-top: 0.6rem;
+    padding-top: 0;
+    border-top: 0;
+  }
 }
 
 .acao {
   display: inline-flex;
   align-items: center;
+  min-height: 0;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
 }
 
 .acao--secundaria {
   border: 1px solid var(--line);
   background: transparent;
-}
-
-.formulario {
-  margin-top: 1rem;
-}
-
-.formulario > button {
-  justify-self: start;
-}
-
-.aviso {
-  margin-top: 1.5rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--line-soft);
-  border-radius: 9px;
-  background: var(--surface);
   color: var(--muted);
+
+  &:hover {
+    border-color: rgb(255 255 255 / 25%);
+    color: var(--text);
+  }
 }
 
+// ===== Galeria =====
 .galeria {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 0.75rem 0;
+  gap: 0.6rem;
+  margin: 0.9rem 0;
   padding: 0;
   list-style: none;
 
@@ -106,16 +169,101 @@ h2 {
 
   img {
     display: block;
-    width: 100%;
-    max-width: 22rem;
+    width: auto;
+    max-width: min(100%, 22rem);
     max-height: 18rem;
-    object-fit: cover;
+    object-fit: contain;
     border: 1px solid var(--line);
     border-radius: var(--radius);
+    background: var(--surface-2, #0d1117);
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  a:hover img {
+    border-color: var(--accent);
+    transform: scale(1.01);
   }
 }
 
 .galeria--resposta img {
-  max-width: 14rem;
+  max-width: min(100%, 14rem);
   max-height: 11rem;
+}
+
+// ===== Respostas em árvore =====
+.respostas {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resposta {
+  padding: 0.9rem 1.1rem 0.9rem 1.1rem;
+  border: 1px solid var(--line-soft);
+  border-left: 3px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+
+  .texto {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+  }
+
+  // respostas aninhadas: recuo com um limite para não estourar no mobile
+  .respostas {
+    margin: 0.9rem 0 0 0.5rem;
+  }
+
+  .resposta {
+    background: rgb(255 255 255 / 2%);
+  }
+}
+
+// ===== Formulários =====
+.formulario {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1rem;
+
+  textarea {
+    resize: vertical;
+  }
+
+  > button {
+    justify-self: start;
+  }
+}
+
+section + .formulario,
+section + .aviso {
+  margin-top: 1.75rem;
+}
+
+section + .formulario {
+  padding: 1.25rem;
+  border: 1px solid var(--line-soft);
+  border-radius: calc(var(--radius) + 2px);
+  background: var(--surface);
+}
+
+.aviso {
+  margin-top: 1.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 42rem) {
+  .topico {
+    padding: 1.1rem;
+  }
+
+  .resposta .respostas {
+    margin-left: 0;
+  }
 }
