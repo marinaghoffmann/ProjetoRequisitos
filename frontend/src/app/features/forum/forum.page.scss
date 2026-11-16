@@ -5,6 +5,44 @@
   padding: 3rem 0 5rem;
 }
 
+.cabecalho {
+  align-items: flex-end;
+
+  h1 {
+    margin: 0.35rem 0 0.4rem;
+    font-size: clamp(1.9rem, 4vw, 2.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+
+  p {
+    max-width: 34rem;
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+}
+
+.voltar {
+  color: var(--muted);
+  font-size: 0.8rem;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--accent);
+    text-decoration: none;
+  }
+}
+
+.estado {
+  padding: 2.5rem 1rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+  text-align: center;
+}
+
+// ===== Lista de tópicos =====
 .topicos {
   display: grid;
   gap: 0.75rem;
@@ -14,45 +52,111 @@
 }
 
 .topico {
+  position: relative;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 1.25rem;
+  padding: 1.1rem 1.25rem 1.1rem 1.5rem;
+  overflow: hidden;
   border: 1px solid var(--line-soft);
   border-radius: var(--radius);
   background: var(--surface);
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 
-  &:hover {
-    border-color: #46505e;
+  // faixa de destaque que aparece ao passar o mouse
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  &:hover,
+  &:focus-within {
+    border-color: rgb(217 255 67 / 30%);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 30%);
+    transform: translateY(-1px);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+}
+
+.topico__corpo {
+  flex: 1;
+  min-width: 0;
+}
+
+// Imagem do jogo: fundo borrado preenche o quadro e a capa aparece inteira por cima
+.topico__capa {
+  position: relative;
+  display: grid;
+  flex: 0 0 8.5rem;
+  place-items: center;
+  align-self: stretch;
+  min-height: 4.75rem;
+  overflow: hidden;
+  border-radius: 9px;
+  background: linear-gradient(150deg, #1b1445, #0f2b4a 60%, #3b1d5c);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%);
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+  }
+
+  &::before {
+    inset: -12px;
+    background: var(--capa, none) center / cover no-repeat;
+    filter: blur(14px) brightness(0.55) saturate(1.2);
+  }
+
+  &::after {
+    inset: 0;
+    background: var(--capa, none) center / contain no-repeat;
+    transition: transform 0.25s ease;
+  }
+
+  .topico:hover &::after {
+    transform: scale(1.05);
   }
 }
 
+.topico__capa-vazia {
+  position: relative;
+  z-index: 1;
+  font-size: 1.6rem;
+  opacity: 0.6;
+}
+
 .topico__titulo {
+  display: block;
+  overflow: hidden;
   color: var(--text);
   font-family: var(--font-title);
   font-size: 1.1rem;
   font-weight: 700;
-}
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
 
-.topico__numeros {
-  display: grid;
-  justify-items: end;
-  align-content: start;
-  gap: 0.15rem;
-  min-width: 9rem;
-  color: var(--muted);
-  text-align: right;
-}
-
-.topico__numeros strong {
-  color: var(--accent);
-  font-family: var(--font-title);
-  font-size: 1.4rem;
+  &:hover {
+    color: var(--accent);
+    text-decoration: none;
+  }
 }
 
 .etiquetas {
-  margin: 0.5rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.6rem 0;
 }
 
 .etiqueta--ok {
@@ -61,22 +165,84 @@
   color: var(--success);
 }
 
+.detalhe {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+// Contador de respostas em "pílula" + data da última interação
+.topico__numeros {
+  display: grid;
+  flex: 0 0 auto;
+  justify-items: end;
+  align-content: center;
+  gap: 0.2rem;
+  min-width: 8.5rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-align: right;
+
+  strong {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.4rem;
+    height: 2rem;
+    padding: 0 0.6rem;
+    border-radius: 999px;
+    background: rgb(217 255 67 / 10%);
+    color: var(--accent);
+    font-family: var(--font-title);
+    font-size: 1rem;
+  }
+
+  small {
+    margin-top: 0.35rem;
+    color: var(--faint);
+    font-size: 0.7rem;
+  }
+}
+
+// ===== Paginação =====
 .paginacao {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  margin-top: 1.5rem;
+  margin-top: 1.75rem;
   color: var(--muted);
+  font-size: 0.85rem;
 }
 
 @media (max-width: 42rem) {
+  .cabecalho {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
   .topico {
     flex-direction: column;
+    align-items: stretch;
+  }
+
+  .topico__capa {
+    flex-basis: auto;
+    aspect-ratio: 16 / 9;
+    min-height: 0;
   }
 
   .topico__numeros {
+    grid-auto-flow: column;
+    align-items: center;
     justify-items: start;
+    gap: 0.6rem;
     text-align: left;
+
+    small {
+      margin: 0;
+    }
   }
 }

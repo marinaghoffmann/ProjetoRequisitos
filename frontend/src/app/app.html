@@ -44,7 +44,7 @@
     <div class="conta">
       @if (autenticacao.usuarioAtual(); as usuario) {
         <a class="conta__perfil" routerLink="/perfil" aria-label="Abrir meu perfil">
-          <span class="conta__avatar">{{ usuario.nome.slice(0, 2).toUpperCase() }}</span>
+          <img class="hm-avatar" [src]="imagemUrl(usuario.avatarUrl)" [alt]="'Avatar de ' + usuario.nome" loading="lazy" />
           <div class="conta__dados">
             <strong>{{ usuario.nome }}</strong>
             <span>{{ usuario.papel }}</span>

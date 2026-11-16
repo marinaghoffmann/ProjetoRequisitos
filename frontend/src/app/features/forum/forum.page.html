@@ -43,15 +43,18 @@
       <ul class="topicos" aria-label="Tópicos do fórum">
         @for (topico of resultado.itens; track topico.id) {
           <li class="topico">
-            <div>
+            <a class="topico__capa" [routerLink]="['/forum', topico.id]" [style.--capa]="capaDoJogo(topico.jogoId)"
+              [attr.title]="tituloDoJogo(topico.jogoId)" aria-hidden="true" tabindex="-1">
+              @if (capaDoJogo(topico.jogoId) === 'none') {
+                <span class="topico__capa-vazia">🎮</span>
+              }
+            </a>
+            <div class="topico__corpo">
               <a class="topico__titulo" [routerLink]="['/forum', topico.id]">{{ topico.titulo }}</a>
               <p class="etiquetas">
                 <span class="etiqueta" [class.etiqueta--alerta]="topico.status === 'ENCERRADO'"
                   [class.etiqueta--ok]="topico.status === 'RESOLVIDO'">{{ status[topico.status] }}</span>
                 <span class="etiqueta">{{ topico.categoria }}</span>
-                @if (tituloDoJogo(topico.jogoId); as jogo) {
-                  <span class="etiqueta">🎮 {{ jogo }}</span>
-                }
               </p>
               <p class="detalhe">por {{ topico.nomeAutor ?? 'usuário removido' }}</p>
             </div>

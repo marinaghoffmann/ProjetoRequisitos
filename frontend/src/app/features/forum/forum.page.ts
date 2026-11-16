@@ -37,6 +37,12 @@ export class ForumPage {
     return jogoId ? (this.jogos().find((jogo) => jogo.id === jogoId)?.titulo ?? null) : null;
   }
 
+  /** Valor da variável CSS --capa com a imagem do jogo; "none" quando o tópico não tem jogo ou capa. */
+  protected capaDoJogo(jogoId: string | null): string {
+    const url = jogoId ? this.jogos().find((jogo) => jogo.id === jogoId)?.capaUrl : null;
+    return url ? `url("${encodeURI(url)}")` : 'none';
+  }
+
   protected pesquisar(): void {
     this.carregar(1);
   }

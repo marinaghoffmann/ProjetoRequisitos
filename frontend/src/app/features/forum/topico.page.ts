@@ -71,6 +71,19 @@ export class TopicoPage {
     return this.autenticacao.usuarioAtual()?.id === autorId;
   }
 
+  protected iniciais(nome: string | null): string {
+    return (nome ?? '?').trim().slice(0, 2).toUpperCase();
+  }
+
+  /**
+   * Foto de perfil do autor como valor de `background`, ou null (mostra as iniciais).
+   * Por enquanto só conhecemos a foto do usuário logado; as dos demais dependem de a API do fórum devolvê-las.
+   */
+  protected avatarDe(autorId: string): string | null {
+    const atual = this.autenticacao.usuarioAtual();
+    return atual?.id === autorId && atual.avatarUrl ? `url("${encodeURI(atual.avatarUrl)}") center / cover no-repeat` : null;
+  }
+
   protected dentroDoPrazo(editavelAte: string): boolean {
     return Date.now() <= Date.parse(editavelAte);
   }

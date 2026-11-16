@@ -11,12 +11,16 @@
         <span class="etiqueta">{{ t.categoria }}</span>
       </p>
       <h1>{{ t.titulo }}</h1>
-      <p class="autoria">
-        {{ t.nomeAutor ?? 'usuário removido' }} · {{ t.publicadoEm | date: 'dd/MM/yyyy HH:mm' }}
-        @if (t.editadoEm) {
-          <span>(editado)</span>
-        }
-      </p>
+      <div class="autor">
+        <span class="avatar" [style.background]="avatarDe(t.autorId)">{{ avatarDe(t.autorId) ? '' : iniciais(t.nomeAutor) }}</span>
+        <p class="autoria">
+          <strong>{{ t.nomeAutor ?? 'usuário removido' }}</strong>
+          <time>{{ t.publicadoEm | date: 'dd/MM/yyyy HH:mm' }}</time>
+          @if (t.editadoEm) {
+            <span>(editado)</span>
+          }
+        </p>
+      </div>
       <p class="texto">{{ t.conteudo }}</p>
       @if (t.imagens.length) {
         <ul class="galeria" aria-label="Imagens do tópico">
@@ -79,12 +83,16 @@
   <ul class="respostas">
     @for (resposta of respostas; track resposta.id) {
       <li class="resposta">
-        <p class="autoria">
-          {{ resposta.nomeAutor ?? 'usuário removido' }} · {{ resposta.publicadaEm | date: 'dd/MM/yyyy HH:mm' }}
-          @if (resposta.editadaEm && !resposta.removida) {
-            <span>(editada)</span>
-          }
-        </p>
+        <div class="autor">
+          <span class="avatar avatar--p" [style.background]="avatarDe(resposta.autorId)">{{ avatarDe(resposta.autorId) ? '' : iniciais(resposta.nomeAutor) }}</span>
+          <p class="autoria">
+            <strong>{{ resposta.nomeAutor ?? 'usuário removido' }}</strong>
+            <time>{{ resposta.publicadaEm | date: 'dd/MM/yyyy HH:mm' }}</time>
+            @if (resposta.editadaEm && !resposta.removida) {
+              <span>(editada)</span>
+            }
+          </p>
+        </div>
 
         @if (resposta.removida) {
           <p class="texto texto--removido">Resposta removida pelo autor.</p>
