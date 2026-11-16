@@ -49,13 +49,14 @@ public class SegurancaConfig {
                         // F-04: uma lista e as listas de um usuário são públicas ("Minhas listas" exige login)
                         .requestMatchers(HttpMethod.GET, "/api/biblioteca/listas/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/biblioteca/usuarios/*/listas").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/uploads/catalogo/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/marketplace/anuncios/meus").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/marketplace/anuncios/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/marketplace/usuarios/*/reputacao").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/forum/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/catalogo/**", "/uploads/marketplace/**",
+                                "/uploads/forum/**", "/uploads/perfil/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(recurso -> recurso
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(conversorDeJwt))

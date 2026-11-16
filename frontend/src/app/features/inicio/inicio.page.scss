@@ -159,6 +159,14 @@ $pad: 64px;
   letter-spacing: -0.05em;
   text-transform: uppercase;
 }
+.hm-hero__logo {
+  display: block;
+  width: min(100%, 520px);
+  max-height: 220px;
+  object-fit: contain;
+  object-position: left center;
+  filter: drop-shadow(0 4px 24px rgb(0 0 0 / 60%));
+}
 .hm-hero__contorno {
   color: transparent;
   -webkit-text-stroke: 1.5px rgb(255 255 255 / 85%);

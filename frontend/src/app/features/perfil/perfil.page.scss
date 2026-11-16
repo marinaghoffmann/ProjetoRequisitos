@@ -144,23 +144,58 @@ svg { flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; strok
 .pf-aviso { margin-bottom: 14px; padding: 10px 14px; border: 1px solid rgb(255 116 72 / 25%); border-radius: 9px; background: rgb(255 116 72 / 7%); color: #ffc0aa; font-size: 12px; }
 
 // Jogando agora
-.pf-jogando { display: grid; grid-template-columns: repeat(auto-fill, minmax(254px, 1fr)); gap: 14px; }
+.pf-jogando { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
 .pf-jogo {
-  display: flex; gap: 12px; padding: 10px;
-  border: 1px solid var(--line-soft); border-radius: 12px; background: var(--surface);
+  display: flex; flex-direction: column; overflow: hidden;
+  border: 1px solid var(--line-soft); border-radius: 14px; background: var(--surface);
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  &:hover, &:focus-within {
+    transform: translateY(-2px); border-color: rgb(217 255 67 / 35%);
+    box-shadow: 0 10px 28px rgb(0 0 0 / 35%);
+  }
 }
-.pf-jogo__capa { flex: 0 0 52px; height: 84px; border-radius: 6px; background-size: cover; }
-.pf-jogo__corpo { display: flex; flex: 1; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
+// Capa: fundo borrado preenche o quadro; a imagem inteira aparece por cima (qualquer proporção cabe)
+.pf-jogo__capa {
+  position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; overflow: hidden;
+  &::before {
+    content: ''; position: absolute; inset: -16px;
+    background: var(--capa, none) center / cover no-repeat;
+    filter: blur(16px) brightness(0.55) saturate(1.2);
+  }
+  &::after {
+    content: ''; position: absolute; inset: 0;
+    background: var(--capa, none) center / contain no-repeat;
+    transition: transform 0.25s;
+  }
+  .pf-jogo:hover &::after { transform: scale(1.04); }
+}
+.pf-jogo__corpo { display: flex; flex: 1; flex-direction: column; align-items: stretch; gap: 10px; min-width: 0; padding: 14px; }
 .pf-jogo__titulo {
-  max-width: 100%; overflow: hidden; color: var(--text); font-size: 12px; font-weight: 800;
-  text-overflow: ellipsis; white-space: nowrap;
+  display: -webkit-box; overflow: hidden; color: var(--text);
+  font: 700 14px/1.3 var(--font-title); letter-spacing: -0.01em;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
   &:hover { color: var(--accent); text-decoration: none; }
 }
-.pf-select {
-  width: auto; min-height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px;
-  background: var(--surface-2); color: var(--text); font: 600 11px var(--font-body);
+.pf-jogo__progresso { display: flex; flex-direction: column; gap: 6px; margin-top: auto; }
+.pf-jogo__barra {
+  height: 4px; overflow: hidden; border-radius: 999px; background: rgb(255 255 255 / 8%);
+  i { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width 0.3s; }
 }
-.pf-link { padding: 0; color: var(--muted); font-size: 9px; cursor: pointer; &:hover { color: var(--accent); } }
+.pf-select {
+  width: 100%; min-height: 34px; padding: 0 32px 0 12px;
+  border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+  background: var(--surface-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a8b8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right 10px center / 14px no-repeat;
+  color: var(--text); font: 600 11px var(--font-body);
+  transition: border-color 0.2s;
+  &:hover { border-color: rgb(255 255 255 / 25%); }
+  &:focus-visible { border-color: var(--accent); outline: none; }
+}
+.pf-link {
+  align-self: flex-start; padding: 2px 0; color: var(--muted); font-size: 10px; cursor: pointer;
+  transition: color 0.2s;
+  &:hover { color: #ff8a6b; }
+}
 
 // Favoritos (placeholders)
 .pf-favoritos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
@@ -204,6 +239,7 @@ svg { flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; strok
   .pf-cabecalho { flex-wrap: wrap; }
   .pf-acoes { width: 100%; padding-top: 0; }
   .pf-favoritos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pf-jogando { grid-template-columns: 1fr; }
   .pf-abas { gap: 16px; overflow-x: auto; }
 }
 

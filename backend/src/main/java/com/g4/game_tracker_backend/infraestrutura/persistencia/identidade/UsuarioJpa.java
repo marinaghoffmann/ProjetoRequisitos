@@ -39,6 +39,18 @@ public class UsuarioJpa {
     @Column(name = "desenvolvedora_id")
     private UUID desenvolvedoraId;
 
+    @Column(length = 160)
+    private String bio;
+
+    @Column(length = 80)
+    private String localizacao;
+
+    @Column(name = "avatar_url", length = 255)
+    private String avatarUrl;
+
+    @Column(name = "banner_url", length = 255)
+    private String bannerUrl;
+
     protected UsuarioJpa() {
     }
 
@@ -50,6 +62,10 @@ public class UsuarioJpa {
         this.papel = usuario.papel();
         this.ativo = usuario.ativo();
         this.desenvolvedoraId = usuario.desenvolvedoraId();
+        this.bio = usuario.bio();
+        this.localizacao = usuario.localizacao();
+        this.avatarUrl = usuario.avatarUrl();
+        this.bannerUrl = usuario.bannerUrl();
     }
 
     static UsuarioJpa deDominio(Usuario usuario) {
@@ -57,6 +73,6 @@ public class UsuarioJpa {
     }
 
     Usuario paraDominio() {
-        return Usuario.reconstituir(id, nome, email, senhaHash, papel, ativo, desenvolvedoraId);
+        return Usuario.reconstituir(id, nome, email, senhaHash, papel, ativo, desenvolvedoraId, bio, localizacao, avatarUrl, bannerUrl);
     }
 }

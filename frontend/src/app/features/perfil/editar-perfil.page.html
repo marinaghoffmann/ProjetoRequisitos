@@ -3,6 +3,23 @@
   <h1>Editar perfil</h1>
   <p class="ep__intro">Essas informações aparecem no topo do seu perfil.</p>
 
+  <section class="ep__midia">
+    <div class="ep__banner" [style.background]="imagem(usuario()?.bannerUrl)">
+      <label class="ep__trocar">
+        {{ enviando() === 'banner' ? 'Enviando…' : 'Trocar banner' }}
+        <input type="file" accept="image/jpeg,image/png,image/webp" hidden
+               [disabled]="enviando() !== null" (change)="escolher('banner', $event)" />
+      </label>
+    </div>
+    <div class="ep__avatar" [style.background]="imagem(usuario()?.avatarUrl)">
+      <label class="ep__trocar">
+        {{ enviando() === 'avatar' ? '…' : 'Foto' }}
+        <input type="file" accept="image/jpeg,image/png,image/webp" hidden
+               [disabled]="enviando() !== null" (change)="escolher('avatar', $event)" />
+      </label>
+    </div>
+  </section>
+
   <form [formGroup]="formulario" (ngSubmit)="salvar()">
     <label for="nome">Nome *</label>
     <input id="nome" type="text" formControlName="nome" maxlength="80" autocomplete="name" />
