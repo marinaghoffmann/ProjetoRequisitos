@@ -1,6 +1,7 @@
 package com.g4.game_tracker_backend.aplicacao.forum;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -28,13 +29,18 @@ public class CriarTopico {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
     public TopicoDeForum executar(UUID jogoId, String categoria, String titulo, String conteudo) {
+        return executar(jogoId, categoria, titulo, conteudo, null);
+    }
+
+    @Transactional
+    public TopicoDeForum executar(UUID jogoId, String categoria, String titulo, String conteudo,
+            List<String> imagens) {
         UUID autorId = verificadorDeAcesso.usuarioAtualId();
         if (jogoId != null && jogos.buscarPorId(jogoId)
                 .filter(jogo -> jogo.status() == StatusCatalogo.ATIVO).isEmpty()) {
             throw new RegraDeNegocioException("O jogo precisa estar cadastrado no catálogo");
         }
-        return topicos.salvar(TopicoDeForum.criar(autorId, jogoId, categoria, titulo, conteudo, Instant.now()));
+        return topicos.salvar(TopicoDeForum.criar(autorId, jogoId, categoria, titulo, conteudo, imagens, Instant.now()));
     }
 }

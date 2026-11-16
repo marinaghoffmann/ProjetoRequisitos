@@ -14,22 +14,23 @@ import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
  * editavelAte indica até quando o autor ainda pode editar (RN 2: 48 horas).
  */
 public record TopicoResponse(UUID id, UUID autorId, String nomeAutor, UUID jogoId, String categoria, String titulo,
-        String conteudo, String status, int totalRespostas, Instant publicadoEm, Instant editadoEm,
+        String conteudo, List<String> imagens, String status, int totalRespostas, Instant publicadoEm, Instant editadoEm,
         Instant editavelAte, Instant dataUltimaAtividade, List<Resposta> respostas) {
 
     public record Resposta(UUID id, UUID autorId, String nomeAutor, UUID respostaPaiId, String conteudo,
-            boolean removida, Instant publicadaEm, Instant editadaEm, Instant editavelAte) {
+            List<String> imagens, boolean removida, Instant publicadaEm, Instant editadaEm, Instant editavelAte) {
 
         static Resposta de(RespostaForum resposta, Map<UUID, String> nomes) {
             return new Resposta(resposta.id(), resposta.autorId(), nomes.get(resposta.autorId()),
-                    resposta.respostaPaiId(), resposta.removida() ? null : resposta.conteudo(), resposta.removida(),
+                    resposta.respostaPaiId(), resposta.removida() ? null : resposta.conteudo(),
+                    resposta.removida() ? List.of() : resposta.imagens(), resposta.removida(),
                     resposta.publicadaEm(), resposta.editadaEm(), TopicoDeForum.editavelAte(resposta.publicadaEm()));
         }
     }
 
     static TopicoResponse de(TopicoDeForum topico, Map<UUID, String> nomes) {
         return new TopicoResponse(topico.id(), topico.autorId(), nomes.get(topico.autorId()), topico.jogoId(),
-                topico.categoria(), topico.titulo(), topico.conteudo(), topico.status().name(),
+                topico.categoria(), topico.titulo(), topico.conteudo(), topico.imagens(), topico.status().name(),
                 topico.totalRespostas(), topico.publicadoEm(), topico.editadoEm(),
                 TopicoDeForum.editavelAte(topico.publicadoEm()), topico.dataUltimaAtividade(),
                 topico.respostas().stream().map(resposta -> Resposta.de(resposta, nomes)).toList());

@@ -34,6 +34,7 @@ public final class TopicoDeForum {
     private final String categoria;
     private final String titulo;
     private final String conteudo;
+    private final List<String> imagens;
     private final StatusTopico status;
     private final boolean removido;
     private final Instant publicadoEm;
@@ -42,7 +43,7 @@ public final class TopicoDeForum {
     private final List<RespostaForum> respostas;
 
     private TopicoDeForum(UUID id, UUID autorId, UUID jogoId, String categoria, String titulo, String conteudo,
-            StatusTopico status, boolean removido, Instant publicadoEm, Instant editadoEm,
+            List<String> imagens, StatusTopico status, boolean removido, Instant publicadoEm, Instant editadoEm,
             Instant dataUltimaAtividade, List<RespostaForum> respostas) {
         this.id = Objects.requireNonNull(id, "O identificador do tópico é obrigatório");
         this.autorId = Objects.requireNonNull(autorId, "O autor do tópico é obrigatório");
@@ -54,6 +55,7 @@ public final class TopicoDeForum {
                 "O título do tópico deve ter no máximo 150 caracteres");
         this.conteudo = texto(conteudo, 10000, "O conteúdo do tópico é obrigatório",
                 "O conteúdo do tópico deve ter no máximo 10000 caracteres");
+        this.imagens = ImagensDoForum.validar(imagens);
         this.status = Objects.requireNonNull(status, "O status do tópico é obrigatório");
         this.removido = removido;
         this.publicadoEm = Objects.requireNonNull(publicadoEm, "A data de publicação é obrigatória");
@@ -66,26 +68,45 @@ public final class TopicoDeForum {
     /** Todo tópico nasce ABERTO e sem respostas. jogoId nulo indica um tópico geral. */
     public static TopicoDeForum criar(UUID autorId, UUID jogoId, String categoria, String titulo, String conteudo,
             Instant agora) {
-        return new TopicoDeForum(UUID.randomUUID(), autorId, jogoId, categoria, titulo, conteudo,
+        return criar(autorId, jogoId, categoria, titulo, conteudo, null, agora);
+    }
+
+    /** imagens são URLs de arquivos enviados ao fórum (até {@link ImagensDoForum#LIMITE}); nulo equivale a nenhuma. */
+    public static TopicoDeForum criar(UUID autorId, UUID jogoId, String categoria, String titulo, String conteudo,
+            List<String> imagens, Instant agora) {
+        return new TopicoDeForum(UUID.randomUUID(), autorId, jogoId, categoria, titulo, conteudo, imagens,
                 StatusTopico.ABERTO, false, agora, null, agora, List.of());
     }
 
     public static TopicoDeForum reconstituir(UUID id, UUID autorId, UUID jogoId, String categoria, String titulo,
             String conteudo, StatusTopico status, boolean removido, Instant publicadoEm, Instant editadoEm,
             Instant dataUltimaAtividade, List<RespostaForum> respostas) {
-        return new TopicoDeForum(id, autorId, jogoId, categoria, titulo, conteudo, status, removido, publicadoEm,
-                editadoEm, dataUltimaAtividade, respostas);
+        return reconstituir(id, autorId, jogoId, categoria, titulo, conteudo, List.of(), status, removido,
+                publicadoEm, editadoEm, dataUltimaAtividade, respostas);
+    }
+
+    public static TopicoDeForum reconstituir(UUID id, UUID autorId, UUID jogoId, String categoria, String titulo,
+            String conteudo, List<String> imagens, StatusTopico status, boolean removido, Instant publicadoEm,
+            Instant editadoEm, Instant dataUltimaAtividade, List<RespostaForum> respostas) {
+        return new TopicoDeForum(id, autorId, jogoId, categoria, titulo, conteudo, imagens, status, removido,
+                publicadoEm, editadoEm, dataUltimaAtividade, respostas);
     }
 
     // ---- Tópico ----
 
     public TopicoDeForum editar(UUID solicitanteId, String novoTitulo, String novoConteudo, String novaCategoria,
             Instant agora) {
+        return editar(solicitanteId, novoTitulo, novoConteudo, novaCategoria, null, agora);
+    }
+
+    /** novasImagens nulo mantém as imagens atuais; uma lista (mesmo vazia) substitui todas. */
+    public TopicoDeForum editar(UUID solicitanteId, String novoTitulo, String novoConteudo, String novaCategoria,
+            List<String> novasImagens, Instant agora) {
         exigirNaoEncerrado();
         exigirAutor(autorId, solicitanteId);
         exigirDentroDoPrazo(publicadoEm, agora);
-        return new TopicoDeForum(id, autorId, jogoId, novaCategoria, novoTitulo, novoConteudo, status, removido,
-                publicadoEm, agora, agora, respostas);
+        return new TopicoDeForum(id, autorId, jogoId, novaCategoria, novoTitulo, novoConteudo,
+                novasImagens == null ? imagens : novasImagens, status, removido, publicadoEm, agora, agora, respostas);
     }
 
     /** O autor marca o tópico como resolvido, reabre ou encerra; um tópico encerrado não volta atrás. */
@@ -93,7 +114,7 @@ public final class TopicoDeForum {
         Objects.requireNonNull(novoStatus, "O status do tópico é obrigatório");
         exigirNaoEncerrado();
         exigirAutor(autorId, solicitanteId);
-        return new TopicoDeForum(id, autorId, jogoId, categoria, titulo, conteudo, novoStatus, removido,
+        return new TopicoDeForum(id, autorId, jogoId, categoria, titulo, conteudo, imagens, novoStatus, removido,
                 publicadoEm, editadoEm, agora, respostas);
     }
 
@@ -101,7 +122,7 @@ public final class TopicoDeForum {
     public TopicoDeForum remover(UUID solicitanteId) {
         exigirNaoEncerrado();
         exigirAutor(autorId, solicitanteId);
-        return new TopicoDeForum(id, autorId, jogoId, categoria, titulo, conteudo, status, true, publicadoEm,
+        return new TopicoDeForum(id, autorId, jogoId, categoria, titulo, conteudo, imagens, status, true, publicadoEm,
                 editadoEm, dataUltimaAtividade, respostas);
     }
 
@@ -109,12 +130,17 @@ public final class TopicoDeForum {
 
     /** Publica uma resposta ao tópico ou, com respostaPaiId, a outra resposta do mesmo tópico. */
     public TopicoDeForum responder(UUID autorDaResposta, UUID respostaPaiId, String texto, Instant agora) {
+        return responder(autorDaResposta, respostaPaiId, texto, null, agora);
+    }
+
+    public TopicoDeForum responder(UUID autorDaResposta, UUID respostaPaiId, String texto, List<String> imagensDaResposta,
+            Instant agora) {
         exigirNaoEncerrado();
         if (respostaPaiId != null && resposta(respostaPaiId).removida()) {
             throw new RegraDeNegocioException("Não é possível responder a uma resposta removida");
         }
         List<RespostaForum> novas = new ArrayList<>(respostas);
-        novas.add(RespostaForum.criar(autorDaResposta, respostaPaiId, texto, agora));
+        novas.add(RespostaForum.criar(autorDaResposta, respostaPaiId, texto, imagensDaResposta, agora));
         return comRespostas(novas, agora);
     }
 
@@ -167,7 +193,7 @@ public final class TopicoDeForum {
     }
 
     private TopicoDeForum comRespostas(List<RespostaForum> novas, Instant agora) {
-        return new TopicoDeForum(id, autorId, jogoId, categoria, titulo, conteudo, status, removido, publicadoEm,
+        return new TopicoDeForum(id, autorId, jogoId, categoria, titulo, conteudo, imagens, status, removido, publicadoEm,
                 editadoEm, agora, novas);
     }
 
@@ -212,6 +238,7 @@ public final class TopicoDeForum {
     public String categoria() { return categoria; }
     public String titulo() { return titulo; }
     public String conteudo() { return conteudo; }
+    public List<String> imagens() { return imagens; }
     public StatusTopico status() { return status; }
     public boolean removido() { return removido; }
     public Instant publicadoEm() { return publicadoEm; }
