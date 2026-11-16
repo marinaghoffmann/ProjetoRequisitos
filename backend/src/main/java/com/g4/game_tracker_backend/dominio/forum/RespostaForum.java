@@ -1,6 +1,7 @@
 package com.g4.game_tracker_backend.dominio.forum;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -19,36 +20,48 @@ public final class RespostaForum {
     private final UUID autorId;
     private final UUID respostaPaiId;
     private final String conteudo;
+    private final List<String> imagens;
     private final boolean removida;
     private final Instant publicadaEm;
     private final Instant editadaEm;
 
-    private RespostaForum(UUID id, UUID autorId, UUID respostaPaiId, String conteudo, boolean removida,
-            Instant publicadaEm, Instant editadaEm) {
+    private RespostaForum(UUID id, UUID autorId, UUID respostaPaiId, String conteudo, List<String> imagens,
+            boolean removida, Instant publicadaEm, Instant editadaEm) {
         this.id = Objects.requireNonNull(id, "O identificador da resposta é obrigatório");
         this.autorId = Objects.requireNonNull(autorId, "O autor da resposta é obrigatório");
         this.respostaPaiId = respostaPaiId;
         this.conteudo = validarConteudo(conteudo);
+        this.imagens = ImagensDoForum.validar(imagens);
         this.removida = removida;
         this.publicadaEm = Objects.requireNonNull(publicadaEm, "A data de publicação é obrigatória");
         this.editadaEm = editadaEm;
     }
 
     static RespostaForum criar(UUID autorId, UUID respostaPaiId, String conteudo, Instant agora) {
-        return new RespostaForum(UUID.randomUUID(), autorId, respostaPaiId, conteudo, false, agora, null);
+        return criar(autorId, respostaPaiId, conteudo, null, agora);
+    }
+
+    static RespostaForum criar(UUID autorId, UUID respostaPaiId, String conteudo, List<String> imagens,
+            Instant agora) {
+        return new RespostaForum(UUID.randomUUID(), autorId, respostaPaiId, conteudo, imagens, false, agora, null);
     }
 
     public static RespostaForum reconstituir(UUID id, UUID autorId, UUID respostaPaiId, String conteudo,
             boolean removida, Instant publicadaEm, Instant editadaEm) {
-        return new RespostaForum(id, autorId, respostaPaiId, conteudo, removida, publicadaEm, editadaEm);
+        return reconstituir(id, autorId, respostaPaiId, conteudo, List.of(), removida, publicadaEm, editadaEm);
+    }
+
+    public static RespostaForum reconstituir(UUID id, UUID autorId, UUID respostaPaiId, String conteudo,
+            List<String> imagens, boolean removida, Instant publicadaEm, Instant editadaEm) {
+        return new RespostaForum(id, autorId, respostaPaiId, conteudo, imagens, removida, publicadaEm, editadaEm);
     }
 
     RespostaForum editar(String novoConteudo, Instant agora) {
-        return new RespostaForum(id, autorId, respostaPaiId, novoConteudo, removida, publicadaEm, agora);
+        return new RespostaForum(id, autorId, respostaPaiId, novoConteudo, imagens, removida, publicadaEm, agora);
     }
 
     RespostaForum remover() {
-        return new RespostaForum(id, autorId, respostaPaiId, conteudo, true, publicadaEm, editadaEm);
+        return new RespostaForum(id, autorId, respostaPaiId, conteudo, imagens, true, publicadaEm, editadaEm);
     }
 
     public boolean pertenceA(UUID usuarioId) {
@@ -70,6 +83,7 @@ public final class RespostaForum {
     public UUID autorId() { return autorId; }
     public UUID respostaPaiId() { return respostaPaiId; }
     public String conteudo() { return conteudo; }
+    public List<String> imagens() { return imagens; }
     public boolean removida() { return removida; }
     public Instant publicadaEm() { return publicadaEm; }
     public Instant editadaEm() { return editadaEm; }

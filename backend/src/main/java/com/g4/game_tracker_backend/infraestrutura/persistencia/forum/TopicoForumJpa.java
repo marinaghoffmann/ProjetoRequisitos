@@ -11,7 +11,9 @@ import com.g4.game_tracker_backend.dominio.forum.StatusTopico;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -20,6 +22,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 
 /**
@@ -70,6 +73,13 @@ public class TopicoForumJpa {
     @Column(name = "data_ultima_atividade", nullable = false)
     private Instant dataUltimaAtividade;
 
+    /** URLs (/uploads/forum/...) das imagens anexadas, na ordem em que foram enviadas. */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "forum_topico_imagens", joinColumns = @JoinColumn(name = "topico_id"))
+    @OrderColumn(name = "ordem")
+    @Column(name = "url", nullable = false, length = 300)
+    private List<String> imagens = new ArrayList<>();
+
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "topico_id", nullable = false)
     private List<RespostaForumJpa> respostas = new ArrayList<>();
@@ -84,6 +94,7 @@ public class TopicoForumJpa {
         this.categoria = topico.categoria();
         this.titulo = topico.titulo();
         this.conteudo = topico.conteudo();
+        this.imagens = new ArrayList<>(topico.imagens());
         this.status = topico.status();
         this.removido = topico.removido();
         this.totalRespostas = topico.totalRespostas();
@@ -99,8 +110,8 @@ public class TopicoForumJpa {
 
     /** Exige as respostas carregadas (consulta com join fetch). */
     TopicoDeForum paraDominio() {
-        return TopicoDeForum.reconstituir(id, autorId, jogoId, categoria, titulo, conteudo, status, removido,
-                publicadoEm, editadoEm, dataUltimaAtividade, respostas.stream()
+        return TopicoDeForum.reconstituir(id, autorId, jogoId, categoria, titulo, conteudo, List.copyOf(imagens),
+                status, removido, publicadoEm, editadoEm, dataUltimaAtividade, respostas.stream()
                         .sorted(Comparator.comparing(RespostaForumJpa::publicadaEm))
                         .map(RespostaForumJpa::paraDominio)
                         .toList());

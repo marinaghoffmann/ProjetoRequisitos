@@ -1,4 +1,3 @@
-
 <main class="pagina-listagem">
   <header class="cabecalho">
     <div>
@@ -6,7 +5,7 @@
       <p>Encontre os jogos cadastrados no Game Tracker.</p>
     </div>
     @if (autenticacao.temPapel('DESENVOLVEDOR', 'ADMINISTRADOR')) {
-      <a class="botao" routerLink="/catalogo/novo">Cadastrar jogo</a>
+    <a class="botao" routerLink="/catalogo/novo">Cadastrar jogo</a>
     }
   </header>
 
@@ -19,44 +18,49 @@
   </form>
 
   @if (carregando()) {
-    <p class="estado">Carregando jogos…</p>
+  <p class="estado">Carregando jogos…</p>
   } @else if (erro(); as mensagem) {
-    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+  <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
   } @else if (!jogos().length) {
-    <p class="estado">Nenhum jogo encontrado.</p>
+  <p class="estado">Nenhum jogo encontrado.</p>
   } @else {
-    <p class="quantidade">{{ jogos().length }} jogo(s) encontrado(s)</p>
-    <section class="grade" aria-label="Jogos do catálogo">
-      @for (jogo of jogos(); track jogo.id) {
-        <article class="card">
-          @if (jogo.capaUrl) {
-            <img class="card__capa" [src]="imagemUrl(jogo.capaUrl)" [alt]="'Capa de ' + jogo.titulo" />
-          } @else {
-            <div class="card__sem-capa" aria-label="Jogo sem capa">GT</div>
+  <p class="quantidade">{{ jogos().length }} jogo(s) encontrado(s)</p>
+  <section class="grade" aria-label="Jogos do catálogo">
+    @for (jogo of jogos(); track jogo.id) {
+    <article class="card" [class.card--inativo]="jogo.status !== 'ATIVO'">
+      <div class="card__midia">
+        @if (jogo.capaUrl) {
+        <img class="card__capa" [src]="imagemUrl(jogo.capaUrl)" [alt]="'Capa de ' + jogo.titulo" loading="lazy" />
+        } @else {
+        <div class="card__sem-capa" aria-label="Jogo sem capa">GT</div>
+        }
+        @if (jogo.status !== 'ATIVO') {
+        <span class="card__selo">Inativo</span>
+        }
+      </div>
+
+      <div class="card__conteudo">
+        <h2><a class="link-card card__titulo" [routerLink]="['/catalogo', jogo.id]">{{ jogo.titulo }}</a></h2>
+
+        @if (jogo.dataLancamento) {
+        <p class="card__meta">{{ jogo.dataLancamento | date:'yyyy' }}</p>
+        }
+
+        @if (jogo.resumo) {
+        <p class="card__resumo">{{ jogo.resumo }}</p>
+        }
+
+        @if (podeEditar(jogo)) {
+        <div class="acoes">
+          <a class="acao" [routerLink]="['/catalogo', jogo.id, 'editar']">Editar</a>
+          @if (autenticacao.temPapel('ADMINISTRADOR')) {
+          <button class="acao acao--perigo" type="button" (click)="excluir(jogo)">Desativar</button>
           }
-          <div class="card__conteudo">
-            <h2><a class="link-card card__titulo" [routerLink]="['/catalogo', jogo.id]">{{ jogo.titulo }}</a></h2>
-            @if (jogo.tituloOriginal && jogo.tituloOriginal !== jogo.titulo) {
-              <p class="original">{{ jogo.tituloOriginal }}</p>
-            }
-            <p class="status">{{ jogo.status === 'ATIVO' ? 'Ativo' : 'Inativo' }}</p>
-            @if (jogo.resumo) {
-              <p class="resumo">{{ jogo.resumo }}</p>
-            }
-            @if (jogo.dataLancamento) {
-              <p class="data">Lançamento: {{ jogo.dataLancamento | date:'dd/MM/yyyy' }}</p>
-            }
-            @if (podeEditar(jogo)) {
-              <div class="acoes">
-                <a class="acao" [routerLink]="['/catalogo', jogo.id, 'editar']">Editar</a>
-                @if (autenticacao.temPapel('ADMINISTRADOR')) {
-                  <button class="acao acao--perigo" type="button" (click)="excluir(jogo)">Desativar</button>
-                }
-              </div>
-            }
-          </div>
-        </article>
-      }
-    </section>
+        </div>
+        }
+      </div>
+    </article>
+    }
+  </section>
   }
 </main>

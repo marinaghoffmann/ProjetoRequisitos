@@ -5,6 +5,7 @@ import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
 import { ErroApi } from '../../core/http/erro-api';
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 
+const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
 
 interface Destaque {
   id: Jogo['id'];
@@ -13,6 +14,7 @@ interface Destaque {
   descricao: string;
   ano: string | null;
   capa: string | null;
+  steamAppId: number | null;
 }
 
 interface JogoEmAlta {
@@ -20,6 +22,7 @@ interface JogoEmAlta {
   titulo: string;
   ano: string | null;
   capa: string | null;
+  steamAppId: number | null;
 }
 
 interface Lancamento {
@@ -55,6 +58,9 @@ export class InicioPage implements OnInit, OnDestroy {
   protected readonly erro = signal<string | null>(null);
   private readonly jogos = signal<Jogo[]>([]);
 
+  /** Imagens HD da Steam já validadas (carregaram de verdade), por chave "hero:id" / "card:id". */
+  private readonly imagensHd = signal<Record<string, string>>({});
+
   /** Jogos ativos, com os que têm capa válida primeiro. */
   private readonly ativos = computed(() => {
     const ativos = this.jogos().filter((j) => j.status === 'ATIVO');
@@ -86,6 +92,8 @@ export class InicioPage implements OnInit, OnDestroy {
       next: (jogos) => {
         this.jogos.set(jogos);
         this.carregando.set(false);
+        this.destaques().forEach((d) => this.resolverHero(d));
+        this.emAlta().forEach((c) => this.resolverCard(c));
       },
       error: (e: ErroApi) => {
         this.erro.set(e.mensagem);
@@ -120,14 +128,76 @@ export class InicioPage implements OnInit, OnDestroy {
   }
 
   protected fundoHero(d: Destaque): string {
-    const img = this.imagemUrl(d.capa);
+    const img = this.imagensHd()[`hero:${d.id}`] || this.imagemUrl(d.capa);
     const base = 'linear-gradient(115deg, #070a10, #0b1018 55%, #2a0d12)';
-    return img ? `url("${img}") center / cover no-repeat, ${base}` : base;
+    // O degradê de leitura à esquerda já vem do ::before do .hm-hero no SCSS.
+    return img ? `url("${img}") right center / cover no-repeat, ${base}` : base;
+  }
+
+  /** Logo oficial do jogo (PNG transparente da Steam); vazio se não existir. */
+  protected logoHero(d: Destaque): string {
+    return this.imagensHd()[`logo:${d.id}`] ?? '';
   }
 
   protected fundoCard(j: JogoEmAlta, i: number): string {
-    const img = this.imagemUrl(j.capa);
+    const img = this.imagensHd()[`card:${j.id}`] || this.imagemUrl(j.capa);
     return img ? `url("${img}") center / cover no-repeat` : GRADIENTES[i % GRADIENTES.length];
+  }
+
+  // ===== Imagens HD da Steam =====
+
+  private resolverHero(d: Destaque): void {
+    if (!d.steamAppId) return;
+    const base = `${STEAM_CDN}/${d.steamAppId}`;
+    this.resolverImagem(`hero:${d.id}`, [
+      `${base}/library_hero.jpg`,
+      `${base}/page_bg_generated_v6b.jpg`,
+    ]);
+    this.resolverImagem(`logo:${d.id}`, [
+      `${base}/library_logo.png`,
+      `${base}/logo.png`,
+    ]);
+  }
+
+  private resolverCard(c: JogoEmAlta): void {
+    if (!c.steamAppId) return;
+    const base = `${STEAM_CDN}/${c.steamAppId}`;
+    this.resolverImagem(`card:${c.id}`, [
+      `${base}/library_600x900.jpg`,
+      `${base}/library_600x900_2x.jpg`,
+    ]);
+  }
+
+  /** Testa as candidatas em ordem; a primeira que carregar vira a imagem. Se nenhuma, mantém o capaUrl. */
+  private resolverImagem(chave: string, candidatas: string[]): void {
+    const tentar = (i: number): void => {
+      if (i >= candidatas.length) return;
+      const img = new Image();
+      img.onload = () => this.imagensHd.update((m) => ({ ...m, [chave]: candidatas[i] }));
+      img.onerror = () => tentar(i + 1);
+      img.src = candidatas[i];
+    };
+    tentar(0);
+  }
+
+  /**
+   * Descobre o appid da Steam sem precisar de campo novo no backend:
+   * 1) capaUrl / trailerUrl no formato .../steam/apps/{appid}/...
+   * 2) metadadosJson (steamAppId, appid, appId, steam_appid)
+   */
+  private steamAppId(j: Jogo): number | null {
+    for (const url of [j.capaUrl, j.trailerUrl]) {
+      const m = url ? /\/steam\/apps\/(\d+)\//.exec(url) ?? /\/apps\/(\d+)\//.exec(url) : null;
+      if (m) return Number(m[1]);
+    }
+    try {
+      const meta = JSON.parse(j.metadadosJson || '{}') as Record<string, unknown>;
+      const v = meta['steamAppId'] ?? meta['appid'] ?? meta['appId'] ?? meta['steam_appid'];
+      const n = Number(v);
+      return Number.isInteger(n) && n > 0 ? n : null;
+    } catch {
+      return null;
+    }
   }
 
   // ===== Mapeamento API -> tela =====
@@ -140,11 +210,18 @@ export class InicioPage implements OnInit, OnDestroy {
       descricao: j.resumo?.trim() || 'Veja os detalhes deste jogo no catálogo do Game Tracker.',
       ano: this.ano(j.dataLancamento),
       capa: j.capaUrl ?? null,
+      steamAppId: this.steamAppId(j),
     };
   }
 
   private paraCard(j: Jogo): JogoEmAlta {
-    return { id: j.id, titulo: j.titulo, ano: this.ano(j.dataLancamento), capa: j.capaUrl ?? null };
+    return {
+      id: j.id,
+      titulo: j.titulo,
+      ano: this.ano(j.dataLancamento),
+      capa: j.capaUrl ?? null,
+      steamAppId: this.steamAppId(j),
+    };
   }
 
   private ano(data?: string | null): string | null {

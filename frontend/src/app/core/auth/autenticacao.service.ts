@@ -12,7 +12,11 @@ export interface UsuarioAutenticado {
   desenvolvedoraId: string | null;
   bio?: string | null;
   localizacao?: string | null;
+  avatarUrl?: string | null;
+  bannerUrl?: string | null;
 }
+
+export type TipoImagemPerfil = 'avatar' | 'banner';
 
 export interface LoginResponse {
   accessToken: string;
@@ -77,6 +81,16 @@ export class AutenticacaoService {
   atualizarPerfil(dados: DadosPerfil): Observable<UsuarioAutenticado> {
     return this.http
       .put<UsuarioAutenticado>('/api/usuarios/me', dados)
+      .pipe(tap((usuario) => this.guardarUsuario(usuario)));
+  }
+
+  /** Envia a foto de perfil ou o banner (multipart); o usuário devolvido substitui o da sessão. */
+  enviarImagem(tipo: TipoImagemPerfil, arquivo: File): Observable<UsuarioAutenticado> {
+    const corpo = new FormData();
+    corpo.append('arquivo', arquivo);
+    // Sem Content-Type manual: o navegador define o boundary do multipart.
+    return this.http
+      .post<UsuarioAutenticado>(`/api/usuarios/me/${tipo}`, corpo)
       .pipe(tap((usuario) => this.guardarUsuario(usuario)));
   }
 

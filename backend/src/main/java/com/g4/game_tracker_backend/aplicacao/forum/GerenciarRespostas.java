@@ -1,6 +1,7 @@
 package com.g4.game_tracker_backend.aplicacao.forum;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -32,11 +33,15 @@ public class GerenciarRespostas {
         this.eventos = eventos;
     }
 
-    @Transactional
     public RespostaForum responder(UUID topicoId, UUID respostaPaiId, String conteudo) {
+        return responder(topicoId, respostaPaiId, conteudo, null);
+    }
+
+    @Transactional
+    public RespostaForum responder(UUID topicoId, UUID respostaPaiId, String conteudo, List<String> imagens) {
         TopicoDeForum atual = TopicosDoForum.visivel(topicos, topicoId);
         TopicoDeForum atualizado = atual.responder(verificadorDeAcesso.usuarioAtualId(), respostaPaiId, conteudo,
-                Instant.now());
+                imagens, Instant.now());
         topicos.salvar(atualizado);
         RespostaForum nova = atualizado.ultimaResposta();
         eventos.publishEvent(new RespostaPublicada(topicoId, nova.id(), nova.autorId(), nova.publicadaEm()));
