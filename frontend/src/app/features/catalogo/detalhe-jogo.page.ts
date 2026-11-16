@@ -9,6 +9,7 @@ import {
 } from '../../core/api/jogando-agora.service';
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
+import { AdicionarAListaComponent } from './adicionar-a-lista.component';
 import { EstatisticasJogoComponent } from './estatisticas-jogo.component';
 
 interface Jogo {
@@ -22,7 +23,7 @@ interface Jogo {
 
 @Component({
   selector: 'app-detalhe-jogo',
-  imports: [RouterLink, DatePipe, EstatisticasJogoComponent],
+  imports: [RouterLink, DatePipe, EstatisticasJogoComponent, AdicionarAListaComponent],
   template: `
     <a class="voltar" routerLink="/catalogo">← Catálogo</a>
     @if (erro()) {
@@ -53,6 +54,7 @@ interface Jogo {
             } @else {
               <a routerLink="/login">Entre para marcar</a>
             }
+            @if (autenticacao.usuarioAtual()) { <app-adicionar-a-lista [jogoId]="j.id" /> }
             <button type="button" disabled>Wishlist</button>
             <button type="button" disabled>Marcar zerado</button>
             <button type="button" disabled>Favoritar</button>
