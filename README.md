@@ -53,6 +53,52 @@ Consultas (`GET`) são públicas. As demais operações exigem login e o papel c
 | Enviar imagem de capa | `ADMINISTRADOR` ou `DESENVOLVEDOR` |
 | Alterar papel e vincular desenvolvedor (`PATCH /api/usuarios/{id}/...`) | `ADMINISTRADOR` |
 
+## Jogos similares e feedback de relevância (F-10)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/descoberta/jogos/{jogoId}/similares?notaMinima=&limite=` | Similares do jogo, do maior para o menor grau (`limite` de 1 a 50, padrão 10), com origem, totais `UTIL` e `NAO_RELEVANTE` e `meuFeedback` de quem está logado | qualquer um |
+| `POST` | `/api/descoberta/similaridades/{id}/feedback` | Registrar `{ "tipo": "UTIL" }` ou `NAO_RELEVANTE` | autenticado |
+| `PUT` | `/api/descoberta/similaridades/{id}/feedback` | Trocar o próprio feedback | autor do feedback |
+| `DELETE` | `/api/descoberta/similaridades/{id}/feedback` | Remover o próprio feedback | autor do feedback |
+| `POST` | `/api/descoberta/similaridades` | Conexão manual `{ "jogoAId", "jogoBId", "grau" }` (grau de 0 a 1) | `ADMINISTRADOR` |
+| `DELETE` | `/api/descoberta/similaridades/{id}` | Remover a conexão (fica bloqueada para o recálculo) | `ADMINISTRADOR` |
+| `POST` | `/api/descoberta/jogos/{jogoId}/similares/recalcular` | Recalcular os similares do jogo | `ADMINISTRADOR` |
+
+- Padrão Strategy (GoF): `SimilaridadeStrategy` com `SimilaridadePorGeneroStrategy` e `SimilaridadePorTagStrategy` (índice
+  de Jaccard) e `SimilaridadePorEstudioStrategy` (1 para a mesma desenvolvedora, 0 se não). `CalculoSimilaridade` combina
+  as estratégias com pesos 0,5 / 0,3 / 0,2 e devolve o grau de 0 a 1 com duas casas.
+- Tags: o `Jogo` do catálogo não tem campo de tags, então a `PerfilJogoGateway` (ACL, `PerfilJogoDoCatalogo`) usa os
+  descritores que o cadastro e a edição já gravam no `metadadosJson`: `tags` (se uma importação ou carga informar),
+  `subgeneros`, `temas`, `modosJogo` e `generoPrincipal`. Gêneros são os gêneros cadastrados e o estúdio é a
+  desenvolvedora. O catálogo não foi alterado.
+- Quando calcula: o jogo é comparado com os demais jogos `ATIVO` e só os pares com grau acima de 0,20 são guardados.
+  Roda pelo endpoint de administrador ou sob demanda, na primeira consulta de um jogo sem similares calculados, sem
+  ligação com o cadastro da F-01.
+- RN 1: um jogo nunca é similar a ele mesmo ("Um jogo não pode ser similar a ele mesmo"). Cada par é uma linha só em
+  `similaridades_jogos` (menor UUID em `jogo_a_id`, restrição única no par) e é consultado pelos dois lados, então o
+  grau de (A, B) é o de (B, A).
+- RN 2: um feedback por usuário e sugestão ("Você já avaliou esta sugestão"; restrição única `(usuario_id,
+  similaridade_id)`), que o autor pode trocar ou remover. Os totais são recontados a cada mudança. O `grauBase` nunca
+  muda pelo feedback: com mais de 15 `NAO_RELEVANTE` (a partir do 16º), a sugestão automática fica `rebaixada` e o
+  grau efetivo cai pela metade; com 15 ou menos, nada muda. Editar ou remover feedbacks desfaz o rebaixamento.
+- RN 3: só `ADMINISTRADOR` cria, remove ou recalcula ("Apenas administradores podem ajustar similaridades"). A conexão
+  manual substitui a automática do mesmo par e o recálculo nunca a altera; a removida fica `REMOVIDA` e não volta.
+- Filtro `notaMinima`: usa a média geral da ficha de estatísticas (F-17) do jogo sugerido, e só jogos elegíveis (3 ou
+  mais reviews) passam.
+- Frontend: bloco "Jogos similares" em `/catalogo/{id}` (cards com capa, título e grau, filtro pela avaliação, "Útil" e
+  "Não relevante" para quem está logado; para administradores, conexão manual, remoção e recálculo).
+- Cenários BDD em `f10_similaridade.feature`, com steps em `PassosSimilaridade`.
+
+Pendências conhecidas da F-10:
+
+- O rebaixamento vale só para sugestões automáticas: a conexão manual é a palavra final do administrador, que pode
+  removê-la.
+- Um jogo sem nenhum par acima de 0,20 é recalculado a cada consulta (não há marca de "já calculado sem resultados").
+- Jogos novos só entram nas sugestões de jogos já calculados quando eles são recalculados (endpoint de administrador).
+- A importação da Steam ainda não grava tags no `metadadosJson`; jogos importados são comparados só por gênero e estúdio.
+- Remover uma conexão mantém os feedbacks já dados a ela (deixam de aparecer junto com a sugestão).
+
 ## Marketplace: contrato do anúncio (T07)
 
 Status, campos e evento de mudança de status do anúncio estão em
