@@ -50,6 +50,7 @@ public class SegurancaConfig {
                         .requestMatchers(HttpMethod.GET, "/api/marketplace/anuncios/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/marketplace/usuarios/*/reputacao").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/forum/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/lancamentos/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/catalogo/**", "/uploads/marketplace/**",

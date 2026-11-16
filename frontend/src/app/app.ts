@@ -35,6 +35,7 @@ export class App {
       exato: true,
       icone: 'M6 11h4M8 9v4M15 12h.01M18 10h.01M17.3 5H6.7a4 4 0 0 0-3.9 3.2l-1.1 5.4A3 3 0 0 0 4.6 17L8 14.5h8l3.4 2.5a3 3 0 0 0 2.9-3.4l-1.1-5.4A4 4 0 0 0 17.3 5Z',
     },
+    { rotulo: 'Lançamentos', rota: '/lancamentos', icone: 'M8 2v4M16 2v4M3 10h18M4 5h16v16H4z' },
     { rotulo: 'Listas', icone: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01' },
     { rotulo: 'Journal', icone: 'M5 3h14v18H5zM9 8h6M9 12h6' },
     {
@@ -45,6 +46,7 @@ export class App {
       icone: 'M16 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM21 20v-1a4 4 0 0 0-3-3.9M16 4.1a3.5 3.5 0 0 1 0 6.8',
     },
     { rotulo: 'Marketplace', rota: '/marketplace', exato: true, icone: 'M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2' },
+    { rotulo: 'Notificações', rota: '/notificacoes', icone: 'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4' },
     { rotulo: 'Mensagens', contador: 1, icone: 'M4 5h16v11H9l-5 4z' },
     { rotulo: 'Estatísticas', icone: 'M4 20V4M4 20h16M9 20v-7M14 20V9M19 20v-5' },
   ];

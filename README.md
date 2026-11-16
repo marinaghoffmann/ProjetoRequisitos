@@ -280,6 +280,39 @@ Pendências conhecidas da F-16:
 - Editar uma review não atualiza o texto da entrada, que só cita o jogo.
 - Não há visão pública da timeline; o perfil público é da F-06/F-08.
 
+## Lançamentos futuros e alertas (F-12)
+
+Os lançamentos são cadastrados **explicitamente** para jogos ativos do catálogo. Uma data futura
+no cadastro do jogo, por si só, não cria uma inscrição na agenda.
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/lancamentos` | Listar futuros por data, com contagem regressiva e alerta do usuário | qualquer um |
+| `GET` | `/api/lancamentos/{id}` | Consultar lançamento e histórico de datas | qualquer um |
+| `POST` | `/api/lancamentos` | Cadastrar `{ "jogoId": "...", "dataPrevista": "AAAA-MM-DD", "tipoData": "ESTIMADA" }` | admin ou desenvolvedor vinculado ao jogo |
+| `PUT` | `/api/lancamentos/{id}` | Alterar `{ "dataPrevista": "AAAA-MM-DD", "tipoData": "CONFIRMADA" }` | admin ou desenvolvedor vinculado ao jogo |
+| `DELETE` | `/api/lancamentos/{id}` | Remover a agenda e cancelar alertas, mantendo o jogo | admin ou desenvolvedor vinculado ao jogo |
+| `PUT` / `DELETE` | `/api/lancamentos/{id}/interesse` | Ativar/desativar o interesse (operações idempotentes) | autenticado |
+| `GET` | `/api/notificacoes` | Caixa de notificações do próprio usuário | autenticado |
+| `PATCH` | `/api/notificacoes/{id}/leitura` | Marcar como lida | destinatário |
+
+A data é `LocalDate` no fuso `America/Sao_Paulo`. `tipoData` pode ser `ESTIMADA`
+(data possível, ainda sem confirmação) ou `CONFIRMADA`. O formulário inicia em `ESTIMADA`;
+a API mantém `CONFIRMADA` como padrão para clientes anteriores. Uma estimativa é exibida
+publicamente mesmo após passar, sem mudar automaticamente para `LANCADO` nem criar
+alerta. O usuário pode acompanhar o jogo; ao confirmar a data, os alertas dos interessados
+são agendados. O alerta confirmado vence à meia-noite do dia anterior (24 horas antes do
+início do dia oficial). O campo representa a classificação informada por quem cadastra;
+o sistema não verifica a fonte automaticamente. O status `LANCADO` pertence ao
+lançamento; o jogo continua `ATIVO` no catálogo. Edições de data nas rotas do catálogo e
+importações de jogos já inscritos sincronizam o histórico e reagendam os alertas na mesma
+transação. Avisos de data alterada e de lançamento próximo são internos ao aplicativo.
+
+`RotinasDosLancamentos` processa alertas e transições vencidas a cada minuto. Defina
+`APP_LANCAMENTOS_ROTINAS=false` para desativá-la; os testes a desativam e invocam os
+casos de uso com um instante fixo. Frontend: `/lancamentos`, formulários de cadastro/edição
+e `/notificacoes`. Cenários BDD: `f12_lancamentos.feature`.
+
 ## Fórum (F-13)
 
 | Método | Rota | Objetivo | Quem pode |

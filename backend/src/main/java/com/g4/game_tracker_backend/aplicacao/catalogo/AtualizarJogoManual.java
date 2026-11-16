@@ -27,14 +27,17 @@ import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
 public class AtualizarJogoManual {
 
     private final JogoRepositorio jogos;
+    private final SalvarJogoComEvento salvarComEvento;
     private final DesenvolvedoraRepositorio desenvolvedoras;
     private final GeneroRepositorio generos;
     private final UsuarioRepositorio usuarios;
     private final VerificadorDeAcesso verificadorDeAcesso;
 
     public AtualizarJogoManual(JogoRepositorio jogos, DesenvolvedoraRepositorio desenvolvedoras,
-            GeneroRepositorio generos, UsuarioRepositorio usuarios, VerificadorDeAcesso verificadorDeAcesso) {
+            GeneroRepositorio generos, UsuarioRepositorio usuarios, VerificadorDeAcesso verificadorDeAcesso,
+            SalvarJogoComEvento salvarComEvento) {
         this.jogos = jogos;
+        this.salvarComEvento = salvarComEvento;
         this.desenvolvedoras = desenvolvedoras;
         this.generos = generos;
         this.usuarios = usuarios;
@@ -57,7 +60,7 @@ public class AtualizarJogoManual {
             throw new RegraDeNegocioException("Já existe um jogo com este título para a desenvolvedora");
         }
         ValidacaoCatalogo.exigirGeneros(generos, generosIds);
-        return jogos.salvar(atual.atualizarDados(titulo, tituloOriginal, resumo, novaDesenvolvedoraId,
+        return salvarComEvento.salvar(atual, atual.atualizarDados(titulo, tituloOriginal, resumo, novaDesenvolvedoraId,
                 generosIds, dataLancamento, capaUrl, trailerUrl).comMetadados(metadadosJson));
     }
 

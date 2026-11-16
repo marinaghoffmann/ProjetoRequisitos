@@ -69,3 +69,6 @@ frontend/.angular/
 ### Uploaded catalog images ###
 backend/uploads/catalogo/*
 !backend/uploads/catalogo/.gitkeep
+
+# Local F9 checkpoint plan
+/entregaveis/f12_lancamentos/PLANO_F9.md
