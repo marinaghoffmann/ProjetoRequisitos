@@ -1,0 +1,132 @@
+<main class="zerados">
+  <header class="cabecalho">
+    <div>
+      <h1>Registros de zerado</h1>
+      @if (registros(); as historico) {
+        <p>
+          {{ historico.length }} {{ historico.length === 1 ? 'conclusão' : 'conclusões' }}
+          em {{ porJogo().size }} {{ porJogo().size === 1 ? 'jogo' : 'jogos' }}
+        </p>
+      }
+    </div>
+    <button type="button" class="botao primario" (click)="abrir()" [disabled]="operando()">
+      <span aria-hidden="true">＋</span> Novo registro
+    </button>
+  </header>
+
+  @if (jogosZerados().length) {
+    <select #filtroJogo class="filtro" aria-label="Filtrar registros por jogo"
+      (change)="filtro.set(filtroJogo.value)">
+      <option value="" [selected]="!filtro()">Todos os jogos</option>
+      @for (jogo of jogosZerados(); track jogo.jogoId) {
+        <option [value]="jogo.jogoId" [selected]="jogo.jogoId === filtro()">{{ jogo.titulo }}</option>
+      }
+    </select>
+  }
+
+  @if (feedback(); as mensagem) {
+    <p class="somente-leitor" role="status">{{ mensagem }}</p>
+  }
+  @if (erro(); as mensagem) {
+    <p class="erro" role="alert">{{ mensagem }}</p>
+    @if (!registros()) {
+      <button type="button" class="botao secundario" (click)="carregarRegistros()">Tentar novamente</button>
+    }
+  }
+  @if (registros(); as historico) {
+    @if (historico.length) {
+      <ul class="registros">
+        @for (registro of visiveis(); track registro.id) {
+          <li class="registro">
+            <a class="capa" [routerLink]="['/catalogo', registro.jogoId]" [attr.aria-label]="'Abrir ' + registro.titulo">
+              <span aria-hidden="true">{{ registro.titulo.slice(0, 1) }}</span>
+              @if (registro.capaUrl) {
+                <img #capa [src]="registro.capaUrl" alt="" loading="lazy" (error)="capa.hidden = true" />
+              }
+            </a>
+            <div class="detalhes">
+              <a class="titulo-jogo" [routerLink]="['/catalogo', registro.jogoId]">{{ registro.titulo }}</a>
+              <p>
+                <time [attr.datetime]="registro.dataConclusao">{{ registro.dataConclusao | date: 'dd/MM/yyyy' }}</time>
+                @if (registro.plataforma) { · {{ registro.plataforma }} }
+                @if (registro.horasJogadas !== null) { · {{ registro.horasJogadas | number: '1.0-6' }}h }
+              </p>
+              <span class="total">{{ porJogo().get(registro.jogoId)?.length }}x zerado</span>
+              @if (registro.platina) { <span class="total">100% / Platina</span> }
+            </div>
+            <div class="acoes">
+              <button type="button" class="botao secundario" (click)="abrir(registro)" [disabled]="operando()"
+                [attr.aria-label]="'Editar registro de ' + registro.titulo">Editar</button>
+              <button type="button" class="botao perigo" (click)="excluir(registro)" [disabled]="operando()"
+                [attr.aria-label]="'Excluir registro de ' + registro.titulo">Excluir</button>
+            </div>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="estado">Você ainda não registrou nenhum jogo zerado.</p>
+    }
+  } @else if (!erro()) {
+    <p class="estado">Carregando registros…</p>
+  }
+</main>
+
+<dialog #dialogo class="dialogo-zerado" aria-labelledby="titulo-dialogo-zerado"
+  (cancel)="operando() && $event.preventDefault()">
+  <header class="cabecalho-dialogo">
+    <h2 id="titulo-dialogo-zerado">
+      @if (editando(); as registro) { Editar registro · {{ registro.titulo }} } @else { Novo registro }
+    </h2>
+    <button type="button" class="fechar" aria-label="Fechar" (click)="fechar()" [disabled]="operando()">×</button>
+  </header>
+  <form [formGroup]="formulario" (ngSubmit)="salvar()">
+    <fieldset [disabled]="operando()">
+      <label class="campo">
+        Jogo
+        <select formControlName="jogoId" required autofocus>
+          <option value="" disabled>{{ carregandoCatalogo() ? 'Carregando jogos…' : 'Selecione um jogo' }}</option>
+          @for (jogo of jogosDoFormulario(); track jogo.id) {
+            <option [value]="jogo.id">{{ jogo.titulo }}</option>
+          }
+        </select>
+      </label>
+      @if (erroCatalogo()) {
+        <p class="erro" role="alert">Não foi possível carregar o catálogo.</p>
+        <button type="button" class="botao secundario" (click)="carregarCatalogo()">Tentar novamente</button>
+      }
+      <label class="campo">
+        Data de conclusão
+        <input type="date" formControlName="dataConclusao" [max]="hoje" required />
+      </label>
+      <label class="campo">
+        Plataforma
+        <select formControlName="plataforma">
+          <option value="">Selecione uma plataforma</option>
+          @if (editando()?.plataforma; as plataformaAnterior) {
+            @if (!plataformas.includes(plataformaAnterior)) {
+              <option [value]="plataformaAnterior">{{ plataformaAnterior }}</option>
+            }
+          }
+          @for (plataforma of plataformas; track plataforma) {
+            <option [value]="plataforma">{{ plataforma }}</option>
+          }
+        </select>
+      </label>
+      <label class="campo">
+        Horas jogadas (opcional)
+        <input type="number" formControlName="horasJogadas" min="0.000001" step="any" />
+      </label>
+      <label class="opcao"><input type="checkbox" formControlName="concluido" /> Concluí a história principal</label>
+      <label class="opcao"><input type="checkbox" formControlName="platina" /> 100% / Platina</label>
+    </fieldset>
+    @if (erroForm(); as mensagem) {
+      <p class="erro" role="alert">{{ mensagem }}</p>
+    }
+    <footer class="rodape-dialogo">
+      <button type="button" class="botao secundario" (click)="fechar()" [disabled]="operando()">Cancelar</button>
+      <button type="submit" class="botao primario" [disabled]="operando() || formulario.invalid">
+        {{ operando() ? 'Salvando…' : editando() ? 'Salvar alterações' : 'Salvar registro' }}
+      </button>
+    </footer>
+  </form>
+</dialog>

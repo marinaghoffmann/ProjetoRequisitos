@@ -1,0 +1,55 @@
+:host {
+  display: block;
+  scroll-margin-top: 90px;
+}
+
+h2 { margin-top: 0; }
+
+fieldset {
+  border: 1px solid var(--line, #262630);
+  border-radius: 8px;
+  margin: 0;
+}
+
+.campos, .acoes, .registro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.campos label {
+  display: grid;
+  flex: 1 1 140px;
+  gap: 4px;
+}
+
+input:not([type='checkbox']), button {
+  color: inherit;
+  font: inherit;
+  background: var(--bg, #090b0f);
+  border: 1px solid var(--line, #262630);
+  border-radius: 6px;
+  min-width: 0;
+  padding: 6px 10px;
+}
+
+button:not(:disabled) { cursor: pointer; }
+button:disabled { opacity: .6; }
+button.primario { background: var(--accent, #d4ff3a); color: #090b0f; }
+form .acoes { margin-top: 12px; }
+
+.historico {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 0;
+}
+
+.historico li {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line, #262630);
+}
+
+[role='alert'] { color: #ff9393; }

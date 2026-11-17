@@ -32,6 +32,16 @@ export const routes: Routes = [
     canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
     loadComponent: () => import('./features/biblioteca/jogando-agora.page').then((m) => m.JogandoAgoraPage),
   },
+  {
+    path: 'biblioteca/zerados',
+    canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
+    loadComponent: () => import('./features/biblioteca/zerados.page').then((m) => m.ZeradosPage),
+  },
+  {
+    path: 'timeline',
+    canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
+    loadComponent: () => import('./features/journal/timeline.page').then((m) => m.TimelinePage),
+  },
   // F-04: "Minhas listas" exige login; a página de uma lista é pública (só o dono vê os botões de edição)
   {
     path: 'biblioteca/listas',

@@ -52,8 +52,8 @@ export class App {
   protected readonly biblioteca: (ItemMenu & { ponto?: boolean })[] = [
     { rotulo: 'Em andamento', rota: '/biblioteca/jogando-agora', contador: 3, icone: '' },
     { rotulo: 'Wishlist', contador: 5, icone: 'M12 21s-8-5.2-8-11a4.6 4.6 0 0 1 8-3 4.6 4.6 0 0 1 8 3c0 5.8-8 11-8 11Z' },
-    { rotulo: 'Zerados', contador: 5, icone: 'm5 12 5 5 9-10' },
-    { rotulo: 'Timeline', icone: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM15.5 8.5l-2 5-5 2 2-5z' },
+    { rotulo: 'Zerados', rota: '/biblioteca/zerados', icone: 'm5 12 5 5 9-10' },
+    { rotulo: 'Timeline', rota: '/timeline', icone: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM15.5 8.5l-2 5-5 2 2-5z' },
   ];
 
   /** Mesma regra do catálogo: só aceita /uploads/ ou http(s). */

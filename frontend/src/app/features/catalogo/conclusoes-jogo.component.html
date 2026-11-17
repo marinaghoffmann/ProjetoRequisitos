@@ -1,0 +1,62 @@
+<h2>Minhas conclusões</h2>
+@if (registros(); as historico) {
+  <p>{{ historico.length }} {{ historico.length === 1 ? 'conclusão' : 'conclusões' }}</p>
+}
+@if (erroHistorico(); as mensagem) {
+  <p role="alert">{{ mensagem }}</p>
+  <button type="button" (click)="carregar()">Tentar novamente</button>
+}
+@if (erroAcao(); as mensagem) {
+  <p role="alert">{{ mensagem }}</p>
+}
+@if (formularioAberto()) {
+  <form [formGroup]="formulario" (ngSubmit)="salvar()">
+    <fieldset [disabled]="salvando()">
+      <legend>{{ editando() ? 'Editar conclusão' : 'Registrar conclusão' }}</legend>
+      <div class="campos">
+        <label>Data da conclusão <input type="date" formControlName="dataConclusao" required /></label>
+        <label>Plataforma <input type="text" formControlName="plataforma" maxlength="100" /></label>
+        <label>Horas jogadas <input type="number" formControlName="horasJogadas" step="any" /></label>
+      </div>
+      <div class="acoes">
+        <label><input type="checkbox" formControlName="concluido" /> Conclusão principal</label>
+        <label><input type="checkbox" formControlName="platina" /> 100% / Platina</label>
+      </div>
+      <div class="acoes">
+        <button type="submit" class="primario" [disabled]="formulario.invalid || carregando()">Salvar</button>
+        <button type="button" (click)="formularioAberto.set(false); erroAcao.set(null)">Cancelar</button>
+      </div>
+    </fieldset>
+  </form>
+}
+@if (carregando() && !registros()) {
+  <p>Carregando histórico…</p>
+}
+<ul class="historico">
+  @for (registro of registros(); track registro.id) {
+    <li>
+      <div class="registro">
+        <strong>{{ registro.dataConclusao | date: 'dd/MM/yyyy' }}</strong>
+        @if (registro.plataforma) { <span>{{ registro.plataforma }}</span> }
+        @if (registro.horasJogadas !== null) { <span>{{ registro.horasJogadas }} h</span> }
+        @if (registro.platina) { <span>100% / Platina</span> }
+      </div>
+      @if (excluindo() === registro.id) {
+        <p>Excluir este registro de conclusão?</p>
+        <div class="acoes">
+          <button type="button" [disabled]="salvando()" (click)="confirmarExclusao()">Confirmar exclusão</button>
+          <button type="button" [disabled]="salvando()" (click)="excluindo.set(null); erroAcao.set(null)">Cancelar</button>
+        </div>
+      } @else {
+        <div class="acoes">
+          <button type="button" [disabled]="salvando() || carregando()" (click)="editar(registro)">Editar</button>
+          <button type="button" [disabled]="salvando() || carregando()" (click)="excluindo.set(registro.id); erroAcao.set(null)">Excluir</button>
+        </div>
+      }
+    </li>
+  } @empty {
+    @if (registros() && !erroHistorico() && !carregando()) {
+      <li>Você ainda não registrou uma conclusão deste jogo.</li>
+    }
+  }
+</ul>
