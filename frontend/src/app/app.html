@@ -6,7 +6,7 @@
     </a>
 
     <nav class="menu" aria-label="Navegação principal">
-      @for (item of principal; track item.rotulo) {
+      @for (item of principal(); track item.rotulo) {
         @if (item.rota) {
           <a [routerLink]="item.rota" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: item.exato ?? true }">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="item.icone" /></svg>
@@ -69,6 +69,7 @@
             }
             <a role="menuitem" routerLink="/marketplace/meus">Meus anúncios</a>
             <a role="menuitem" routerLink="/marketplace/novo">Anunciar jogo</a>
+            <a role="menuitem" routerLink="/marketplace/pedidos">Meus pedidos</a>
             <button role="menuitem" type="button" class="conta__sair" (click)="autenticacao.sair()">Sair</button>
           </div>
         }
