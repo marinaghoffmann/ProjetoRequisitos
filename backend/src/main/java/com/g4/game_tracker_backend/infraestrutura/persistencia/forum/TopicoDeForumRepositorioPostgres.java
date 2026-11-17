@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import com.g4.game_tracker_backend.dominio.compartilhado.Pagina;
@@ -17,9 +16,6 @@ import com.g4.game_tracker_backend.dominio.forum.TopicoDeForumRepositorio;
 @Repository
 public class TopicoDeForumRepositorioPostgres implements TopicoDeForumRepositorio {
 
-    private static final Sort MAIS_ATIVOS_PRIMEIRO = Sort.by(Sort.Order.desc("dataUltimaAtividade"),
-            Sort.Order.desc("id"));
-
     private final TopicoForumSpringDataRepository springData;
 
     public TopicoDeForumRepositorioPostgres(TopicoForumSpringDataRepository springData) {
@@ -28,7 +24,8 @@ public class TopicoDeForumRepositorioPostgres implements TopicoDeForumRepositori
 
     @Override
     public TopicoDeForum salvar(TopicoDeForum topico) {
-        springData.save(TopicoForumJpa.deDominio(topico));
+        int curtidas = springData.findById(topico.id()).map(TopicoForumJpa::totalCurtidas).orElse(0);
+        springData.save(TopicoForumJpa.deDominio(topico, curtidas));
         return topico;
     }
 
@@ -49,8 +46,8 @@ public class TopicoDeForumRepositorioPostgres implements TopicoDeForumRepositori
     @Override
     public Pagina<ResumoTopico> listar(FiltroTopicos filtro, int pagina, int tamanho) {
         String categoria = filtro.categoria() == null ? "" : filtro.categoria().trim();
-        Page<TopicoForumJpa> resultado = springData.listar(filtro.jogoId(), categoria, filtro.apenasGerais(),
-                PageRequest.of(pagina - 1, tamanho, MAIS_ATIVOS_PRIMEIRO));
+        Page<TopicoForumJpa> resultado = springData.listar(filtro.jogoId(), categoria, filtro.apenasGerais(), filtro.status(), filtro.emAlta(),
+                PageRequest.of(pagina - 1, tamanho));
         return new Pagina<>(resultado.map(TopicoForumJpa::paraResumo).getContent(), pagina, tamanho,
                 resultado.getTotalElements());
     }

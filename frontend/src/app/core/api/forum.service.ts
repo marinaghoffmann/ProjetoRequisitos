@@ -32,6 +32,10 @@ export interface ResumoTopico {
   titulo: string;
   status: StatusTopico;
   totalRespostas: number;
+  totalCurtidas: number;
+  totalInteracoes: number;
+  papelAutor: string | null;
+  avatarAutorUrl: string | null;
   dataUltimaAtividade: string;
   publicadoEm: string;
 }
@@ -40,6 +44,10 @@ export interface RespostaForum {
   id: string;
   autorId: string;
   nomeAutor: string | null;
+  papelAutor: string | null;
+  avatarAutorUrl: string | null;
+  totalCurtidas: number;
+  curtidaPeloUsuario: boolean;
   /** null: resposta direta ao tópico. */
   respostaPaiId: string | null;
   /** null quando a resposta foi removida. */
@@ -63,6 +71,11 @@ export interface Topico {
   imagens: string[];
   status: StatusTopico;
   totalRespostas: number;
+  totalCurtidas: number;
+  totalInteracoes: number;
+  curtidoPeloUsuario: boolean;
+  papelAutor: string | null;
+  avatarAutorUrl: string | null;
   publicadoEm: string;
   editadoEm: string | null;
   editavelAte: string;
@@ -84,6 +97,8 @@ export interface FiltroTopicos {
   jogoId?: string;
   categoria?: string;
   apenasGerais?: boolean;
+  status?: StatusTopico;
+  ordem?: 'recentes' | 'emAlta';
   pagina?: number;
   tamanho?: number;
 }
@@ -127,6 +142,13 @@ export class ForumService {
     imagens: string[] = [],
   ): Observable<Topico> {
     return this.http.post<Topico>(`/api/forum/topicos/${topicoId}/respostas`, { conteudo, respostaPaiId, imagens });
+  }
+
+  definirCurtida(topicoId: string, curtir: boolean, respostaId?: string): Observable<void> {
+    const caminho = respostaId
+      ? `/api/forum/topicos/${topicoId}/respostas/${respostaId}/curtida`
+      : `/api/forum/topicos/${topicoId}/curtida`;
+    return curtir ? this.http.put<void>(caminho, {}) : this.http.delete<void>(caminho);
   }
 
   /** Envia uma imagem (PNG, JPG ou WEBP, até 5 MB) e devolve a URL para anexar ao tópico ou à resposta. */

@@ -35,7 +35,7 @@ export class TopicoFormPage {
 
   protected readonly formulario = this.builder.group({
     jogoId: [''],
-    categoria: ['', Validators.maxLength(60)],
+    categoria: ['Discussão geral', Validators.maxLength(60)],
     titulo: ['', [Validators.required, Validators.maxLength(150)]],
     conteudo: ['', [Validators.required, Validators.maxLength(10000)]],
   });
@@ -67,6 +67,16 @@ export class TopicoFormPage {
         this.carregando.set(false);
       },
     });
+  }
+
+  protected formatar(campo: HTMLTextAreaElement, tipo: 'negrito' | 'italico' | 'codigo' | 'citacao' | 'lista'): void {
+    const controle = this.formulario.controls.conteudo;
+    const valor = controle.value;
+    const selecionado = valor.slice(campo.selectionStart, campo.selectionEnd) || 'texto';
+    const trecho = ({ negrito: `**${selecionado}**`, italico: `*${selecionado}*`,
+      codigo: `\`${selecionado}\``, citacao: `> ${selecionado}`, lista: `- ${selecionado}` })[tipo];
+    controle.setValue(valor.slice(0, campo.selectionStart) + trecho + valor.slice(campo.selectionEnd));
+    campo.focus();
   }
 
   protected salvar(): void {

@@ -76,3 +76,8 @@ Funcionalidade: F-13 Gerenciamento completo do fórum de discussões
     E uma réplica de "joao" à resposta do jogador
     Quando o jogador exclui a sua resposta
     Então a réplica deve continuar vinculada à resposta removida
+
+  Cenário: Curtir um tópico repetidamente não duplica a interação
+    Dado um tópico aberto com 2 respostas
+    Quando o jogador curte o tópico duas vezes
+    Então o tópico deve ter 1 curtida

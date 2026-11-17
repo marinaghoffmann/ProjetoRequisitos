@@ -317,7 +317,7 @@ e `/notificacoes`. Cenários BDD: `f12_lancamentos.feature`.
 
 | Método | Rota | Objetivo | Quem pode |
 |---|---|---|---|
-| `GET` | `/api/forum/topicos` | Tópicos paginados, do mais recentemente ativo para o menos (`jogoId`, `categoria`, `apenasGerais=true`, `pagina` a partir de 1, `tamanho` até 50) | qualquer um |
+| `GET` | `/api/forum/topicos` | Tópicos paginados (`jogoId`, `categoria`, `apenasGerais=true`, `status`, `ordem=recentes|emAlta`, `pagina` a partir de 1, `tamanho` até 50) | qualquer um |
 | `GET` | `/api/forum/topicos/{id}` | Tópico com todas as respostas (o encadeamento vem em `respostaPaiId`) | qualquer um |
 | `POST` | `/api/forum/topicos` | Criar tópico geral (`jogoId` nulo) ou de um jogo `ATIVO` do catálogo; nasce `ABERTO` | autenticado |
 | `PUT` | `/api/forum/topicos/{id}` | Editar título, mensagem e categoria (até 48 horas após a publicação) | autor |
@@ -326,12 +326,19 @@ e `/notificacoes`. Cenários BDD: `f12_lancamentos.feature`.
 | `POST` | `/api/forum/topicos/{id}/respostas` | Responder ao tópico, ou a outra resposta com `respostaPaiId` | autenticado |
 | `PUT` | `/api/forum/topicos/{id}/respostas/{respostaId}` | Editar a resposta (até 48 horas após a publicação) | autor |
 | `DELETE` | `/api/forum/topicos/{id}/respostas/{respostaId}` | Excluir a resposta | autor |
+| `PUT` / `DELETE` | `/api/forum/topicos/{id}/curtida` | Curtir / descurtir o tópico, sem duplicar em requisições repetidas | autenticado |
+| `PUT` / `DELETE` | `/api/forum/topicos/{id}/respostas/{respostaId}/curtida` | Curtir / descurtir uma resposta visível | autenticado |
 
 - RN 1: tópico `ENCERRADO` não aceita novas respostas, edições nem exclusões, e não pode ser reaberto pelo autor.
 - RN 2: só o autor edita ou exclui a sua postagem (403 "Apenas o autor pode alterar esta postagem"); a edição vale por 48 horas.
 - RN 3: criar, editar ou excluir uma resposta atualiza o contador do tópico e a data da última atividade. Os dois ficam
   gravados no próprio tópico (`forum_topicos`), então a listagem não carrega as respostas. Escritas no mesmo tópico
   são serializadas por bloqueio da linha raiz dentro da transação.
+- `ordem=recentes` (padrão) usa a última atividade; `ordem=emAlta` usa a soma de respostas ativas e curtidas,
+  com última atividade e ID para desempate. `status` aceita `ABERTO`, `RESOLVIDO` ou `ENCERRADO`. A categoria
+  `Discussão geral` também inclui tópicos antigos salvos como `Geral`. A resposta da API traz `totalCurtidas`
+  e `totalInteracoes` (respostas ativas + curtidas); no detalhe, cada resposta traz sua contagem e o estado
+  da curtida do usuário autenticado. Curtidas de respostas removidas são apagadas.
 - `apenasGerais=true` seleciona tópicos sem jogo vinculado, independentemente da categoria. Pode ser combinado
   com `categoria`, mas não com `jogoId`; essa combinação retorna erro de regra de negócio.
 - Conteúdo de tópicos e respostas é Markdown com negrito, itálico, listas, código e links. As telas oferecem prévia;
@@ -339,16 +346,19 @@ e `/notificacoes`. Cenários BDD: `f12_lancamentos.feature`.
 - A exclusão de resposta é lógica: ela deixa de contar, volta sem conteúdo (`removida: true`) e continua na árvore
   para as respostas filhas não sumirem. Não é possível responder a uma resposta removida.
 - Toda resposta nova publica um `RespostaPublicada` pelo `ApplicationEventPublisher`, até o barramento da T04 existir.
-- Frontend: `/forum` (lista com filtros e paginação), `/forum/novo`, `/forum/{id}` (tópico com respostas em árvore)
-  e `/forum/{id}/editar`.
+- Frontend: `/forum` é a Comunidade, com editor na própria página, filtros por categoria, status e jogo,
+  abas Recentes/Em alta e paginação de 5 tópicos. `/forum/{id}` traz cartões de autor, curtidas e respostas
+  encadeadas com editor inline. `/forum/novo` e `/forum/{id}/editar` permanecem para compatibilidade.
+  As telas seguem a [referência visual da Comunidade no Figma Make](https://www.figma.com/make/Hbid18iRVvTGOqfX2p4UNW/Game-Tracker-MVP-Development--Copy-?t=zTCKnJrVlLNDiCpq-1).
 - Cenários BDD em `f13_forum.feature`, com steps em `PassosForum`. Jogadores e jogos de apoio ficam em `DadosDoCenario`,
   compartilhado entre as classes de steps; o step `o jogador "<nome>" autenticado` agora fica em `PassosComuns`.
 
-Pendências conhecidas da F-13 (algumas são escopo da F-14):
+Pendências conhecidas da F-13 (escopo da F-14):
 
 - Moderadores e administradores ainda não têm poderes no fórum: encerrar, reabrir, ocultar e remover conteúdo de
   outros usuários fica para a central de moderação (F-14), que pode reaproveitar os campos `removido` e `removida`.
-- A listagem mostra o nome do jogo procurando no catálogo carregado pela tela; não há busca por título do tópico.
+- Denúncias e a ação “Denunciar” não aparecem até a F-14 oferecer uma fila funcional. A listagem mostra
+  o nome do jogo procurando no catálogo carregado pela tela; não há busca por título do tópico.
 
 ## Entregáveis
 

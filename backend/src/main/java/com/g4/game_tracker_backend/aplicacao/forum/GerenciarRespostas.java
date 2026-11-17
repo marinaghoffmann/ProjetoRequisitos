@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
+import com.g4.game_tracker_backend.dominio.forum.CurtidaForumRepositorio;
 import com.g4.game_tracker_backend.dominio.forum.RespostaForum;
 import com.g4.game_tracker_backend.dominio.forum.RespostaPublicada;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
@@ -25,12 +26,14 @@ public class GerenciarRespostas {
     private final TopicoDeForumRepositorio topicos;
     private final VerificadorDeAcesso verificadorDeAcesso;
     private final ApplicationEventPublisher eventos;
+    private final CurtidaForumRepositorio curtidas;
 
     public GerenciarRespostas(TopicoDeForumRepositorio topicos, VerificadorDeAcesso verificadorDeAcesso,
-            ApplicationEventPublisher eventos) {
+            ApplicationEventPublisher eventos, CurtidaForumRepositorio curtidas) {
         this.topicos = topicos;
         this.verificadorDeAcesso = verificadorDeAcesso;
         this.eventos = eventos;
+        this.curtidas = curtidas;
     }
 
     @Transactional
@@ -61,5 +64,7 @@ public class GerenciarRespostas {
     public void excluir(UUID topicoId, UUID respostaId) {
         TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, topicoId);
         topicos.salvar(atual.excluirResposta(respostaId, verificadorDeAcesso.usuarioAtualId(), Instant.now()));
+        curtidas.removerDaResposta(respostaId);
+        curtidas.sincronizarTotal(topicoId);
     }
 }

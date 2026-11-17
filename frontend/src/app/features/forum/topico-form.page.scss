@@ -7,3 +7,6 @@
   border-radius: var(--radius);
   background: var(--surface);
 }
+
+.markdown-toolbar { display: flex; gap: 0.2rem; padding: 0.25rem; border: 1px solid var(--line); border-radius: 8px 8px 0 0; background: var(--surface-2); button { min-width: 2rem; padding: 0.35rem; border: 0; background: transparent; color: var(--muted); font-weight: 700; &:hover { color: var(--accent); } } }
+.markdown-toolbar + textarea { border-top: 0; border-radius: 0 0 8px 8px; }

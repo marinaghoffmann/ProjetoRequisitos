@@ -10,6 +10,6 @@ public interface TopicoDeForumRepositorio {
     Optional<TopicoDeForum> buscarPorId(UUID id);
     /** Bloqueia a linha do tópico até o fim da transação antes de alterar respostas ou metadados. */
     Optional<TopicoDeForum> buscarPorIdParaAlteracao(UUID id);
-    /** Tópicos não removidos, do mais recentemente ativo para o menos. A página começa em 1. */
+    /** Tópicos não removidos, ordenados pelo filtro. A página começa em 1. */
     Pagina<ResumoTopico> listar(FiltroTopicos filtro, int pagina, int tamanho);
 }

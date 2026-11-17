@@ -64,6 +64,9 @@ public class TopicoForumJpa {
     @Column(name = "total_respostas", nullable = false)
     private int totalRespostas;
 
+    @Column(name = "total_curtidas", nullable = false)
+    private int totalCurtidas;
+
     @Column(name = "publicado_em", nullable = false)
     private Instant publicadoEm;
 
@@ -87,7 +90,7 @@ public class TopicoForumJpa {
     protected TopicoForumJpa() {
     }
 
-    private TopicoForumJpa(TopicoDeForum topico) {
+    private TopicoForumJpa(TopicoDeForum topico, int totalCurtidas) {
         this.id = topico.id();
         this.autorId = topico.autorId();
         this.jogoId = topico.jogoId();
@@ -98,14 +101,15 @@ public class TopicoForumJpa {
         this.status = topico.status();
         this.removido = topico.removido();
         this.totalRespostas = topico.totalRespostas();
+        this.totalCurtidas = totalCurtidas;
         this.publicadoEm = topico.publicadoEm();
         this.editadoEm = topico.editadoEm();
         this.dataUltimaAtividade = topico.dataUltimaAtividade();
         this.respostas = new ArrayList<>(topico.respostas().stream().map(RespostaForumJpa::deDominio).toList());
     }
 
-    static TopicoForumJpa deDominio(TopicoDeForum topico) {
-        return new TopicoForumJpa(topico);
+    static TopicoForumJpa deDominio(TopicoDeForum topico, int totalCurtidas) {
+        return new TopicoForumJpa(topico, totalCurtidas);
     }
 
     /** Exige as respostas carregadas (consulta com join fetch). */
@@ -117,8 +121,10 @@ public class TopicoForumJpa {
                         .toList());
     }
 
+    int totalCurtidas() { return totalCurtidas; }
+
     ResumoTopico paraResumo() {
-        return new ResumoTopico(id, autorId, jogoId, categoria, titulo, status, totalRespostas, dataUltimaAtividade,
+        return new ResumoTopico(id, autorId, jogoId, categoria, titulo, status, totalRespostas, totalCurtidas, dataUltimaAtividade,
                 publicadoEm);
     }
 }

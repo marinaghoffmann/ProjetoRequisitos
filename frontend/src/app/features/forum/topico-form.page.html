@@ -22,13 +22,28 @@
       </select>
 
       <label for="categoria">Categoria</label>
-      <input id="categoria" type="text" formControlName="categoria" placeholder="Se ficar vazio, usamos “Geral”" />
+      <select id="categoria" formControlName="categoria">
+        @if (id && !['Discussão geral', 'Recomendações', 'Ajuda', 'Spoilers'].includes(formulario.controls.categoria.value)) {
+          <option [value]="formulario.controls.categoria.value">{{ formulario.controls.categoria.value }}</option>
+        }
+        <option value="Discussão geral">Discussão geral</option>
+        <option value="Recomendações">Recomendações</option>
+        <option value="Ajuda">Ajuda</option>
+        <option value="Spoilers">Spoilers</option>
+      </select>
 
       <label for="titulo">Título *</label>
       <input id="titulo" type="text" formControlName="titulo" />
 
       <label for="conteudo">Mensagem *</label>
-      <textarea id="conteudo" rows="8" formControlName="conteudo"></textarea>
+      <div class="markdown-toolbar" aria-label="Formatação Markdown">
+        <button type="button" (click)="formatar(campoConteudo, 'negrito')" title="Negrito">B</button>
+        <button type="button" (click)="formatar(campoConteudo, 'italico')" title="Itálico"><i>I</i></button>
+        <button type="button" (click)="formatar(campoConteudo, 'codigo')" title="Código">&lt;/&gt;</button>
+        <button type="button" (click)="formatar(campoConteudo, 'citacao')" title="Citação">❝</button>
+        <button type="button" (click)="formatar(campoConteudo, 'lista')" title="Lista">☷</button>
+      </div>
+      <textarea #campoConteudo id="conteudo" rows="8" formControlName="conteudo"></textarea>
       <details class="ajuda-markdown">
         <summary>Ajuda e prévia do texto</summary>
         <p>Use **negrito**, *itálico*, listas, `código` e [links](https://exemplo.com).</p>
