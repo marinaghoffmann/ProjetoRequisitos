@@ -1,5 +1,4 @@
 # language: pt
-@pendente
 Funcionalidade: F-11 Gerenciamento de registros de "zerado" e contagem de conclusões
   Como jogador, quero registrar, editar e excluir as vezes em que zerei um jogo, para manter
   o histórico e a contagem de conclusões.
@@ -12,6 +11,8 @@ Funcionalidade: F-11 Gerenciamento de registros de "zerado" e contagem de conclu
     Dado que o jogador zerou "Celeste" 1 vez
     Quando o jogador registra uma conclusão de "Celeste" em "2026-09-10" na plataforma "PC" com 12 horas
     Então o contador de conclusões de "Celeste" do jogador deve ser 2
+    E "Celeste" deve aparecer uma única vez em Zerados com 2 conclusões
+    E a ficha de estatísticas de "Celeste" deve registrar 2 conclusões
 
   # RN 1 - obrigatoriedade de data válida e limite temporal
   Cenário: Conclusão com data futura é recusada
@@ -27,16 +28,30 @@ Funcionalidade: F-11 Gerenciamento de registros de "zerado" e contagem de conclu
     Dado que o jogador zerou "Celeste" 2 vezes
     Quando o jogador exclui um dos seus registros de conclusão de "Celeste"
     Então o contador de conclusões de "Celeste" do jogador deve ser 1
+    E a ficha de estatísticas de "Celeste" deve registrar 1 conclusões
 
   Cenário: Jogador não edita registro de outro usuário
     Dado que o jogador "joao" possui um registro de conclusão de "Celeste"
     Quando o jogador "marina" tenta editar o registro de "joao"
     Então a operação deve ser recusada com a mensagem "Apenas o dono pode alterar este registro"
 
+  Cenário: Jogador não exclui registro de outro usuário
+    Dado que o jogador "joao" possui um registro de conclusão de "Celeste"
+    Quando o jogador "marina" tenta excluir a conclusão de "joao"
+    Então a operação deve ser recusada com a mensagem "Apenas o dono pode alterar este registro"
+
   Cenário: Editar a plataforma de um registro próprio
     Dado que o jogador possui um registro de conclusão de "Celeste" na plataforma "PC"
     Quando o jogador altera a plataforma do registro para "Nintendo Switch"
     Então o registro deve ter a plataforma "Nintendo Switch"
+
+  Cenário: Corrigir o jogo de um registro atualiza Zerados, a timeline e as duas fichas
+    Dado que o jogador possui um registro de conclusão de "Celeste" na plataforma "PC"
+    Quando o jogador troca o jogo do registro para "Hades"
+    Então "Celeste" não deve aparecer nos meus jogos zerados
+    E o mesmo registro deve aparecer em Zerados para "Hades" e na timeline desse jogo
+    E a ficha de estatísticas de "Celeste" deve registrar 0 conclusões
+    E a ficha de estatísticas de "Hades" deve registrar 1 conclusões
 
   # RN 3 - validação do tempo de jogo e modo de conclusão
   Esquema do Cenário: Validação das horas jogadas
@@ -62,3 +77,9 @@ Funcionalidade: F-11 Gerenciamento de registros de "zerado" e contagem de conclu
     Dado que o jogador zerou "Celeste" em "2024-01-10", "2026-03-02" e "2025-06-20"
     Quando o jogador consulta o histórico de conclusões de "Celeste"
     Então as conclusões devem aparecer na ordem "2026-03-02", "2025-06-20", "2024-01-10"
+
+  Cenário: O histórico pessoal não inclui conclusões de outros jogadores
+    Dado que o jogador "joao" possui um registro de conclusão de "Celeste"
+    Então o contador de conclusões de "Celeste" do jogador deve ser 0
+    E "Celeste" não deve aparecer nos meus jogos zerados
+    E a ficha de estatísticas de "Celeste" deve registrar 1 conclusões

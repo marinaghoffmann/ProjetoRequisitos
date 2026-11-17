@@ -27,6 +27,11 @@ export class EstatisticasJogoComponent implements OnInit {
   protected readonly erroEstatisticas = signal<string | null>(null);
 
   ngOnInit(): void {
+    this.recarregar();
+  }
+
+  recarregar(): void {
+    this.erroEstatisticas.set(null);
     this.estatisticasService.consultar(this.jogoId()).subscribe({
       next: (estatisticas) => this.estatisticas.set(estatisticas),
       error: (e: ErroApi) => this.erroEstatisticas.set(e.mensagem),

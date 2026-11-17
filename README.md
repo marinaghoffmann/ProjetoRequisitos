@@ -308,7 +308,7 @@ Pendências conhecidas da F-02:
 - Frontend: `/catalogo/{id}` (página do jogo com a ficha), acessada pelo título do jogo no catálogo.
 - Cenários BDD em `f17_estatisticas.feature`, com steps em `PassosEstatisticas`.
 
-Como ligar as funcionalidades que ainda não existem:
+Fontes de dados da ficha:
 
 | Funcionalidade | Implementar (bean Spring) | Publicar ao criar, editar ou excluir |
 |---|---|---|
@@ -316,15 +316,13 @@ Como ligar as funcionalidades que ainda não existem:
 | F-11 Conclusões | `FonteDeConclusoes` | `MetricasDoJogoAlteradas(jogoId)` |
 | F-06 Wishlist | `FonteDeWishlists` | `MetricasDoJogoAlteradas(jogoId)` |
 
-Ao ligar uma fonte real, remova a porta correspondente de `MetricasDeApoioDosCenarios` (test) e faça os steps usarem a
-funcionalidade de verdade: as duas implementações juntas falham na subida dos testes. O marketplace já está ligado: o
-volume de negociações conta os anúncios `VENDIDO` e é recalculado pelo `AnuncioStatusAlterado`, que a F-20 publica.
+Reviews e conclusões já usam fontes reais. Ao ligar a wishlist, remova a fonte correspondente de
+`MetricasDeApoioDosCenarios` (test). O volume de negociações conta os anúncios `VENDIDO` e é recalculado pelo
+`AnuncioStatusAlterado`, que a F-20 publica.
 
 Pendências conhecidas da F-17:
 
-- Até F-02, F-06 e F-11 chegarem, nenhum jogo atinge 3 reviews em produção, então a página sempre mostra o aviso de
-  estatísticas indisponíveis.
-- Os cenários de review, conclusão e wishlist usam dados de apoio (`MetricasDeApoioDosCenarios`), não as funcionalidades reais.
+- A wishlist ainda usa dados de apoio nos cenários BDD. Em produção, o total é zero até a fonte real ser ligada.
 - Se o recálculo falhar depois do commit, o erro só vai para o log e a ficha fica desatualizada até o próximo evento.
 
 ## Timeline automática do journal (F-16)
@@ -344,8 +342,8 @@ Pendências conhecidas da F-17:
 - Frontend: `/timeline` ("Minha timeline" no menu, para quem está logado).
 - Cenários BDD em `f16_timeline_automatica.feature`, com steps em `PassosTimelineAutomatica`.
 
-Como ligar as funcionalidades que ainda não existem (publicar com o `ApplicationEventPublisher`, **dentro** do método
-`@Transactional` do caso de uso, depois de gravar):
+Eventos publicados com o `ApplicationEventPublisher`, **dentro** do método
+`@Transactional` do caso de uso, depois de gravar:
 
 | Funcionalidade | Ao criar | Ao excluir |
 |---|---|---|
@@ -362,8 +360,31 @@ antes de liberar.
 
 Pendências conhecidas da F-16:
 
-- Até F-02 e F-11 chegarem, só as compras concluídas no marketplace (F-20) geram entradas automáticas em produção.
-- Editar uma review não atualiza o texto da entrada, que só cita o jogo.
+- A entrada automática guarda a data do evento original. Editar a conclusão não altera a data da entrada no journal.
+
+## Registros de conclusão (F-11)
+
+Na página do jogo, o jogador autenticado pode usar **Marcar zerado** para registrar uma conclusão e **Minhas conclusões**
+para consultar, editar ou excluir seus registros. O histórico mostra o total pessoal e ordena pela data da conclusão,
+da mais recente à mais antiga.
+Em **Minha biblioteca → Zerados**, cada jogo aparece com o registro mais recente. O filtro por jogo revela todos os
+registros daquele jogo. A tela permite registrar, editar e excluir diretamente.
+
+| Método | Rota | Objetivo |
+|---|---|---|
+| `GET` | `/api/biblioteca/zerados` | Listar os jogos zerados pelo jogador autenticado |
+| `GET` | `/api/biblioteca/zerados/registros` | Listar os registros próprios com título e capa do jogo |
+| `GET` | `/api/biblioteca/jogos/{jogoId}/conclusoes` | Consultar o histórico do jogador autenticado |
+| `POST` | `/api/biblioteca/jogos/{jogoId}/conclusoes` | Registrar uma conclusão |
+| `PUT` | `/api/biblioteca/conclusoes/{id}` | Editar uma conclusão própria |
+| `DELETE` | `/api/biblioteca/conclusoes/{id}` | Excluir uma conclusão própria |
+
+A API recebe `dataConclusao` (AAAA-MM-DD), `plataforma`, `horasJogadas`, `concluido` e `platina`.
+A data é obrigatória e não pode ser futura. Horas são opcionais e, se informadas, devem ser positivas.
+Platina exige conclusão principal. As estatísticas contam os registros de todos os jogadores para o jogo.
+Na edição, `jogoId` é opcional. Ao trocar o jogo, as duas fichas de estatísticas são recalculadas e a entrada
+automática da timeline passa a apontar para o jogo correto.
+Os cenários de aceitação estão em `f11_conclusoes.feature`.
 - Não há visão pública da timeline; o perfil público é da F-06/F-08.
 
 ## Fórum (F-13)

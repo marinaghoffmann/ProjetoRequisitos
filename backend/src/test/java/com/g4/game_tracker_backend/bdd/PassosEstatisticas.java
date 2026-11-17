@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -22,11 +23,13 @@ import com.g4.game_tracker_backend.aplicacao.avaliacao.estatisticas.ConsultarEst
 import com.g4.game_tracker_backend.aplicacao.avaliacao.estatisticas.RecalcularEstatisticas;
 import com.g4.game_tracker_backend.aplicacao.avaliacao.reviews.GerenciarReview;
 import com.g4.game_tracker_backend.aplicacao.avaliacao.reviews.PublicarReview;
+import com.g4.game_tracker_backend.aplicacao.biblioteca.conclusoes.GerenciarConclusoes;
 import com.g4.game_tracker_backend.apresentacao.avaliacao.estatisticas.EstatisticaJogoResponse;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.EstatisticaJogo;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.EstatisticaJogoRepositorio;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.MetricasDoJogoAlteradas;
 import com.g4.game_tracker_backend.dominio.avaliacao.reviews.Review;
+import com.g4.game_tracker_backend.dominio.biblioteca.conclusoes.RegistroDeConclusao.Dados;
 import com.g4.game_tracker_backend.dominio.catalogo.Desenvolvedora;
 import com.g4.game_tracker_backend.dominio.catalogo.DesenvolvedoraRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.Jogo;
@@ -45,10 +48,8 @@ import io.cucumber.java.pt.Entao;
 import io.cucumber.java.pt.Quando;
 
 /**
- * Steps da F-17. Conclusões e wishlists vêm de MetricasDeApoioDosCenarios e o evento é publicado aqui, no
- * lugar de F-06 e F-11. As reviews são reais: cada uma é publicada (ou excluída) pelo caso de uso da F-02,
- * por um jogador diferente, e o próprio caso de uso publica o evento. O marketplace também é real: os
- * anúncios vendidos são gravados e a venda publica o evento que a F-20 vai publicar.
+ * Steps da F-17. Reviews e conclusões publicam métricas pelos casos de uso reais.
+ * A wishlist usa uma fonte de apoio até a F-06 disponibilizar a fonte real.
  */
 public class PassosEstatisticas {
 
@@ -65,6 +66,7 @@ public class PassosEstatisticas {
     private final ApplicationEventPublisher eventos;
     private final PublicarReview publicarReview;
     private final GerenciarReview gerenciarReview;
+    private final GerenciarConclusoes conclusoes;
     private final DadosDoCenario dados;
 
     private final Map<String, Jogo> jogosDoCenario = new HashMap<>();
@@ -77,7 +79,8 @@ public class PassosEstatisticas {
             EstatisticaJogoRepositorio estatisticas, MetricasDeApoioDosCenarios metricas,
             AnuncioMarketplaceRepositorio anuncios, JogoRepositorio jogos,
             DesenvolvedoraRepositorio desenvolvedoras, ApplicationEventPublisher eventos,
-            PublicarReview publicarReview, GerenciarReview gerenciarReview, DadosDoCenario dados) {
+            PublicarReview publicarReview, GerenciarReview gerenciarReview, GerenciarConclusoes conclusoes,
+            DadosDoCenario dados) {
         this.recalcular = recalcular;
         this.consultar = consultar;
         this.estatisticas = estatisticas;
@@ -88,6 +91,7 @@ public class PassosEstatisticas {
         this.eventos = eventos;
         this.publicarReview = publicarReview;
         this.gerenciarReview = gerenciarReview;
+        this.conclusoes = conclusoes;
         this.dados = dados;
     }
 
@@ -113,7 +117,9 @@ public class PassosEstatisticas {
     @Dado("que o jogo {string} possui {int} conclusões")
     public void jogoPossuiConclusoes(String titulo, int quantidade) {
         UUID jogoId = jogo(titulo).id();
-        metricas.somarConclusoes(jogoId, quantidade);
+        for (int i = 0; i < quantidade; i++) {
+            registrarConclusao(jogoId);
+        }
         recalcular.executar(jogoId);
     }
 
@@ -154,9 +160,7 @@ public class PassosEstatisticas {
 
     @Quando("um jogador registra uma conclusão de {string}")
     public void jogadorRegistraConclusao(String titulo) {
-        UUID jogoId = jogo(titulo).id();
-        metricas.somarConclusoes(jogoId, 1);
-        eventos.publishEvent(new MetricasDoJogoAlteradas(jogoId));
+        registrarConclusao(jogo(titulo).id());
     }
 
     @Quando("um jogador adiciona {string} à wishlist")
@@ -238,6 +242,11 @@ public class PassosEstatisticas {
 
     private EstatisticaJogo gravada(String titulo) {
         return estatisticas.buscarPorJogo(jogo(titulo).id()).orElseThrow();
+    }
+
+    private void registrarConclusao(UUID jogoId) {
+        SessaoDeTeste.autenticarComo(dados.jogador("jogador das conclusões"));
+        conclusoes.registrar(jogoId, new Dados(LocalDate.now(), null, null, true, false));
     }
 
     private MudancaDeStatusAnuncio venderAnuncio(UUID jogoId) {
