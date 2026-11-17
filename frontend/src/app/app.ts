@@ -1,10 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, merge, timer } from 'rxjs';
 
 import { NaoLidasService } from './core/api/nao-lidas.service';
 import { AutenticacaoService } from './core/auth/autenticacao.service';
+
+/** Intervalo da contagem de mensagens não lidas do menu (F-19 RN 11). */
+const CONTAR_NAO_LIDAS_A_CADA_MS = 30000;
 
 interface ItemMenu {
   rotulo: string;
@@ -25,8 +28,10 @@ interface ItemMenu {
 export class App {
   protected readonly autenticacao = inject(AutenticacaoService);
   protected readonly menuConta = signal(false);
+  private readonly naoLidas = inject(NaoLidasService);
 
-  protected readonly principal: ItemMenu[] = [
+  /** "Mensagens" leva às conversas (F-19) e mostra o total real de não lidas (RN 11). */
+  protected readonly principal = computed<ItemMenu[]>(() => [
     { rotulo: 'Início', rota: '/inicio', icone: 'M3 11 12 3l9 8M5 10v10h5v-6h4v6h5V10' },
     { rotulo: 'Descobrir', icone: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM15.5 8.5l-2 5-5 2 2-5z' },
     {
@@ -45,9 +50,22 @@ export class App {
       icone: 'M16 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM21 20v-1a4 4 0 0 0-3-3.9M16 4.1a3.5 3.5 0 0 1 0 6.8',
     },
     { rotulo: 'Marketplace', rota: '/marketplace', exato: true, icone: 'M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2' },
-    { rotulo: 'Mensagens', contador: 1, icone: 'M4 5h16v11H9l-5 4z' },
+    {
+      rotulo: 'Mensagens',
+      rota: '/marketplace/mensagens',
+      exato: false,
+      contador: this.naoLidas.total(),
+      icone: 'M4 5h16v11H9l-5 4z',
+    },
     { rotulo: 'Estatísticas', icone: 'M4 20V4M4 20h16M9 20v-7M14 20V9M19 20v-5' },
-  ];
+  ]);
+
+  constructor() {
+    const navegacoes = inject(Router).events.pipe(filter((evento) => evento instanceof NavigationEnd));
+    merge(timer(0, CONTAR_NAO_LIDAS_A_CADA_MS), navegacoes)
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.naoLidas.atualizar());
+  }
 
   protected readonly biblioteca: (ItemMenu & { ponto?: boolean })[] = [
     { rotulo: 'Em andamento', rota: '/biblioteca/jogando-agora', contador: 3, icone: '' },
