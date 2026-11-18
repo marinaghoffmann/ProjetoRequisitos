@@ -37,6 +37,7 @@
 
     @for (r of d.reviews.itens; track r.id) {
       <article class="review" [class.review--minha]="ehMinha(r)">
+        <app-conteudo-moderavel tipo="REVIEW" [conteudoId]="r.id">
         <header class="review__cab">
           <strong>{{ r.nomeAutor ?? 'Jogador' }}</strong>
           <span class="review__estrelas" [attr.aria-label]="'Nota ' + r.notaGeral + ' de 5'">{{ estrelasDe(r.notaGeral) }}</span>
@@ -52,6 +53,7 @@
         }
         @if (r.texto) { <p class="review__texto">{{ r.texto }}</p> }
 
+        </app-conteudo-moderavel>
         @if (ehMinha(r)) {
           @if (confirmandoExclusao() === r.id) {
             <div class="review__confirmacao" role="alert">

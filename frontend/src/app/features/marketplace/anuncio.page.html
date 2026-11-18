@@ -4,6 +4,7 @@
   @if (erro(); as mensagem) {
     <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
   } @else if (anuncio(); as a) {
+    <app-conteudo-moderavel tipo="ANUNCIO" [conteudoId]="a.id">
     <div class="detalhe-anuncio">
       <section class="galeria" aria-label="Fotos do anúncio">
         @if (imagem(a.fotos[fotoAtual()])) {
@@ -74,6 +75,7 @@
       </section>
     </div>
 
+    </app-conteudo-moderavel>
     @if (dialogoAberto()) {
       <app-proposta-dialog [tipoNegociacao]="a.tipoNegociacao" [precoAnuncio]="a.preco" [erro]="erroAcao()"
         [enviando]="enviando()" (enviar)="enviarProposta($event)" (fechar)="dialogoAberto.set(false)" />

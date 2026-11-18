@@ -22,12 +22,15 @@ public class IniciarConversa {
     private final ConversaChatRepositorio conversas;
     private final AnunciosDaNegociacao anuncios;
     private final VerificadorDeAcesso verificadorDeAcesso;
+    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
 
     public IniciarConversa(ConversaChatRepositorio conversas, AnunciosDaNegociacao anuncios,
-            VerificadorDeAcesso verificadorDeAcesso) {
+            VerificadorDeAcesso verificadorDeAcesso,
+            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
         this.conversas = conversas;
         this.anuncios = anuncios;
         this.verificadorDeAcesso = verificadorDeAcesso;
+        this.moderacao = moderacao;
     }
 
     @Transactional
@@ -35,6 +38,9 @@ public class IniciarConversa {
         UUID compradorId = verificadorDeAcesso.usuarioAtualId();
         AnuncioNegociavel anuncio = AcessoAConversa.anuncio(anuncios, anuncioId);
         return conversas.buscarPorAnuncioEComprador(anuncioId, compradorId)
-                .orElseGet(() -> conversas.salvar(ConversaChat.iniciar(anuncio, compradorId, Instant.now())));
+                .orElseGet(() -> {
+                    moderacao.exigirAtivo(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.ANUNCIO,anuncioId);
+                    return conversas.salvar(ConversaChat.iniciar(anuncio, compradorId, Instant.now()));
+                });
     }
 }

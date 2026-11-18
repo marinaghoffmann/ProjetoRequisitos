@@ -25,12 +25,14 @@ public class GerenciarPropostas {
     private final ConversaChatRepositorio conversas;
     private final AnunciosDaNegociacao anuncios;
     private final VerificadorDeAcesso verificadorDeAcesso;
+    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
 
     public GerenciarPropostas(ConversaChatRepositorio conversas, AnunciosDaNegociacao anuncios,
-            VerificadorDeAcesso verificadorDeAcesso) {
+            VerificadorDeAcesso verificadorDeAcesso, com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
         this.conversas = conversas;
         this.anuncios = anuncios;
         this.verificadorDeAcesso = verificadorDeAcesso;
+        this.moderacao = moderacao;
     }
 
     /** RN 6 e 7. A mensagem é opcional e entra no chat junto com a proposta. */
@@ -39,6 +41,7 @@ public class GerenciarPropostas {
             String mensagem) {
         UUID usuarioId = verificadorDeAcesso.usuarioAtualId();
         ConversaChat conversa = AcessoAConversa.doParticipante(conversas, conversaId, usuarioId);
+        moderacao.exigirAtivo(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.ANUNCIO,conversa.anuncioId());
         AnuncioNegociavel anuncio = AcessoAConversa.anuncio(anuncios, conversa.anuncioId());
         ConversaChat atualizada = conversas.salvar(conversa.enviarProposta(usuarioId, tipo, valor, jogoOferecido,
                 mensagem, anuncio, Instant.now()));
@@ -51,6 +54,7 @@ public class GerenciarPropostas {
         UUID usuarioId = verificadorDeAcesso.usuarioAtualId();
         Instant agora = Instant.now();
         ConversaChat conversa = AcessoAConversa.doParticipante(conversas, conversaId, usuarioId);
+        moderacao.exigirAtivo(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.ANUNCIO,conversa.anuncioId());
         AnuncioNegociavel anuncio = AcessoAConversa.anuncio(anuncios, conversa.anuncioId());
         ConversaChat aceita = conversas.salvar(conversa.aceitarProposta(usuarioId, propostaId, anuncio, agora));
         anuncios.reservar(anuncio.anuncioId());

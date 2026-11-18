@@ -11,13 +11,15 @@ import { urlDaImagem } from '../marketplace/imagem';
 import { AnexoImagens } from './anexo-imagens.component';
 import { formatarMarkdownForum } from './markdown-forum';
 
+import { ConteudoModeravelComponent } from '../moderacao/conteudo-moderavel.component';
+
 /**
  * Tópico com as respostas em árvore. Os botões de editar e excluir só aparecem para o autor e,
  * no caso da edição, dentro das 48 horas; quem decide de fato é o backend.
  */
 @Component({
   selector: 'app-topico',
-  imports: [AnexoImagens, FormsModule, NgTemplateOutlet, RouterLink],
+  imports: [ConteudoModeravelComponent, AnexoImagens, FormsModule, NgTemplateOutlet, RouterLink],
   templateUrl: './topico.page.html',
   styleUrl: './topico.page.scss',
 })

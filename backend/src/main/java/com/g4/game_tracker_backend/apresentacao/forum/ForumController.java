@@ -45,14 +45,17 @@ public class ForumController {
     private final GerenciarRespostas gerenciarRespostas;
     private final ConsultarForum consultarForum;
     private final CurtidasForum curtidas;
+    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
 
     public ForumController(CriarTopico criarTopico, EditarTopico editarTopico,
-            GerenciarRespostas gerenciarRespostas, ConsultarForum consultarForum, CurtidasForum curtidas) {
+            GerenciarRespostas gerenciarRespostas, ConsultarForum consultarForum, CurtidasForum curtidas,
+            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
         this.criarTopico = criarTopico;
         this.editarTopico = editarTopico;
         this.gerenciarRespostas = gerenciarRespostas;
         this.consultarForum = consultarForum;
         this.curtidas = curtidas;
+        this.moderacao = moderacao;
     }
 
     @GetMapping("/topicos")
@@ -71,7 +74,7 @@ public class ForumController {
                 pagina, tamanho);
         Map<UUID, Usuario> autores = consultarForum.autores(
                 resultado.itens().stream().map(ResumoTopico::autorId).toList());
-        return PaginaResponse.de(resultado.map(resumo -> TopicoResumoResponse.de(resumo, autores)));
+        return PaginaResponse.de(resultado.map(resumo -> TopicoResumoResponse.de(resumo, autores, moderacao)));
     }
 
     @GetMapping("/topicos/{id}")
@@ -161,6 +164,6 @@ public class ForumController {
         autores.add(topico.autorId());
         topico.respostas().forEach(resposta -> autores.add(resposta.autorId()));
         return TopicoResponse.de(topico, consultarForum.autores(autores),
-                curtidas.resumo(topico.id(), usuarioAtualIdOuNull()));
+                curtidas.resumo(topico.id(), usuarioAtualIdOuNull()), moderacao);
     }
 }

@@ -6,13 +6,15 @@ import { ItemDaLista, LIMITE_NOTA_ITEM, ListaPersonalizada, ListasService } from
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
 
+import { ConteudoModeravelComponent } from '../moderacao/conteudo-moderavel.component';
+
 /**
  * Uma lista (F-04): os jogos com capa, a nota explicativa e a data de inclusão, mais o contador "N/100".
  * Qualquer um pode ver; só o dono edita as notas e remove itens (o backend confere de novo).
  */
 @Component({
   selector: 'app-lista',
-  imports: [DatePipe, RouterLink],
+  imports: [ConteudoModeravelComponent, DatePipe, RouterLink],
   templateUrl: './lista.page.html',
   styleUrl: './lista.page.scss',
 })

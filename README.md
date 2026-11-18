@@ -292,7 +292,7 @@ Pendências conhecidas da F-02:
 - Duas publicações exatamente simultâneas do mesmo usuário para o mesmo jogo: a segunda esbarra na restrição única e
   volta como erro genérico, e não como o 409 da RN 1.
 - A ficha de estatísticas da página do jogo só mostra as novas médias ao recarregar a página.
-- Não há curtidas, comentários nem moderação de reviews (fora do escopo da F-02).
+- Não há curtidas nem comentários de reviews. Denúncias e moderação de reviews são cobertas pela F-14.
 
 ## Estatísticas dos jogos (F-17)
 
@@ -444,9 +444,11 @@ casos de uso com um instante fixo. Frontend: a seção “Em breve” de `/inici
   com última atividade e ID para desempate. `status` aceita `ABERTO`, `RESOLVIDO` ou `ENCERRADO`. A categoria
   `Discussão geral` também inclui tópicos antigos salvos como `Geral`. A resposta da API traz `totalCurtidas`
   e `totalInteracoes` (respostas ativas + curtidas); no detalhe, cada resposta traz sua contagem e o estado
-  da curtida do usuário autenticado. Curtidas de respostas removidas são apagadas.
+  da curtida do usuário autenticado. Curtidas de respostas removidas pelo autor são apagadas; curtidas de conteúdo moderado saem dos totais públicos e voltam com a reversão.
 - `apenasGerais=true` seleciona tópicos sem jogo vinculado, independentemente da categoria. Pode ser combinado
   com `categoria`, mas não com `jogoId`; essa combinação retorna erro de regra de negócio.
+- O upload em `/api/forum/imagens` aceita PNG, JPG ou WEBP de até 5 MB. A assinatura e o tamanho são
+  validados por `ImagensDoForum` no domínio; `ArmazenarImagemForum` autentica e grava o arquivo.
 - Conteúdo de tópicos e respostas é Markdown com negrito, itálico, listas, código e links. As telas oferecem prévia;
   HTML bruto e imagens embutidas via Markdown não são renderizados. Imagens continuam no fluxo de anexos.
 - A exclusão de resposta é lógica: ela deixa de contar, volta sem conteúdo (`removida: true`) e continua na árvore
@@ -459,12 +461,46 @@ casos de uso com um instante fixo. Frontend: a seção “Em breve” de `/inici
 - Cenários BDD em `f13_forum.feature`, com steps em `PassosForum`. Jogadores e jogos de apoio ficam em `DadosDoCenario`,
   compartilhado entre as classes de steps; o step `o jogador "<nome>" autenticado` agora fica em `PassosComuns`.
 
-Pendências conhecidas da F-13 (escopo da F-14):
-
-- Moderadores e administradores ainda não têm poderes no fórum: encerrar, reabrir, ocultar e remover conteúdo de
-  outros usuários fica para a central de moderação (F-14), que pode reaproveitar os campos `removido` e `removida`.
-- Denúncias e a ação “Denunciar” não aparecem até a F-14 oferecer uma fila funcional. A listagem mostra
+A moderação do fórum, as denúncias e os avisos 18+ são descritos na F-14 abaixo. A listagem ainda mostra
   o nome do jogo procurando no catálogo carregado pela tela; não há busca por título do tópico.
+
+## Moderação da plataforma (F-14)
+
+A moderação cobre `TOPICO`, `RESPOSTA`, `REVIEW`, `LISTA`, `AVALIACAO_MARKETPLACE`, `ANUNCIO` e `PERFIL`.
+Jogos do catálogo e lançamentos futuros seguem os fluxos de gestão próprios. Denúncias **não** ocultam conteúdo:
+a postagem permanece pública até um moderador decidir.
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `POST` | `/api/denuncias` | Denunciar com `{ "tipoConteudo", "conteudoId", "motivo" }`; repetir enquanto pendente devolve a mesma denúncia | autenticado |
+| `GET` | `/api/moderacao/denuncias?pagina=1&tamanho=10` | Fila pendente por data, paginada (até 50 por página) | `MODERADOR` ou `ADMINISTRADOR` |
+| `POST` | `/api/moderacao/denuncias/{id}/arquivar` | Marcar uma denúncia improcedente, com `{ "justificativa" }`, e registrar log | `MODERADOR` ou `ADMINISTRADOR` |
+| `POST` | `/api/moderacao/acoes` | Aplicar `{ "acao", "tipoConteudo", "conteudoId", "justificativa" }`; edição do fórum também usa `novoTitulo` e `novoConteudo`; movimentação de tópico usa `novaCategoria` e movimentação de resposta usa `novaRespostaPaiId` (nulo para a raiz) | `MODERADOR` ou `ADMINISTRADOR` |
+| `GET` | `/api/moderacao/logs?pagina=1&tamanho=10` | Histórico imutável e paginado das ações | `MODERADOR` ou `ADMINISTRADOR` |
+| `GET` | `/api/moderacao/conteudos/{tipo}/{id}/previa` | Prévia privada e ID do autor | `MODERADOR` ou `ADMINISTRADOR` |
+| `GET` | `/api/moderacao/conteudos/{tipo}/{id}/estado` | Estado do aviso 18+ e moderação para a interface | qualquer um |
+| `POST` | `/api/moderacao/advertencias` | Registrar `{ "usuarioId", "motivo" }` sem suspender a conta | `MODERADOR` ou `ADMINISTRADOR` |
+| `GET` | `/api/moderacao/usuarios/{id}/advertencias` e `/total` | Advertências e contagem do usuário | `MODERADOR` ou `ADMINISTRADOR` |
+
+Ações aceitas: `OCULTAR`, `EXCLUIR`, `MARCAR_18`, `RETIRAR_18`, `REVERTER_OCULTACAO` e
+`REVERTER_EXCLUSAO` para todos os tipos; `EDITAR` para tópicos e respostas; `MOVER` e
+`ENCERRAR_TOPICO` só para tópicos; `MOVER` reorganiza a categoria de um tópico ou o pai de uma resposta no mesmo tópico. `OCULTAR` e `EXCLUIR` exigem justificativa. Uma ação procedente
+resolve todas as denúncias pendentes do alvo. Cada decisão gera um registro novo em `moderacao_logs` e
+notificação interna ao autor; a reversão acrescenta outro registro. A advertência também notifica o usuário.
+O `FluxoAcaoModerativa` implementa Template Method: validar permissão e justificativa, aplicar a ação,
+registrar o log e notificar o autor, sempre na transação do caso de uso.
+
+A remoção moderativa do tópico mantém seu endereço e as respostas, mostra uma mensagem de sistema e encerra
+a conversa. Respostas removidas mantêm as filhas. Conteúdo oculto ou removido não aparece nas consultas
+públicas nem em seus agregados; URLs de mídias anexadas são bloqueadas, inclusive as antigas após edição
+do autor. Anúncios moderados não aceitam novas conversas, propostas ou compras diretas. Pedidos existentes
+continuam registrados. O estado de moderação é separado dos dados editáveis pelo autor.
+
+`MARCAR_18` aplica um aviso visual e desfoque ao texto e às imagens. Qualquer visitante pode revelar o
+item na sessão atual, sem verificação de idade e sem restrição de acesso à API. Na interface, “Denunciar”
+aparece nas áreas públicas cobertas e `/moderacao` oferece fila, prévia, decisão, histórico e contagem de
+advertências somente para moderadores e administradores. Os cenários BDD estão em
+`f14_moderacao.feature` e os testes de integração em `ModeracaoIntegracaoTest`.
 
 ## Listas personalizadas (F-04)
 

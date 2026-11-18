@@ -4,6 +4,7 @@
   @if (erro(); as mensagem) {
     <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
   } @else if (perfil(); as p) {
+    <app-conteudo-moderavel tipo="PERFIL" [conteudoId]="p.usuarioId">
     <header class="resumo">
       <span class="resumo__avatar" aria-hidden="true">{{ p.nome.slice(0, 2).toUpperCase() }}</span>
       <div>
@@ -12,6 +13,7 @@
       </div>
     </header>
 
+    </app-conteudo-moderavel>
     <section class="numeros" aria-label="Reputação">
       <div class="numero">
         <strong>{{ p.notaMedia === null ? '—' : (p.notaMedia | number: '1.2-2') }}</strong>
@@ -41,6 +43,7 @@
       <ul class="avaliacoes">
         @for (a of p.avaliacoes; track a.id) {
           <li class="avaliacao">
+            <app-conteudo-moderavel tipo="AVALIACAO_MARKETPLACE" [conteudoId]="a.id">
             <div class="avaliacao__topo">
               <span class="estrelas" [attr.aria-label]="a.estrelas + ' de 5 estrelas'">
                 @for (n of escala; track n) {
@@ -62,6 +65,7 @@
             @if (a.comentario) {
               <p class="avaliacao__comentario">{{ a.comentario }}</p>
             }
+            </app-conteudo-moderavel>
           </li>
         }
       </ul>

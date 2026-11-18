@@ -33,13 +33,15 @@ public class ConsultarListas {
     private final JogoRepositorio jogos;
     private final UsuarioRepositorio usuarios;
     private final VerificadorDeAcesso verificadorDeAcesso;
+    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
 
     public ConsultarListas(ListaRepositorio listas, JogoRepositorio jogos, UsuarioRepositorio usuarios,
-            VerificadorDeAcesso verificadorDeAcesso) {
+            VerificadorDeAcesso verificadorDeAcesso, com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
         this.listas = listas;
         this.jogos = jogos;
         this.usuarios = usuarios;
         this.verificadorDeAcesso = verificadorDeAcesso;
+        this.moderacao = moderacao;
     }
 
     @Transactional(readOnly = true)
@@ -76,7 +78,7 @@ public class ConsultarListas {
     public Map<UUID, String> nomesDosDonos(Collection<UUID> donoIds) {
         Map<UUID, String> nomes = new HashMap<>();
         for (UUID donoId : new HashSet<>(donoIds)) {
-            usuarios.buscarPorId(donoId).ifPresent(usuario -> nomes.put(donoId, usuario.nome()));
+            usuarios.buscarPorId(donoId).ifPresent(usuario -> nomes.put(donoId, moderacao.visivel(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.PERFIL,donoId) ? usuario.nome() : "Perfil indisponível"));
         }
         return nomes;
     }

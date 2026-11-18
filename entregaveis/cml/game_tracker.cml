@@ -30,6 +30,7 @@
 //
 // Padroes de projeto (GoF) previstos no modelo:
 //  - Template Method : F-01 (CadastroJogoTemplate: origem API x origem Manual/Criador)
+//                      e F-14 (FluxoAcaoModerativa: validar, aplicar, registrar, notificar)
 //  - Proxy           : F-01 (ProxyBaseExternaJogos sobre IBaseExternaJogosGateway)
 //  - Strategy        : F-10 (ISimilaridadeStrategy) e F-20 (IFormaPagamentoStrategy)
 //  - Observer        : F-16 e F-17 (observadores dos eventos de review, zerado e compra)
@@ -1142,9 +1143,11 @@ BoundedContext ContextoModeracao implements ComunidadeForumSubdomain {
             - @StatusDenuncia           status
             DateTime                    registradaEm
             DateTime                    analisadaEm
+            String                      chavePendente  // único por denunciante e alvo enquanto pendente
         }
 
-        enum TipoConteudo   { TOPICO, RESPOSTA, COMENTARIO }
+        // Conteúdo público criado por usuários; catálogo e lançamentos têm gestão própria.
+        enum TipoConteudo   { TOPICO, RESPOSTA, REVIEW, LISTA, AVALIACAO_MARKETPLACE, ANUNCIO, PERFIL }
         enum StatusDenuncia { PENDENTE, PROCEDENTE, IMPROCEDENTE }
         ValueObject DenunciaId { String id }
 
@@ -1157,6 +1160,19 @@ BoundedContext ContextoModeracao implements ComunidadeForumSubdomain {
             @DenunciaConteudo salvar(@DenunciaConteudo denuncia);
             Optional<@DenunciaConteudo> buscarPorId(@DenunciaId denunciaId);
             List<@DenunciaConteudo> listarPorStatus(@StatusDenuncia status);
+        }
+    }
+
+    Aggregate EstadoModeracao {
+        Entity EstadoConteudo {
+            aggregateRoot
+            - @TipoConteudo tipoConteudo
+            String conteudoId
+            Boolean oculto
+            Boolean removido
+            Boolean aviso18
+            String statusAnterior  // permite reverter remoção de tópico
+            DateTime atualizadoEm
         }
     }
 
@@ -1174,7 +1190,7 @@ BoundedContext ContextoModeracao implements ComunidadeForumSubdomain {
             DateTime                registradoEm
         }
 
-        enum TipoAcaoModeracao { OCULTAR, EDITAR, MOVER, EXCLUIR, ENCERRAR_TOPICO, ADVERTIR_USUARIO }
+        enum TipoAcaoModeracao { OCULTAR, EDITAR, MOVER, EXCLUIR, ENCERRAR_TOPICO, ADVERTIR_USUARIO, MARCAR_18, RETIRAR_18, REVERTER_OCULTACAO, REVERTER_EXCLUSAO, ARQUIVAR_DENUNCIA }
         ValueObject LogModeracaoId { String id }
 
         // RN 1: somente MODERADOR ou ADMINISTRADOR. RN 3: exclusao logica com mensagem de sistema.
@@ -1183,13 +1199,19 @@ BoundedContext ContextoModeracao implements ComunidadeForumSubdomain {
             void excluir(@UsuarioId moderadorId, @TipoConteudo tipo, String conteudoId, String justificativa, @DenunciaId denunciaId);
             void editar(@UsuarioId moderadorId, @TipoConteudo tipo, String conteudoId, String novoConteudo, String justificativa);
             void moverTopico(@UsuarioId moderadorId, @TopicoId topicoId, String novaCategoria, String justificativa);
+            void moverResposta(@UsuarioId moderadorId, String respostaId, String novaRespostaPaiId, String justificativa);
             void encerrarTopico(@UsuarioId moderadorId, @TopicoId topicoId, String justificativa);
             @Advertencia advertir(@UsuarioId moderadorId, @UsuarioId usuarioId, String motivo);
             void arquivarDenuncia(@UsuarioId moderadorId, @DenunciaId denunciaId);
+            void marcar18(@UsuarioId moderadorId, @TipoConteudo tipo, String conteudoId, String justificativa);
+            void retirar18(@UsuarioId moderadorId, @TipoConteudo tipo, String conteudoId, String justificativa);
+            void reverterOcultacao(@UsuarioId moderadorId, @TipoConteudo tipo, String conteudoId, String justificativa);
+            void reverterExclusao(@UsuarioId moderadorId, @TipoConteudo tipo, String conteudoId, String justificativa);
         }
 
         Service ConsultaAuditoriaService {
             List<@LogDeModeracao> consultarHistorico(Integer pagina, Integer tamanho);
+            List<@Advertencia> consultarAdvertencias(@UsuarioId usuarioId);
         }
 
         // Porta ACL para o ContextoForum: aplica a alteracao no conteudo moderado.

@@ -43,15 +43,18 @@ public class AnuncioController {
     private final AlterarStatusAnuncio alterarStatusAnuncio;
     private final ConsultarAnuncios consultarAnuncios;
     private final ArmazenarFotoAnuncio armazenarFotoAnuncio;
+    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
 
     public AnuncioController(CriarAnuncio criarAnuncio, EditarAnuncio editarAnuncio,
             AlterarStatusAnuncio alterarStatusAnuncio, ConsultarAnuncios consultarAnuncios,
-            ArmazenarFotoAnuncio armazenarFotoAnuncio) {
+            ArmazenarFotoAnuncio armazenarFotoAnuncio,
+            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
         this.criarAnuncio = criarAnuncio;
         this.editarAnuncio = editarAnuncio;
         this.alterarStatusAnuncio = alterarStatusAnuncio;
         this.consultarAnuncios = consultarAnuncios;
         this.armazenarFotoAnuncio = armazenarFotoAnuncio;
+        this.moderacao = moderacao;
     }
 
     @GetMapping("/anuncios")
@@ -74,6 +77,7 @@ public class AnuncioController {
 
     @GetMapping("/anuncios/{id}")
     public AnuncioResponse consultar(@PathVariable UUID id) {
+        moderacao.exigirVisivel(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.ANUNCIO,id);
         return AnuncioResponse.de(consultarAnuncios.buscarPorId(id));
     }
 

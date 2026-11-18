@@ -26,10 +26,13 @@ public class ConsultarForum {
 
     private final TopicoDeForumRepositorio topicos;
     private final UsuarioRepositorio usuarios;
+    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
 
-    public ConsultarForum(TopicoDeForumRepositorio topicos, UsuarioRepositorio usuarios) {
+    public ConsultarForum(TopicoDeForumRepositorio topicos, UsuarioRepositorio usuarios,
+            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
         this.topicos = topicos;
         this.usuarios = usuarios;
+        this.moderacao = moderacao;
     }
 
     @Transactional(readOnly = true)
@@ -46,7 +49,9 @@ public class ConsultarForum {
 
     @Transactional(readOnly = true)
     public TopicoDeForum buscarPorId(UUID id) {
-        return TopicosDoForum.visivel(topicos, id);
+        TopicoDeForum topico = TopicosDoForum.visivel(topicos, id);
+        moderacao.exigirVisivel(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.TOPICO, id);
+        return topico;
     }
 
     /** Nome de exibição de cada autor, para as telas não mostrarem apenas identificadores. */

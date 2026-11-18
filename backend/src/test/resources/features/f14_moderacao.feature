@@ -1,63 +1,81 @@
 # language: pt
-@pendente
 Funcionalidade: F-14 Central de moderação, auditoria e denúncias
-  Como moderador, quero analisar denúncias e aplicar ações moderativas com registro de
-  auditoria, mantendo o fórum saudável.
+  Conteúdo denunciado permanece público até decisão. Toda decisão é auditada.
 
-  Cenário: Jogador denuncia uma resposta
-    Dado o jogador "marina" autenticado
-    E uma resposta ofensiva publicada por "troll"
-    Quando o jogador denuncia a resposta com o motivo "Linguagem ofensiva"
-    Então a fila de denúncias pendentes deve conter 1 denúncia
+  Esquema do Cenário: Jogador denuncia qualquer conteúdo público existente
+    Dado que há um jogador autenticado para moderação
+    E que existe conteúdo moderável do tipo "<tipo>"
+    Quando ele denuncia o conteúdo com motivo "Conteúdo inadequado"
+    Então existe uma denúncia pendente e o conteúdo continua público
 
-  # RN 1 - permissão exclusiva e justificativa obrigatória
-  Cenário: Jogador comum não acessa a central de moderação
-    Dado o jogador "marina" autenticado
-    Quando o usuário tenta acessar a central de moderação
-    Então o acesso deve ser recusado com a mensagem "Acesso restrito a moderadores e administradores"
+    Exemplos:
+      | tipo                    |
+      | TOPICO                  |
+      | RESPOSTA                |
+      | REVIEW                  |
+      | LISTA                   |
+      | AVALIACAO_MARKETPLACE  |
+      | ANUNCIO                 |
+      | PERFIL                  |
 
-  Cenário: Ocultar conteúdo sem justificativa é recusado
-    Dado um usuário com papel "MODERADOR"
-    E uma denúncia pendente sobre uma resposta
-    Quando o moderador oculta a resposta sem justificativa
+  Cenário: Denúncia repetida mantém uma só pendência
+    Dado que há um jogador autenticado para moderação
+    E que existe conteúdo moderável do tipo "TOPICO"
+    Quando ele denuncia o conteúdo duas vezes
+    Então há uma única denúncia pendente do jogador para o alvo
+
+  Cenário: Jogador comum não acessa a central
+    Dado que há um jogador autenticado para moderação
+    Quando tenta consultar a fila da moderação
+    Então o acesso à moderação é recusado
+
+  Cenário: Ocultar exige justificativa
+    Dado que há um moderador autenticado para moderação
+    E que existe conteúdo moderável do tipo "RESPOSTA"
+    Quando tenta ocultar sem justificativa
     Então a ação deve ser recusada com a mensagem "A justificativa é obrigatória"
 
-  # RN 2 - auditoria e registro imutável em log
-  Cenário: Toda ação moderativa gera registro no log
-    Dado um usuário com papel "MODERADOR"
-    E uma denúncia pendente sobre uma resposta
-    Quando o moderador oculta a resposta com a justificativa "Discurso de ódio"
-    Então o log de moderação deve conter 1 registro com a ação "OCULTAR"
-    E o registro deve conter o moderador, o conteúdo afetado, a justificativa e a data e hora
+  Cenário: Decisão procedente gera log e resolve denúncias
+    Dado que há um jogador autenticado para moderação
+    E que existe conteúdo moderável do tipo "REVIEW"
+    E que ele denunciou o conteúdo
+    Quando um moderador oculta o conteúdo com justificativa "Discurso de ódio"
+    Então as denúncias do alvo ficam procedentes e há um log imutável
+    E o autor recebe a notificação da ação
 
-  Cenário: Registro do log não pode ser alterado
-    Dado um registro existente no log de moderação
-    Quando alguém tenta alterar o registro do log
-    Então a operação deve ser recusada com a mensagem "Registros de moderação são imutáveis"
+  Cenário: Arquivamento improcedente é auditado
+    Dado que há um jogador autenticado para moderação
+    E que existe conteúdo moderável do tipo "LISTA"
+    E que ele denunciou o conteúdo
+    Quando um moderador arquiva a denúncia
+    Então a denúncia fica improcedente e há um log de arquivamento
 
-  Cenário: Moderador registra advertência a um usuário
-    Dado um usuário com papel "MODERADOR"
-    Quando o moderador registra uma advertência a "troll" com o motivo "Reincidência"
-    Então o usuário "troll" deve ter 1 advertência
-    E o log de moderação deve conter 1 registro com a ação "ADVERTIR_USUARIO"
+  Cenário: Remover resposta mantém filhas e contagem
+    Dado que há um moderador autenticado para moderação
+    E que existe resposta com duas filhas para moderação
+    Quando o moderador remove a resposta com justificativa "Spam"
+    Então as duas filhas continuam visíveis e o contador exclui a resposta
 
-  # RN 3 - exclusão lógica com preservação do fluxo
-  Cenário: Remover postagem com respostas mantém a árvore
-    Dado um usuário com papel "MODERADOR"
-    E uma resposta que possui 2 respostas filhas
-    Quando o moderador exclui a resposta com a justificativa "Spam"
-    Então o texto da resposta deve ser "Esta postagem foi removida por violar as diretrizes"
-    E as 2 respostas filhas devem continuar visíveis
+  Cenário: Remover tópico preserva endereço e encerra conversa
+    Dado que há um moderador autenticado para moderação
+    E que existe conteúdo moderável do tipo "TOPICO"
+    Quando o moderador remove o tópico com justificativa "Spam"
+    Então o endereço do tópico mostra a mensagem de sistema e status "ENCERRADO"
 
-  Cenário: Moderador encerra uma discussão
-    Dado um usuário com papel "MODERADOR"
-    E um tópico com status "ABERTO"
-    Quando o moderador encerra o tópico com a justificativa "Discussão resolvida"
-    Então o tópico deve ter status "ENCERRADO"
+  Cenário: Reversão cria novo log e restaura visibilidade
+    Dado que há um moderador autenticado para moderação
+    E que existe conteúdo moderável do tipo "ANUNCIO"
+    Quando oculta e reverte a ocultação do conteúdo
+    Então o conteúdo volta a ser público e existem dois logs
 
-  # Consulta
-  Cenário: Consultar a fila de denúncias pendentes
-    Dado um usuário com papel "MODERADOR"
-    E 3 denúncias pendentes e 2 já analisadas
-    Quando o moderador consulta a fila de denúncias
-    Então a consulta deve retornar 3 denúncias
+  Cenário: Aviso 18+ não restringe a leitura
+    Dado que há um moderador autenticado para moderação
+    E que existe conteúdo moderável do tipo "PERFIL"
+    Quando aplica aviso 18+ ao conteúdo
+    Então o conteúdo permanece público com aviso 18+
+
+  Cenário: Advertência incrementa contador e notifica usuário
+    Dado que há um moderador autenticado para moderação
+    E que existe conteúdo moderável do tipo "PERFIL"
+    Quando adverte o autor por "Reincidência"
+    Então a contagem de advertências é 1 e o autor é notificado

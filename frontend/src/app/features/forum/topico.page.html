@@ -17,12 +17,14 @@
       </div>
       <div class="postagem__corpo">
         <div class="postagem__data"><time>{{ tempoRelativo(t.publicadoEm) }}</time>@if (t.editadoEm) { <span>· editado</span> }</div>
+        <app-conteudo-moderavel tipo="TOPICO" [conteudoId]="t.id">
         <div class="texto markdown-forum" [innerHTML]="markdown(t.conteudo)"></div>
         @if (t.imagens.length) {
           <ul class="galeria" aria-label="Imagens do tópico">@for (url of t.imagens; track url) {
             <li><a [href]="urlDaImagem(url)" target="_blank" rel="noopener" title="Abrir em tamanho original"><img [src]="urlDaImagem(url)" alt="Imagem anexada ao tópico" loading="lazy" /></a></li>
           }</ul>
         }
+        </app-conteudo-moderavel>
         <div class="acoes">
           @if (autenticacao.usuarioAtual()) {
             <button class="acao curtida" [class.curtida--ativa]="t.curtidoPeloUsuario" type="button" [disabled]="enviando()" (click)="curtir()" [attr.aria-label]="t.curtidoPeloUsuario ? 'Descurtir tópico' : 'Curtir tópico'">{{ t.curtidoPeloUsuario ? '♥' : '♡' }} {{ t.totalCurtidas }}</button>
@@ -77,7 +79,7 @@
           </div>
           <div class="postagem__corpo">
             <div class="postagem__data"><time>{{ tempoRelativo(resposta.publicadaEm) }}</time>@if (resposta.editadaEm && !resposta.removida) { <span>· editada</span> }</div>
-            @if (resposta.removida) { <p class="texto texto--removido">Resposta removida pelo autor.</p> }
+            @if (resposta.removida) { <p class="texto texto--removido">{{ resposta.removidaPelaModeracao ? (resposta.conteudo ?? 'Resposta oculta pela moderação') : 'Resposta removida pelo autor.' }}</p> }
             @else if (editando() === resposta.id) {
               <form class="formulario" (ngSubmit)="salvarEdicao(resposta)">
                 <textarea name="textoEditado" aria-label="Editar resposta" rows="3" maxlength="5000" [(ngModel)]="textoEditado"></textarea>
@@ -85,8 +87,10 @@
                 <div class="acoes"><button class="acao" type="submit" [disabled]="enviando() || !textoEditado.trim()">Salvar</button><button class="acao acao--secundaria" type="button" (click)="editando.set(null)">Cancelar</button></div>
               </form>
             } @else {
+              <app-conteudo-moderavel tipo="RESPOSTA" [conteudoId]="resposta.id">
               <div class="texto markdown-forum" [innerHTML]="markdown(resposta.conteudo)"></div>
               @if (resposta.imagens.length) { <ul class="galeria galeria--resposta" aria-label="Imagens da resposta">@for (url of resposta.imagens; track url) { <li><a [href]="urlDaImagem(url)" target="_blank" rel="noopener" title="Abrir em tamanho original"><img [src]="urlDaImagem(url)" alt="Imagem anexada à resposta" loading="lazy" /></a></li> }</ul> }
+              </app-conteudo-moderavel>
               <div class="acoes">
                 @if (autenticacao.usuarioAtual() && !resposta.removida) { <button class="acao curtida" [class.curtida--ativa]="resposta.curtidaPeloUsuario" type="button" [disabled]="enviando()" (click)="curtir(resposta.id)" [attr.aria-label]="resposta.curtidaPeloUsuario ? 'Descurtir resposta' : 'Curtir resposta'">{{ resposta.curtidaPeloUsuario ? '♥' : '♡' }} {{ resposta.totalCurtidas }}</button> }
                 @else { <span class="curtida-estatica">♡ {{ resposta.totalCurtidas }}</span> }

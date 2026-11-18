@@ -21,30 +21,36 @@ public record TopicoResponse(UUID id, UUID autorId, String nomeAutor, UUID jogoI
         Instant publicadoEm, Instant editadoEm, Instant editavelAte, Instant dataUltimaAtividade, List<Resposta> respostas) {
 
     public record Resposta(UUID id, UUID autorId, String nomeAutor, String papelAutor, String avatarAutorUrl,
-            UUID respostaPaiId, String conteudo, List<String> imagens, boolean removida, int totalCurtidas,
+            UUID respostaPaiId, String conteudo, List<String> imagens, boolean removida, boolean removidaPelaModeracao, int totalCurtidas,
             boolean curtidaPeloUsuario, Instant publicadaEm, Instant editadaEm, Instant editavelAte) {
 
-        static Resposta de(RespostaForum resposta, Map<UUID, Usuario> autores, CurtidasForum.Resumo curtidas) {
+        static Resposta de(RespostaForum resposta, Map<UUID, Usuario> autores, CurtidasForum.Resumo curtidas,
+                com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
             Usuario autor = autores.get(resposta.autorId());
-            return new Resposta(resposta.id(), resposta.autorId(), autor == null ? null : autor.nome(),
-                    autor == null ? null : autor.papel().name(), autor == null ? null : autor.avatarUrl(),
-                    resposta.respostaPaiId(), resposta.removida() ? null : resposta.conteudo(),
-                    resposta.removida() ? List.of() : resposta.imagens(), resposta.removida(),
+            return new Resposta(resposta.id(), resposta.autorId(), autor == null ? null : (moderacao.visivel(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.PERFIL,autor.id()) ? autor.nome() : "Perfil indisponível"),
+                    autor == null ? null : autor.papel().name(), autor == null || !moderacao.visivel(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.PERFIL,autor.id()) ? null : autor.avatarUrl(),
+                    resposta.respostaPaiId(), resposta.removida() ? null : (moderacao.removido(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.RESPOSTA,resposta.id()) ? com.g4.game_tracker_backend.aplicacao.moderacao.ModeracaoOperacoes.MENSAGEM_REMOCAO : (moderacao.oculto(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.RESPOSTA,resposta.id()) ? "Resposta oculta pela moderação" : resposta.conteudo())),
+                    resposta.removida() || !moderacao.visivel(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.RESPOSTA,resposta.id()) ? List.of() : resposta.imagens(), resposta.removida() || moderacao.removido(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.RESPOSTA,resposta.id()) || moderacao.oculto(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.RESPOSTA,resposta.id()),
+                    moderacao.removido(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.RESPOSTA,resposta.id()) || moderacao.oculto(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.RESPOSTA,resposta.id()),
                     curtidas.porResposta().getOrDefault(resposta.id(), 0),
                     curtidas.curtidasDoUsuario().contains(resposta.id()),
                     resposta.publicadaEm(), resposta.editadaEm(), TopicoDeForum.editavelAte(resposta.publicadaEm()));
         }
     }
 
-    static TopicoResponse de(TopicoDeForum topico, Map<UUID, Usuario> autores, CurtidasForum.Resumo curtidas) {
+    static TopicoResponse de(TopicoDeForum topico, Map<UUID, Usuario> autores, CurtidasForum.Resumo curtidas,
+            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
         Usuario autor = autores.get(topico.autorId());
-        return new TopicoResponse(topico.id(), topico.autorId(), autor == null ? null : autor.nome(), topico.jogoId(),
-                topico.categoria(), topico.titulo(), topico.conteudo(), topico.imagens(), topico.status().name(),
-                topico.totalRespostas(), curtidas.totalTopico(), topico.totalRespostas() + curtidas.total(),
+        return new TopicoResponse(topico.id(), topico.autorId(), autor == null ? null : (moderacao.visivel(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.PERFIL,autor.id()) ? autor.nome() : "Perfil indisponível"), topico.jogoId(),
+                topico.categoria(), moderacao.removido(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.TOPICO,topico.id()) ? com.g4.game_tracker_backend.aplicacao.moderacao.ModeracaoOperacoes.MENSAGEM_REMOCAO : topico.titulo(),
+                moderacao.removido(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.TOPICO,topico.id()) ? com.g4.game_tracker_backend.aplicacao.moderacao.ModeracaoOperacoes.MENSAGEM_REMOCAO : topico.conteudo(),
+                moderacao.removido(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.TOPICO,topico.id()) ? List.of() : topico.imagens(), topico.status().name(),
+                (int) topico.respostas().stream().filter(r -> !r.removida() && !moderacao.removido(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.RESPOSTA,r.id()) && !moderacao.oculto(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.RESPOSTA,r.id())).count(), curtidas.totalTopico(),
+                (int) topico.respostas().stream().filter(r -> !r.removida() && !moderacao.removido(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.RESPOSTA,r.id()) && !moderacao.oculto(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.RESPOSTA,r.id())).count() + curtidas.total(),
                 curtidas.curtidasDoUsuario().contains(topico.id()),
-                autor == null ? null : autor.papel().name(), autor == null ? null : autor.avatarUrl(),
+                autor == null ? null : autor.papel().name(), autor == null || !moderacao.visivel(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.PERFIL,autor.id()) ? null : autor.avatarUrl(),
                 topico.publicadoEm(), topico.editadoEm(),
                 TopicoDeForum.editavelAte(topico.publicadoEm()), topico.dataUltimaAtividade(),
-                topico.respostas().stream().map(resposta -> Resposta.de(resposta, autores, curtidas)).toList());
+                topico.respostas().stream().map(resposta -> Resposta.de(resposta, autores, curtidas, moderacao)).toList());
     }
 }

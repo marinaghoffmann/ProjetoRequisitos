@@ -25,11 +25,14 @@ class OrigemDoPedido {
     private final CicloDoAnuncioNoPedido anuncios;
     private final ReservasDaNegociacao reservas;
     private final PedidoMarketplaceRepositorio pedidos;
+    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
 
-    OrigemDoPedido(CicloDoAnuncioNoPedido anuncios, ReservasDaNegociacao reservas, PedidoMarketplaceRepositorio pedidos) {
+    OrigemDoPedido(CicloDoAnuncioNoPedido anuncios, ReservasDaNegociacao reservas, PedidoMarketplaceRepositorio pedidos,
+            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
         this.anuncios = anuncios;
         this.reservas = reservas;
         this.pedidos = pedidos;
+        this.moderacao = moderacao;
     }
 
     /**
@@ -63,6 +66,7 @@ class OrigemDoPedido {
     /** Anúncio ATIVO de outra pessoa, pelo preço anunciado; anúncio só de troca não tem compra direta. */
     private Resolvida daCompraDireta(UUID anuncioId, UUID compradorId) {
         AnuncioMarketplace anuncio = anuncios.carregar(anuncioId);
+        moderacao.exigirAtivo(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.ANUNCIO,anuncioId);
         if (anuncio.pertenceA(compradorId)) {
             throw new RegraDeNegocioException("Você não pode comprar o próprio anúncio");
         }

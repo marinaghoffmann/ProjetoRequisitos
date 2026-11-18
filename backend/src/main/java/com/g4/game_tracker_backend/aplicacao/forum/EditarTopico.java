@@ -21,10 +21,13 @@ public class EditarTopico {
 
     private final TopicoDeForumRepositorio topicos;
     private final VerificadorDeAcesso verificadorDeAcesso;
+    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
 
-    public EditarTopico(TopicoDeForumRepositorio topicos, VerificadorDeAcesso verificadorDeAcesso) {
+    public EditarTopico(TopicoDeForumRepositorio topicos, VerificadorDeAcesso verificadorDeAcesso,
+            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
         this.topicos = topicos;
         this.verificadorDeAcesso = verificadorDeAcesso;
+        this.moderacao = moderacao;
     }
 
     public TopicoDeForum executar(UUID id, String titulo, String conteudo, String categoria) {
@@ -36,6 +39,7 @@ public class EditarTopico {
     public TopicoDeForum executar(UUID id, String titulo, String conteudo, String categoria,
             List<String> imagens) {
         TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, id);
+        moderacao.exigirAtivo(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.TOPICO,id);
         return topicos.salvar(atual.editar(verificadorDeAcesso.usuarioAtualId(), titulo, conteudo, categoria,
                 imagens, Instant.now()));
     }
@@ -43,12 +47,14 @@ public class EditarTopico {
     @Transactional
     public TopicoDeForum alterarStatus(UUID id, StatusTopico status) {
         TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, id);
+        moderacao.exigirAtivo(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.TOPICO,id);
         return topicos.salvar(atual.alterarStatus(verificadorDeAcesso.usuarioAtualId(), status, Instant.now()));
     }
 
     @Transactional
     public void excluir(UUID id) {
         TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, id);
+        moderacao.exigirAtivo(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.TOPICO,id);
         topicos.salvar(atual.remover(verificadorDeAcesso.usuarioAtualId()));
     }
 }
