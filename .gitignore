@@ -69,3 +69,8 @@ frontend/.angular/
 ### Uploaded catalog images ###
 backend/uploads/catalogo/*
 !backend/uploads/catalogo/.gitkeep
+
+### Variáveis de ambiente (segredos) ###
+.env
+.env.*
+!.env.example
