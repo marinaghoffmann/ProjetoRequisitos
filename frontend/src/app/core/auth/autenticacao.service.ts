@@ -35,6 +35,7 @@ export interface DadosPerfil {
   nome: string;
   bio: string;
   localizacao: string;
+  bannerUrl?: string;
 }
 
 @Injectable({ providedIn: 'root' })

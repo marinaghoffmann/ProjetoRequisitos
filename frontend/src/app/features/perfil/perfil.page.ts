@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
   JogandoAgoraService, JogoEmAndamento, LIMITE_JOGANDO_AGORA, Progresso, ROTULOS_PROGRESSO,
@@ -8,6 +10,8 @@ import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
 import { PerfilListasComponent } from './perfil-listas.component';
 import { PerfilReviewsComponent } from './perfil-reviews.component';
+import { FavoritosComponent } from './favoritos.component';
+import { PerfilPublico, PerfilPublicoService } from '../../core/api/perfil-publico.service';
 
 const ROTULOS_PAPEL: Record<string, string> = {
   COMUM: 'Player',
@@ -26,7 +30,7 @@ const GRADIENTES = [
 
 @Component({
   selector: 'app-perfil-page',
-  imports: [RouterLink, PerfilReviewsComponent, PerfilListasComponent],
+  imports: [RouterLink, PerfilReviewsComponent, PerfilListasComponent, FavoritosComponent],
   templateUrl: './perfil.page.html',
   styleUrl: './perfil.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,12 +38,19 @@ const GRADIENTES = [
 export class PerfilPage implements OnInit {
   protected readonly autenticacao = inject(AutenticacaoService);
   private readonly jogando = inject(JogandoAgoraService);
+  private readonly perfis = inject(PerfilPublicoService);
+  private readonly rota = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly idPerfil = signal<string | null>(null);
 
   // ===== Dados reais =====
-  protected readonly usuario = computed(() => this.autenticacao.usuarioAtual());
+  protected readonly usuario = signal<PerfilPublico | null>(null);
+  protected readonly visualizacaoPublica = signal(false);
+  protected readonly meuPerfil = computed(() => this.usuario()?.id === this.autenticacao.usuarioAtual()?.id);
+  protected readonly podeEditar = computed(() => this.meuPerfil() && !this.visualizacaoPublica());
   protected readonly iniciais = computed(() => (this.usuario()?.nome ?? '?').slice(0, 2).toUpperCase());
   protected readonly papel = computed(() => {
-    const p = this.usuario()?.papel ?? '';
+    const p = this.podeEditar() ? this.autenticacao.usuarioAtual()?.papel ?? '' : '';
     return ROTULOS_PAPEL[p] ?? p;
   });
 
@@ -59,12 +70,31 @@ export class PerfilPage implements OnInit {
   /** Aba exibida: "Atividade" (padrão) ou uma das que já funcionam (Reviews, F-02; Listas, F-04). */
   protected readonly aba = signal('Atividade');
   protected readonly estatisticas = ['jogos', 'zerados', 'seguidores', 'seguindo'];
-  protected readonly favoritos = [1, 2, 3, 4];
   protected readonly atividades = [1, 2];
   protected readonly barras = [30, 48, 36, 62, 44, 70, 40, 52, 60, 38, 66, 46];
 
   ngOnInit(): void {
-    this.recarregar();
+    this.rota.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((parametros) => {
+      this.visualizacaoPublica.set(parametros.has('id'));
+      this.idPerfil.set(parametros.get('id') ?? this.autenticacao.usuarioAtual()?.id ?? null);
+      this.usuario.set(null);
+      this.emAndamento.set([]);
+      this.aba.set('Atividade');
+      this.carregarPerfil();
+    });
+  }
+
+  protected carregarPerfil(): void {
+    const id = this.idPerfil();
+    if (!id) return;
+    this.erro.set(null);
+    this.perfis.consultar(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (perfil) => {
+        this.usuario.set(perfil);
+        if (this.podeEditar()) this.recarregar();
+      },
+      error: (erro: ErroApi) => this.erro.set(erro.mensagem),
+    });
   }
 
   /** Imagem enviada pelo usuário; nulo mantém o degradê padrão do CSS. */

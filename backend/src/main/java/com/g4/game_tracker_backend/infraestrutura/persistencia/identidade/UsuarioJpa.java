@@ -39,7 +39,7 @@ public class UsuarioJpa {
     @Column(name = "desenvolvedora_id")
     private UUID desenvolvedoraId;
 
-    @Column(length = 160)
+    @Column(length = 500)
     private String bio;
 
     @Column(length = 80)

@@ -27,6 +27,7 @@ import com.g4.game_tracker_backend.aplicacao.identidade.ConsultarUsuarioAtual;
 import com.g4.game_tracker_backend.aplicacao.identidade.RegistrarUsuario;
 import com.g4.game_tracker_backend.aplicacao.identidade.SessaoAutenticada;
 import com.g4.game_tracker_backend.dominio.identidade.Usuario;
+import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 
 import jakarta.validation.Valid;
 
@@ -71,7 +72,8 @@ public class UsuarioController {
     /** O usuário autenticado edita o próprio perfil (nome, bio e localização). */
     @PutMapping("/usuarios/me")
     public UsuarioResponse editarPerfil(@Valid @RequestBody EditarPerfilRequest requisicao) {
-        return UsuarioResponse.de(editarPerfil.executar(requisicao.nome(), requisicao.bio(), requisicao.localizacao()));
+        return UsuarioResponse.de(editarPerfil.executar(requisicao.nome(), requisicao.bio(),
+                requisicao.localizacao(), requisicao.bannerUrl()));
     }
 
     @PostMapping("/auth/login")
@@ -108,7 +110,14 @@ public class UsuarioController {
     private UsuarioResponse atualizar(AtualizarImagemPerfil.Tipo tipo, MultipartFile arquivo) throws IOException {
         String extensao = TIPOS.get(arquivo.getContentType());
         if (arquivo.isEmpty() || extensao == null) {
-            throw new IllegalArgumentException("Envie uma imagem JPG, PNG ou WebP.");
+            throw new RegraDeNegocioException("Envie uma imagem JPG, PNG ou WebP.");
+        }
+        String nome = arquivo.getOriginalFilename();
+        if (nome == null || !nome.toLowerCase(java.util.Locale.ROOT).endsWith("." + extensao)) {
+            throw new RegraDeNegocioException("A extensão da imagem deve corresponder ao formato JPG, PNG ou WebP");
+        }
+        if (arquivo.getSize() > 5 * 1024 * 1024) {
+            throw new RegraDeNegocioException("A imagem deve ter no máximo 5 MB");
         }
         return UsuarioResponse.de(atualizarImagemPerfil.executar(tipo, arquivo.getBytes(), extensao));
     }
