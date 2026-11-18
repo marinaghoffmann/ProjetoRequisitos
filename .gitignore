@@ -66,9 +66,10 @@ node_modules/
 frontend/dist/
 frontend/.angular/
 
-### Uploaded catalog images ###
-backend/uploads/catalogo/*
-!backend/uploads/catalogo/.gitkeep
+### Arquivos enviados pelos usuários (gerados em tempo de execução) ###
+backend/uploads/**
+!backend/uploads/**/
+!backend/uploads/**/.gitkeep
 
 ### Variáveis de ambiente (segredos) ###
 .env
