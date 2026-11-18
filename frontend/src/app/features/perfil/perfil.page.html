@@ -142,6 +142,35 @@
         }
       </section>
 
+      <!-- Wishlist -->
+      <section class="pf-secao">
+        <div class="pf-secao__cab">
+          <div>
+            <h2>Wishlist</h2>
+            <p>{{ itensWishlist().length }} jogos</p>
+          </div>
+        </div>
+
+        @if (!itensWishlist().length) {
+          <p class="pf-estado">
+            Sua wishlist está vazia.
+            <a routerLink="/catalogo">Explorar o catálogo</a>
+          </p>
+        } @else {
+          <ul class="pf-jogando">
+            @for (item of itensWishlist(); track item.jogoId; let i = $index) {
+              <li class="pf-jogo">
+                <a class="pf-jogo__capa" [routerLink]="['/catalogo', item.jogoId]" [style.--capa]="capa(item)" [style.background]="gradiente(i)" [attr.aria-label]="'Abrir ' + item.titulo"></a>
+                <div class="pf-jogo__corpo">
+                  <a class="pf-jogo__titulo" [routerLink]="['/catalogo', item.jogoId]">{{ item.titulo }}</a>
+                  <button type="button" class="pf-link" (click)="removerDaWishlist(item.jogoId)">Remover da wishlist</button>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
 
       <!-- Atividade recente + Resumo -->
       <div class="pf-duas">

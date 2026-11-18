@@ -12,6 +12,7 @@ import { PerfilListasComponent } from './perfil-listas.component';
 import { PerfilReviewsComponent } from './perfil-reviews.component';
 import { FavoritosComponent } from './favoritos.component';
 import { PerfilPublico, PerfilPublicoService } from '../../core/api/perfil-publico.service';
+import { ItemWishlist, WishlistService } from '../../core/api/wishlist.service';
 
 const ROTULOS_PAPEL: Record<string, string> = {
   COMUM: 'Player',
@@ -39,6 +40,7 @@ export class PerfilPage implements OnInit {
   protected readonly autenticacao = inject(AutenticacaoService);
   private readonly jogando = inject(JogandoAgoraService);
   private readonly perfis = inject(PerfilPublicoService);
+  private readonly wishlist = inject(WishlistService);
   private readonly rota = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly idPerfil = signal<string | null>(null);
@@ -58,6 +60,7 @@ export class PerfilPage implements OnInit {
   protected readonly banner = computed(() => this.imagem(this.usuario()?.bannerUrl));
 
   protected readonly emAndamento = signal<JogoEmAndamento[]>([]);
+  protected readonly itensWishlist = signal<ItemWishlist[]>([]);
   protected readonly carregando = signal(true);
   protected readonly erro = signal<string | null>(null);
 
@@ -79,6 +82,7 @@ export class PerfilPage implements OnInit {
       this.idPerfil.set(parametros.get('id') ?? this.autenticacao.usuarioAtual()?.id ?? null);
       this.usuario.set(null);
       this.emAndamento.set([]);
+      this.itensWishlist.set([]);
       this.aba.set('Atividade');
       this.carregarPerfil();
     });
@@ -139,10 +143,26 @@ export class PerfilPage implements OnInit {
         this.carregando.set(false);
       },
     });
+    this.carregarWishlist();
+  }
+
+  private carregarWishlist(): void {
+    this.wishlist.listar().subscribe({
+      next: (itens) => this.itensWishlist.set(itens),
+      error: (e: ErroApi) => this.erro.set(e.mensagem),
+    });
+  }
+
+  protected removerDaWishlist(jogoId: string): void {
+    this.erro.set(null);
+    this.wishlist.remover(jogoId).subscribe({
+      next: () => this.carregarWishlist(),
+      error: (e: ErroApi) => this.erro.set(e.mensagem),
+    });
   }
 
   /** Valor da variável CSS --capa (imagem da API); "none" mantém só o degradê. */
-  protected capa(e: JogoEmAndamento): string {
+  protected capa(e: { capaUrl: string | null }): string {
     return e.capaUrl ? `url("${encodeURI(e.capaUrl)}")` : 'none';
   }
 }
