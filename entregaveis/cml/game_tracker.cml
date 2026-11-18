@@ -35,7 +35,7 @@
 //  - Template Method : F-19 e F-20 (RotinaDePrazo: reserva de 48 h, envio e custodia)              [codigo]
 //  - Template Method : F-01 (CadastroJogoTemplate: origem API x origem Manual/Criador)            [previsto]
 //  - Proxy           : F-01 (ProxyBaseExternaJogos sobre IBaseExternaJogosGateway)                [previsto]
-//  - Decorator       : F-14 e F-15 (IConteudoExibivel: mascara de spoiler e texto removido pela moderacao) [previsto]
+//  - Decorator       : F-15 (IConteudoExibivel, ConteudoOriginal, SpoilerMascaradoDecorator) [codigo]; F-14 [previsto]
 //  - Iterator        : F-13 e F-16 (paginacao de topicos e navegacao da timeline)                 [previsto]
 // =============================================================================
 
@@ -958,6 +958,7 @@ BoundedContext ContextoDiarioJogatina implements DiarioJogatinaSubdomain {
             - @UsuarioId            donoId                        // F-15 RN 1: so o dono altera ou exclui
             - @JogoId               jogoId                        // opcional
             DateTime                dataSessao
+            String                  titulo                        // opcional, ate 120 caracteres (prototipo)
             String                  texto
             List<String>            tags
             - List<@AnexoJournal>   anexos                        // F-15 RN 2: no maximo 3

@@ -5,6 +5,7 @@
       <h1>Minha timeline</h1>
       <p>Suas anotações e o que você fez na plataforma, em ordem cronológica.</p>
     </div>
+    <a class="botao" routerLink="/journal">Escrever no Journal</a>
   </header>
 
   @if (carregando()) {
@@ -25,7 +26,7 @@
             <div class="entrada__corpo">
               <p class="etiquetas">
                 <time class="entrada__data" [attr.datetime]="entrada.dataSessao">
-                  {{ entrada.dataSessao | date: 'dd/MM/yyyy HH:mm' }}
+                  {{ entrada.dataSessao | date: (entrada.tipoOrigem === 'MANUAL' ? 'dd/MM/yyyy' : 'dd/MM/yyyy HH:mm') : (entrada.tipoOrigem === 'MANUAL' ? 'UTC' : undefined) }}
                 </time>
                 @if (entrada.tipoEvento; as evento) {
                   <span class="etiqueta etiqueta--sistema">⚙ {{ eventos[evento] }}</span>
