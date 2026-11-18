@@ -47,6 +47,7 @@ public class SegurancaConfig {
                         .requestMatchers(HttpMethod.GET, "/api/status").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/catalogo/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/perfis/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/perfis/*/jogando-agora").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/perfis/*/journal", "/api/perfis/*/journal/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/journal/entradas/*/anexos/*").permitAll()
                         // F-04: uma lista e as listas de um usuário são públicas ("Minhas listas" exige login)

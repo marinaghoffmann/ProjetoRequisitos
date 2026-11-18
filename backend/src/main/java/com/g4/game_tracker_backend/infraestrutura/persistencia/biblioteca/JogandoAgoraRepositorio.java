@@ -25,7 +25,7 @@ class JogandoAgoraRepositorioJpa implements JogandoAgoraRepositorio {
 
     @Override
     public List<JogandoAgora> buscarAtivos(UUID usuarioId) {
-        return dados.findByUsuarioIdAndAtivoTrueOrderByDataInicioDesc(usuarioId).stream()
+        return dados.findByUsuarioIdAndAtivoTrueOrderByIniciadoEmDesc(usuarioId).stream()
                 .map(JogandoAgoraJpa::paraDominio).toList();
     }
 
