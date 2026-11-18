@@ -85,4 +85,3 @@ O que falta em cada parcial está em [diagnostico.md](diagnostico.md) (seção 3
 - [ ] Exportar os slides para `entregaveis/apresentacao/`.
 - [ ] Remover todos os `@pendente` (F-01, F-06, F-07, F-08, F-12, F-14, F-15) com os cenários passando.
 - [ ] Implementar Decorator e Iterator para chegar a 6 padrões (um por integrante).
-- [ ] Corrigir os e-mails `email@exemplo.com` no `backend/pom.xml` (Davi, Henrique, Caio).
