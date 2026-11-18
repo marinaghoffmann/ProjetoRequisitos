@@ -19,6 +19,14 @@ export interface JogoEmAndamento {
   dataInicio: string;
 }
 
+export interface JogoEmAndamento {
+  jogoId: string;
+  titulo: string;
+  capaUrl: string | null;
+  progresso: Progresso;
+  iniciadoEm: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class JogandoAgoraService {
   private readonly http = inject(HttpClient);
@@ -26,6 +34,10 @@ export class JogandoAgoraService {
 
   listar() {
     return this.http.get<JogoEmAndamento[]>(this.base);
+  }
+
+  listarDeUsuario(usuarioId: string) {
+    return this.http.get<JogoEmAndamento[]>(`/api/perfis/${usuarioId}/jogando-agora`);
   }
 
   marcar(jogoId: string, substituirJogoId?: string) {
