@@ -66,14 +66,18 @@ node_modules/
 frontend/dist/
 frontend/.angular/
 
-### Uploaded catalog images ###
-backend/uploads/catalogo/*
-!backend/uploads/catalogo/.gitkeep
+### Arquivos enviados pelos usuários (gerados em tempo de execução) ###
+backend/uploads/**
+!backend/uploads/**/
+!backend/uploads/**/.gitkeep
 
-# Local F9 checkpoint plan
+### Variáveis de ambiente (segredos) ###
+.env
+.env.*
+!.env.example
+
+# Planos locais de trabalho (F-12 e F-13)
 /entregaveis/f12_lancamentos/PLANO_F9.md
-
-# Local F10 checkpoint plan
 /entregaveis/f13_forum/PLANO_F10.md
 
 # Local F11 checkpoint plan

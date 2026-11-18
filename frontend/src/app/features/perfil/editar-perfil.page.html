@@ -34,12 +34,17 @@
     <label for="localizacao">Localização</label>
     <input id="localizacao" type="text" formControlName="localizacao" maxlength="80" placeholder="Ex.: Recife, PE" />
 
+    <label for="banner-url">URL da capa</label>
+    <input id="banner-url" type="text" formControlName="bannerUrl" maxlength="255"
+      placeholder="https://exemplo.com/capa.webp" />
+    <small>Use uma imagem .png, .jpg ou .webp. Apague o endereço para remover a capa.</small>
+
     @if (erro(); as mensagem) {
       <p class="ep__erro" role="alert">{{ mensagem }}</p>
     }
 
     <div class="ep__acoes">
-      <button type="submit" [disabled]="formulario.invalid || salvando()">
+      <button type="submit" [disabled]="formulario.invalid || salvando() || enviando() !== null">
         {{ salvando() ? 'Salvando…' : 'Salvar alterações' }}
       </button>
       <a class="ep__cancelar" routerLink="/perfil">Cancelar</a>

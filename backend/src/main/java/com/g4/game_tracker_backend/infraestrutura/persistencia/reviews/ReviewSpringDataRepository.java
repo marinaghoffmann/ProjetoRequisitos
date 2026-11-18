@@ -32,4 +32,5 @@ public interface ReviewSpringDataRepository extends JpaRepository<ReviewJpa, UUI
             group by n.categoria
             """)
     List<Object[]> somarNotasPorCategoria(@Param("jogoId") UUID jogoId);
+    boolean existsByJogoId(UUID jogoId);
 }

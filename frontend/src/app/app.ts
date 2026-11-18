@@ -42,7 +42,7 @@ export class App {
     },
     { rotulo: 'Lançamentos', rota: '/lancamentos', icone: 'M8 2v4M16 2v4M3 10h18M4 5h16v16H4z' },
     { rotulo: 'Listas', rota: '/biblioteca/listas', icone: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01' },
-    { rotulo: 'Journal', icone: 'M5 3h14v18H5zM9 8h6M9 12h6' },
+    { rotulo: 'Journal', rota: '/journal', icone: 'M5 3h14v18H5zM9 8h6M9 12h6' },
     {
       rotulo: 'Comunidade',
       rota: '/forum',

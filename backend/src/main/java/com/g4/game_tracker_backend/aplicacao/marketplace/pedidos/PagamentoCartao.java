@@ -5,8 +5,6 @@ import java.time.Instant;
 import java.time.YearMonth;
 import java.util.UUID;
 
-import org.springframework.stereotype.Component;
-
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.marketplace.pedidos.CalendarioDiasUteis;
 import com.g4.game_tracker_backend.dominio.marketplace.pedidos.CartaoSimulado;
@@ -15,8 +13,7 @@ import com.g4.game_tracker_backend.dominio.marketplace.pedidos.FormaPagamento;
 import com.g4.game_tracker_backend.dominio.marketplace.pedidos.TransacaoPagamento;
 
 /** RN 5: cartão simulado; os dados válidos aprovam na hora. O reembolso é um estorno simulado no cartão. */
-@Component
-class PagamentoCartao implements EstrategiaDePagamento {
+public class PagamentoCartao implements EstrategiaDePagamento {
 
     @Override
     public FormaPagamento forma() {

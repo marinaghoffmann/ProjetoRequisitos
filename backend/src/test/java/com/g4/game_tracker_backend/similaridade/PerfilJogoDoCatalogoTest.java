@@ -25,16 +25,35 @@ class PerfilJogoDoCatalogoTest {
 
     private PerfilJogoDoCatalogo gateway(Jogo... jogos) {
         JogoRepositorio repositorio = new JogoRepositorio() {
-            @Override public Jogo salvar(Jogo jogo) { return jogo; }
-            @Override public Optional<Jogo> buscarPorId(UUID id) {
+            @Override
+            public Jogo salvar(Jogo jogo) {
+                return jogo;
+            }
+
+            @Override
+            public Optional<Jogo> buscarPorId(UUID id) {
                 return List.of(jogos).stream().filter(jogo -> jogo.id().equals(id)).findFirst();
             }
-            @Override public Optional<Jogo> buscarPorIdentificadorExterno(String id) { return Optional.empty(); }
-            @Override public boolean existePorTituloEDesenvolvedora(String titulo, UUID desenvolvedoraId) { return false; }
-            @Override public boolean existePorTituloEDesenvolvedoraEIdDiferente(String titulo, UUID d, UUID j) {
+
+            @Override
+            public Optional<Jogo> buscarPorIdentificadorExterno(String id) {
+                return Optional.empty();
+            }
+
+            @Override
+            public boolean existePorTituloEDesenvolvedora(String titulo, UUID desenvolvedoraId) {
                 return false;
             }
-            @Override public List<Jogo> consultar(FiltroCatalogo filtro) { return List.of(jogos); }
+
+            @Override
+            public boolean existePorTituloEDesenvolvedoraEIdDiferente(String titulo, UUID d, UUID j) {
+                return false;
+            }
+
+            @Override
+            public List<Jogo> consultar(FiltroCatalogo filtro) {
+                return List.of(jogos);
+            }
         };
         return new PerfilJogoDoCatalogo(repositorio, JsonMapper.builder().build());
     }

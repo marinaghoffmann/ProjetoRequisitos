@@ -1,6 +1,6 @@
 package com.g4.game_tracker_backend.apresentacao.biblioteca;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,7 +35,12 @@ public class JogandoAgoraController {
     }
 
     public record JogandoAgoraResponse(UUID jogoId, String titulo, String capaUrl,
-            ProgressoJogatina progresso, LocalDate dataInicio) {
+            ProgressoJogatina progresso, Instant iniciadoEm) {
+
+        static JogandoAgoraResponse de(ListarJogandoAgora.JogoEmAndamento i) {
+            return new JogandoAgoraResponse(i.registro().jogoId(), i.titulo(), i.capaUrl(),
+                    i.registro().progresso(), i.registro().iniciadoEm());
+        }
     }
 
     private final MarcarJogandoAgora marcar;
@@ -54,8 +59,7 @@ public class JogandoAgoraController {
     @GetMapping
     public List<JogandoAgoraResponse> listar() {
         return listar.executar().stream()
-                .map(i -> new JogandoAgoraResponse(i.registro().jogoId(), i.titulo(), i.capaUrl(),
-                        i.registro().progresso(), i.registro().dataInicio()))
+                .map(JogandoAgoraResponse::de)
                 .toList();
     }
 

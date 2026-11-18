@@ -1,5 +1,4 @@
 # language: pt
-@pendente
 Funcionalidade: F-08 Gerenciamento de jogos favoritos e personalização do perfil público
   Como jogador, quero fixar meus jogos favoritos e personalizar biografia e capa do meu
   perfil público.
@@ -27,6 +26,16 @@ Funcionalidade: F-08 Gerenciamento de jogos favoritos e personalização do perf
     Quando o jogador remove o favorito "B"
     Então os favoritos devem ficar na ordem "A", "C", "D"
 
+  Cenário: Substituir um favorito preserva os demais slots
+    Dado que o jogador tem os favoritos "A" no slot 1, "B" no slot 2, "C" no slot 3 e "D" no slot 4
+    Quando o jogador substitui o slot 2 pelo jogo "E"
+    Então os favoritos devem ficar na ordem "A", "E", "C", "D"
+
+  Cenário: Substituição não permite repetir um jogo
+    Dado que o jogador tem os favoritos "A" no slot 1, "B" no slot 2, "C" no slot 3 e "D" no slot 4
+    Quando o jogador substitui o slot 2 pelo jogo "A"
+    Então a operação deve ser recusada com a mensagem "Este jogo já está entre os seus favoritos"
+
   # RN 2 - unicidade de jogo por slot
   Cenário: O mesmo jogo não pode ocupar dois slots
     Dado que o jogador tem o jogo "Hollow Knight" no slot 1
@@ -53,9 +62,20 @@ Funcionalidade: F-08 Gerenciamento de jogos favoritos e personalização do perf
       | https://cdn.exemplo.com/capa.webp | aceita    |
       | https://cdn.exemplo.com/capa.gif  | recusada  |
       | capa-sem-url.png                  | recusada  |
+      | javascript:alert(1)               | recusada  |
+      | https://cdn.exemplo.com/capa.PNG?v=2 | aceita |
 
   # Consulta
   Cenário: Consultar o perfil público com favoritos ordenados
     Dado que o jogador tem os favoritos "A" no slot 2 e "B" no slot 1
     Quando outro usuário consulta o perfil público do jogador
     Então os favoritos devem ficar na ordem "B", "A"
+
+  Cenário: Perfil também pode ser consultado sem autenticação
+    Dado que o jogador tem os favoritos "A" no slot 2 e "B" no slot 1
+    Quando um visitante sem login consulta o perfil público do jogador
+    Então os favoritos devem ficar na ordem "B", "A"
+
+  Cenário: Slot fora do intervalo é recusado
+    Quando o jogador fixa o jogo "Celeste" no slot 5
+    Então a operação deve ser recusada com a mensagem "O slot deve estar entre 1 e 4"

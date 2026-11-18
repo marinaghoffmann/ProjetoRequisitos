@@ -16,7 +16,7 @@ export interface JogoEmAndamento {
   titulo: string;
   capaUrl: string | null;
   progresso: Progresso;
-  dataInicio: string;
+  iniciadoEm: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -26,6 +26,10 @@ export class JogandoAgoraService {
 
   listar() {
     return this.http.get<JogoEmAndamento[]>(this.base);
+  }
+
+  listarDeUsuario(usuarioId: string) {
+    return this.http.get<JogoEmAndamento[]>(`/api/perfis/${usuarioId}/jogando-agora`);
   }
 
   marcar(jogoId: string, substituirJogoId?: string) {

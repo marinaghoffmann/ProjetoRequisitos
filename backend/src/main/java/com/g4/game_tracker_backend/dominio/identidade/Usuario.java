@@ -10,7 +10,7 @@ import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException
 public final class Usuario {
 
     public static final int NOME_MAXIMO = 80;
-    public static final int BIO_MAXIMA = 160;
+    public static final int BIO_MAXIMA = 500;
     public static final int LOCALIZACAO_MAXIMA = 80;
     public static final int URL_IMAGEM_MAXIMA = 255;
 
@@ -104,7 +104,7 @@ public final class Usuario {
         String nomeValido = exigirTexto(novoNome, "O nome é obrigatório");
         limitar(nomeValido, NOME_MAXIMO, "O nome deve ter no máximo " + NOME_MAXIMO + " caracteres");
         String bioValida = opcional(novaBio);
-        limitar(bioValida, BIO_MAXIMA, "A bio deve ter no máximo " + BIO_MAXIMA + " caracteres");
+        limitar(bioValida, BIO_MAXIMA, "A biografia pode ter no máximo 500 caracteres");
         String localizacaoValida = opcional(novaLocalizacao);
         limitar(localizacaoValida, LOCALIZACAO_MAXIMA,
                 "A localização deve ter no máximo " + LOCALIZACAO_MAXIMA + " caracteres");
@@ -122,7 +122,7 @@ public final class Usuario {
 
     /** Define o banner do perfil; o valor nulo remove o banner. */
     public Usuario comBanner(String novaUrl) {
-        String url = opcional(novaUrl);
+        String url = CapaDePerfil.validar(novaUrl);
         limitar(url, URL_IMAGEM_MAXIMA, "A URL do banner é longa demais");
         return new Usuario(id, nome, email, senhaHash, papel, ativo, desenvolvedoraId, bio, localizacao,
                 avatarUrl, url);

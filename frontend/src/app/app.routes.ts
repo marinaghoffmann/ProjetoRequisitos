@@ -14,6 +14,10 @@ export const routes: Routes = [
     canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
     loadComponent: () => import('./features/perfil/editar-perfil.page').then((m) => m.EditarPerfilPage),
   },
+  {
+    path: 'perfil/:id',
+    loadComponent: () => import('./features/perfil/perfil.page').then((m) => m.PerfilPage),
+  },
   { path: 'login', loadComponent: () => import('./features/identidade/login.page').then((m) => m.LoginPage) },
   { path: 'cadastro', loadComponent: () => import('./features/identidade/cadastro.page').then((m) => m.CadastroPage) },
   {
@@ -50,6 +54,11 @@ export const routes: Routes = [
     path: 'timeline',
     canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
     loadComponent: () => import('./features/journal/timeline.page').then((m) => m.TimelinePage),
+  },
+  {
+    path: 'journal',
+    canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
+    loadComponent: () => import('./features/journal/journal.page').then((m) => m.JournalPage),
   },
   // F-04: "Minhas listas" exige login; a página de uma lista é pública (só o dono vê os botões de edição)
   {

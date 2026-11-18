@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import com.g4.game_tracker_backend.aplicacao.notificacao.DespacharNotificacao;
 import com.g4.game_tracker_backend.dominio.catalogo.DataJogoAlterada;
+import com.g4.game_tracker_backend.dominio.catalogo.JogoDesativado;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.lancamentos.*;
 import com.g4.game_tracker_backend.dominio.notificacao.TipoNotificacao;
@@ -15,11 +16,21 @@ public class SincronizarLancamentosComCatalogo {
     private final InteresseLancamentoRepositorio interesses;
     private final GerenciarInteresseLancamento gestaoInteresses;
     private final DespacharNotificacao notificacoes;
+    private final AlertaLancamentoRepositorio alertas;
     public SincronizarLancamentosComCatalogo(LancamentoRepositorio lancamentos,
             InteresseLancamentoRepositorio interesses,GerenciarInteresseLancamento gestaoInteresses,
-            DespacharNotificacao notificacoes) {
+            DespacharNotificacao notificacoes, AlertaLancamentoRepositorio alertas) {
         this.lancamentos=lancamentos;this.interesses=interesses;this.gestaoInteresses=gestaoInteresses;
-        this.notificacoes=notificacoes;
+        this.notificacoes=notificacoes;this.alertas=alertas;
+    }
+
+    /** Jogo desativado no catálogo (F-01 RN 3): os alertas pendentes dos interessados são cancelados. */
+    @EventListener
+    @Transactional(propagation=Propagation.MANDATORY)
+    public void jogoDesativado(JogoDesativado evento) {
+        for (InteresseEmLancamento interesse : interesses.ativosPorJogo(evento.jogoId())) {
+            alertas.cancelarPendentes(interesse.id());
+        }
     }
     @EventListener
     @Transactional(propagation=Propagation.MANDATORY)

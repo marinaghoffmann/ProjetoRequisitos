@@ -23,10 +23,18 @@ public class EditarPerfil {
 
     @Transactional
     public Usuario executar(String nome, String bio, String localizacao) {
+        return executar(nome, bio, localizacao, null);
+    }
+
+    @Transactional
+    public Usuario executar(String nome, String bio, String localizacao, String bannerUrl) {
         UUID id = verificadorDeAcesso.usuarioAtualId();
         Usuario atual = usuarios.buscarPorId(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado"));
         Usuario atualizado = atual.editarPerfil(nome, bio, localizacao);
+        if (bannerUrl != null) {
+            atualizado = atualizado.comBanner(bannerUrl);
+        }
         usuarios.salvar(atualizado);
         return atualizado;
     }

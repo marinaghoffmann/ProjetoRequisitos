@@ -4,10 +4,10 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.stereotype.Component;
-
 import com.g4.game_tracker_backend.aplicacao.marketplace.negociacao.ReservasDaNegociacao;
 import com.g4.game_tracker_backend.aplicacao.marketplace.negociacao.ReservasDaNegociacao.ReservaAceita;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplace;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.StatusAnuncio;
@@ -19,16 +19,14 @@ import com.g4.game_tracker_backend.dominio.marketplace.pedidos.PedidoMarketplace
  * F-20 RN 1 e RN 2, usadas pela prévia e pela geração do pedido: de onde ele vem, por quanto o item sai e se
  * o anúncio ainda está livre para um pedido.
  */
-@Component
-class OrigemDoPedido {
+public class OrigemDoPedido {
 
     private final CicloDoAnuncioNoPedido anuncios;
     private final ReservasDaNegociacao reservas;
     private final PedidoMarketplaceRepositorio pedidos;
-    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
+    private final EstadoPublico moderacao;
 
-    OrigemDoPedido(CicloDoAnuncioNoPedido anuncios, ReservasDaNegociacao reservas, PedidoMarketplaceRepositorio pedidos,
-            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
+    public OrigemDoPedido(CicloDoAnuncioNoPedido anuncios, ReservasDaNegociacao reservas, PedidoMarketplaceRepositorio pedidos, EstadoPublico moderacao) {
         this.anuncios = anuncios;
         this.reservas = reservas;
         this.pedidos = pedidos;
@@ -65,8 +63,8 @@ class OrigemDoPedido {
 
     /** Anúncio ATIVO de outra pessoa, pelo preço anunciado; anúncio só de troca não tem compra direta. */
     private Resolvida daCompraDireta(UUID anuncioId, UUID compradorId) {
+        moderacao.exigirAtivo(TipoConteudo.ANUNCIO, anuncioId);
         AnuncioMarketplace anuncio = anuncios.carregar(anuncioId);
-        moderacao.exigirAtivo(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.ANUNCIO,anuncioId);
         if (anuncio.pertenceA(compradorId)) {
             throw new RegraDeNegocioException("Você não pode comprar o próprio anúncio");
         }

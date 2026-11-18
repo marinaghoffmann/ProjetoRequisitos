@@ -13,7 +13,7 @@
       @if (j.capaUrl) { <img [src]="j.capaUrl" [alt]="'Capa de ' + j.titulo" /> }
       <div class="dados">
         <a [routerLink]="['/catalogo', j.jogoId]">{{ j.titulo }}</a>
-        <small>Desde {{ j.dataInicio | date: 'dd/MM/yyyy' }}</small>
+        <small>Desde {{ j.iniciadoEm | date: 'dd/MM/yyyy' }}</small>
         <div class="controles">
           <select (change)="alterar(j.jogoId, $any($event.target).value)">
             @for (p of progressos; track p) {

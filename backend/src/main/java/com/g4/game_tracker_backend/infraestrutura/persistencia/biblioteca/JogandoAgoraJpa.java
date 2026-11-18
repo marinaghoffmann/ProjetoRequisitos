@@ -1,6 +1,6 @@
 package com.g4.game_tracker_backend.infraestrutura.persistencia.biblioteca;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.UUID;
 
 import com.g4.game_tracker_backend.dominio.biblioteca.JogandoAgora;
@@ -26,8 +26,8 @@ class JogandoAgoraJpa {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ProgressoJogatina progresso;
-    @Column(nullable = false)
-    private LocalDate dataInicio;
+    @Column(name = "iniciado_em", nullable = false)
+    private Instant iniciadoEm;
     @Column(nullable = false)
     private boolean ativo;
 
@@ -40,12 +40,12 @@ class JogandoAgoraJpa {
         j.usuarioId = d.usuarioId();
         j.jogoId = d.jogoId();
         j.progresso = d.progresso();
-        j.dataInicio = d.dataInicio();
+        j.iniciadoEm = d.iniciadoEm();
         j.ativo = d.ativo();
         return j;
     }
 
     JogandoAgora paraDominio() {
-        return JogandoAgora.reconstituir(id, usuarioId, jogoId, progresso, dataInicio, ativo);
+        return JogandoAgora.reconstituir(id, usuarioId, jogoId, progresso, iniciadoEm, ativo);
     }
 }
