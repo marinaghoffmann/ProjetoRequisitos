@@ -44,7 +44,7 @@ O ecossistema **Game Tracker** organiza-se em torno do registro da jornada do Jo
 
 **F-19 Chat Interno de Negociação e Propostas:** A partir de um Anúncio Ativo, o Comprador abre uma Conversa com o Vendedor; o sistema impede Conversas duplicadas entre os mesmos dois usuários para o mesmo Anúncio. Na Conversa, as partes trocam Mensagens e o Comprador pode enviar Propostas formais de valor ou de troca ("Ofereço R$ 120,00" ou "Troco pelo jogo X"). Toda Proposta nasce Pendente; se o Vendedor a aceita, ela passa a Aceita, o item é reservado e o Anúncio muda para Em Negociação; se recusa, passa a Recusada. O conteúdo da Conversa é visível exclusivamente para o Comprador e o Vendedor envolvidos. A consulta lista as Conversas ativas do usuário, como comprador ou vendedor, com o status da última Proposta e as mensagens não lidas.
 
-**F-20 Processamento do Pedido, Checkout e Confirmação de Entrega:** Após o aceite da Proposta, o Comprador gera o Pedido escolhendo a Forma de Pagamento (Cartão simulado, PIX ou Saldo da Carteira) e informando o Endereço de Entrega. O valor pago fica retido Em Custódia e só é liberado para a Carteira do Vendedor quando o Comprador confirma o recebimento ou quando expira o Prazo de Tolerância de 7 dias após a entrega. Depois da confirmação do pagamento, o Vendedor tem até 3 dias úteis para registrar o Código de Rastreio ou o método de entrega; se o prazo expirar, o Pedido é cancelado automaticamente e o Comprador é reembolsado. Com o Pedido Concluído, o Anúncio passa a Vendido e o sistema publica um evento para que a compra seja registrada no Journal do Comprador (F-16). A consulta lista os Pedidos do usuário, compras e vendas, com o status da entrega e do pagamento.
+**F-20 Processamento do Pedido, Checkout e Confirmação de Entrega:** Após o aceite da Proposta, ou direto de um Anúncio Ativo (Compra Direta), o Comprador gera o Pedido escolhendo a Forma de Pagamento (Cartão simulado, PIX ou Saldo da Carteira) e informando o Endereço de Entrega. O valor pago fica retido Em Custódia e só é liberado para a Carteira do Vendedor quando o Comprador confirma o recebimento ou quando expira o Prazo de Tolerância de 7 dias após o envio. Depois da confirmação do pagamento, o Vendedor tem até 3 dias úteis para registrar o Código de Rastreio ou o método de entrega; se o prazo expirar, o Pedido é cancelado automaticamente e o Comprador é reembolsado. Com o Pedido Concluído, o Anúncio passa a Vendido e o sistema publica um evento para que a compra seja registrada no Journal do Comprador (F-16). A consulta lista os Pedidos do usuário, compras e vendas, com o status da entrega e do pagamento.
 
 **F-21 Reputação e Avaliações de Vendedores e Compradores:** Ao final de um Pedido Concluído, Comprador e Vendedor podem avaliar a experiência com uma nota de 1 a 5 estrelas, Tags de Comportamento ("Envio rápido", "Produto como descrito", "Bom comunicador") e um comentário. A avaliação só pode ser criada se existir um Pedido Concluído entre os dois usuários; cada parte avalia uma única vez por Pedido, em até 15 dias após a confirmação de entrega. Cada nova avaliação recalcula imediatamente a Reputação do usuário avaliado e incrementa seu total de Negociações Bem-sucedidas. A consulta exibe o histórico de avaliações recebidas por um Vendedor com sua nota média de Reputação.
 
@@ -64,7 +64,7 @@ O ecossistema **Game Tracker** organiza-se em torno do registro da jornada do Jo
 
 | Termo do Negócio | Significado / Contexto dentro do Sistema |
 |---|---|
-| **Jogador** | Usuário registrado da plataforma. Avalia jogos, organiza sua biblioteca, mantém o Journal, participa do fórum, negocia no Marketplace e possui um Perfil Público. |
+| **Jogador** | Usuário registrado da plataforma. Avalia jogos, organiza sua biblioteca, mantém o Journal, participa do fórum, negocia no Marketplace e possui um Perfil Público. No código: `Usuario` com o papel `COMUM`. |
 | **Desenvolvedor (Criador de Jogos)** | Papel de usuário vinculado a um Perfil de Desenvolvedora ativo. Pode cadastrar jogos manualmente no Catálogo e manter o perfil institucional do estúdio. |
 | **Administrador** | Papel de gestão. Edita metadados e remove jogos e Desenvolvedoras, gerencia Lançamentos Futuros, cria Similaridades Manuais e acessa a Central de Moderação. |
 | **Moderador** | Papel que acessa a Central de Moderação para analisar Denúncias e aplicar Ações Moderativas no fórum e nos comentários. |
@@ -92,7 +92,7 @@ O ecossistema **Game Tracker** organiza-se em torno do registro da jornada do Jo
 | **Nota Explicativa** | Texto curto que justifica a presença de um jogo em uma Lista. |
 | **Wishlist** | Lista oficial de desejos do Jogador. Existe exatamente uma por conta e é criada automaticamente na primeira adição. |
 | **Prioridade** | Nível de interesse em um jogo da Wishlist: Alta, Média (padrão) ou Baixa. Define a ordem de exibição. |
-| **Currently Playing** | Destaque do perfil com os jogos que o Jogador está jogando agora, limitado a 5 simultâneos. |
+| **Currently Playing** | Destaque do perfil com os jogos que o Jogador está jogando agora, limitado a 5 simultâneos. No código: `JogandoAgora`. |
 | **Progresso** | Estágio de avanço em um jogo de Currently Playing: "No início", "Na metade" ou "Perto do fim". |
 | **Favorito** | Jogo fixado no Perfil Público como um dos preferidos do Jogador. |
 | **Slot** | Posição de 1 a 4 ocupada por um Favorito. Um jogo nunca ocupa dois Slots. |
@@ -132,16 +132,26 @@ O ecossistema **Game Tracker** organiza-se em torno do registro da jornada do Jo
 | **Anúncio** | Oferta de um jogo do Catálogo feita por um Vendedor, com preço, fotos, Estado de Conservação, Tipo de Negociação e localidade. |
 | **Estado de Conservação** | Condição do item anunciado: Novo, Excelente, Usado ou Com marcas. |
 | **Tipo de Negociação** | Modalidade aceita no Anúncio: Venda, Troca ou Ambos. |
+| **Mídia do Jogo** | Formato do item anunciado: Físico ou Digital. |
 | **Foto do Anúncio** | Imagem do produto real. Todo Anúncio exige pelo menos uma. |
 | **Ciclo de Vida do Anúncio** | Sequência de status do Anúncio: Ativo, Pausado, Em Negociação, Vendido ou Cancelado. |
 | **Conversa** | Canal privado entre Comprador e Vendedor aberto a partir de um Anúncio Ativo. Existe no máximo uma por par de usuários e Anúncio. |
-| **Proposta** | Oferta formal de valor ou troca enviada na Conversa. Status: Pendente, Aceita ou Recusada. |
+| **Mensagem** | Texto trocado entre Comprador e Vendedor dentro da Conversa. As recebidas ficam como não lidas até o destinatário abrir a Conversa. |
+| **Proposta** | Oferta formal de valor ou de troca enviada pelo Comprador na Conversa. Status: Pendente, Aceita, Recusada, Cancelada (pelo Comprador) ou Expirada (Reserva vencida). Só uma Proposta Pendente por Conversa. |
+| **Prazo para Pagar** | 48 horas, contadas do aceite da Proposta, para o Comprador gerar o Pedido. Vencido o prazo, a Proposta expira e o Anúncio volta a Ativo. |
 | **Reserva** | Efeito do aceite de uma Proposta: o Anúncio passa a Em Negociação e sai da disputa de outros compradores. |
-| **Pedido** | Registro da transação gerado após o aceite da Proposta, com Forma de Pagamento, Endereço de Entrega e status. |
+| **Pedido** | Registro da transação, com Forma de Pagamento, Endereço de Entrega, Opção de Frete e status. Nasce de uma Proposta aceita ou de uma Compra Direta. |
+| **Compra Direta** | Pedido gerado direto de um Anúncio Ativo, pelo preço anunciado, sem passar por Proposta. Anúncios só de troca não aceitam Compra Direta. |
+| **Origem do Pedido** | Indica de onde o Pedido veio: Proposta ou Compra Direta. |
+| **Status do Pedido** | Aguardando Envio, Enviado, Concluído ou Cancelado (prazo de envio vencido). |
+| **Endereço de Entrega** | Destinatário, CEP, rua, número, complemento (opcional), cidade e UF para onde o item é enviado. Obrigatório no checkout. |
+| **Opção de Frete** | Envio Seguro ou Expresso, cada uma com valor fixo simulado, somado ao valor do item no total do Pedido. |
 | **Forma de Pagamento** | Meio escolhido no checkout: Cartão (simulado), PIX ou Saldo da Carteira. |
 | **Carteira** | Saldo interno do usuário, criado automaticamente na primeira transação e usado como Forma de Pagamento e como destino dos valores liberados ao Vendedor. |
 | **Custódia (Escrow)** | Retenção do valor pago até a confirmação de recebimento pelo Comprador ou o fim do Prazo de Tolerância. |
-| **Prazo de Tolerância** | Período de 7 dias após a entrega ao fim do qual o valor em Custódia é liberado automaticamente ao Vendedor. |
+| **Status do Pagamento** | Em Custódia (pago e retido), Liberado (creditado ao Vendedor) ou Reembolsado (Pedido cancelado). |
+| **Reembolso** | Devolução do valor ao Comprador quando o Pedido é cancelado: estorno simulado no cartão ou no PIX, ou crédito na Carteira. |
+| **Prazo de Tolerância** | Período de 7 dias após o envio (registro do Código de Rastreio) ao fim do qual, sem confirmação do Comprador, o valor em Custódia é liberado automaticamente ao Vendedor. |
 | **Código de Rastreio** | Identificador de envio que o Vendedor deve registrar em até 3 dias úteis após a confirmação do pagamento. |
 | **Avaliação de Negociação** | Nota de 1 a 5, Tags de Comportamento e comentário que uma parte dá à outra após um Pedido Concluído. |
 | **Tags de Comportamento** | Rótulos da Avaliação de Negociação, como "Envio rápido", "Produto como descrito" e "Bom comunicador". |
