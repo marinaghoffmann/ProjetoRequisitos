@@ -434,7 +434,7 @@ RN 1
 Título
 retenção do valor em custódia (escrow)
 Descrição
-O valor pago pelo comprador fica retido no sistema com status Em Custódia e só é transferido para a conta do vendedor após o comprador confirmar o recebimento do produto no sistema ou após o prazo limite de tolerância de 7 dias pós-entrega, sendo então creditado na Carteira do vendedor.
+O valor pago pelo comprador fica retido no sistema com status Em Custódia e só é transferido para a conta do vendedor após o comprador confirmar o recebimento do produto no sistema ou após o prazo limite de tolerância de 7 dias contados do envio (registro do código de rastreio), sendo então creditado na Carteira do vendedor.
 RN 2
 Título
 obrigatoriedade do código de rastreamento

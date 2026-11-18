@@ -8,9 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import com.g4.game_tracker_backend.aplicacao.compartilhado.ExecutorDeTransacao;
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.identidade.Usuario;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
@@ -28,70 +26,75 @@ import com.g4.game_tracker_backend.dominio.marketplace.negociacao.StatusProposta
  * Consultas da F-19: a caixa de mensagens (com o status da última proposta e as não lidas), o total de não
  * lidas do menu e uma conversa aberta, sempre só para as partes (RN 3).
  */
-@Service
 public class ConsultarConversas {
 
     private final ConversaChatRepositorio conversas;
     private final AnuncioMarketplaceRepositorio anuncios;
     private final UsuarioRepositorio usuarios;
     private final VerificadorDeAcesso verificadorDeAcesso;
+    private final ExecutorDeTransacao transacao;
 
     public ConsultarConversas(ConversaChatRepositorio conversas, AnuncioMarketplaceRepositorio anuncios,
-            UsuarioRepositorio usuarios, VerificadorDeAcesso verificadorDeAcesso) {
+            UsuarioRepositorio usuarios, VerificadorDeAcesso verificadorDeAcesso,
+            ExecutorDeTransacao transacao) {
         this.conversas = conversas;
         this.anuncios = anuncios;
         this.usuarios = usuarios;
         this.verificadorDeAcesso = verificadorDeAcesso;
+        this.transacao = transacao;
     }
 
     /** Conversas do usuário como comprador ou vendedor, da atividade mais recente para a mais antiga. */
-    @Transactional(readOnly = true)
     public List<ResumoConversa> listar() {
-        UUID usuarioId = verificadorDeAcesso.usuarioAtualId();
-        Map<UUID, String> nomes = new HashMap<>();
-        Map<UUID, Optional<AnuncioMarketplace>> anunciosCarregados = new HashMap<>();
-        return conversas.listarPorParticipante(usuarioId).stream()
-                .map(conversa -> {
-                    UUID outraParte = conversa.outraParte(usuarioId);
-                    Optional<AnuncioMarketplace> anuncio = anunciosCarregados.computeIfAbsent(conversa.anuncioId(),
-                            anuncios::buscarPorId);
-                    return new ResumoConversa(conversa.id(), conversa.anuncioId(),
-                            anuncio.map(AnuncioMarketplace::titulo).orElse(null),
-                            anuncio.map(ConsultarConversas::primeiraFoto).orElse(null),
-                            anuncio.map(AnuncioMarketplace::status).orElse(null),
-                            conversa.compradorId().equals(usuarioId) ? "COMPRADOR" : "VENDEDOR", outraParte,
-                            nomes.computeIfAbsent(outraParte, this::nome),
-                            conversa.ultimaMensagem().map(MensagemChat::texto).orElse(null),
-                            conversa.ultimaProposta().map(PropostaNegociacao::status).orElse(null),
-                            conversa.naoLidasPor(usuarioId), conversa.ultimaAtividadeEm());
-                })
-                .toList();
+        return transacao.consultar(() -> {
+            UUID usuarioId = verificadorDeAcesso.usuarioAtualId();
+            Map<UUID, String> nomes = new HashMap<>();
+            Map<UUID, Optional<AnuncioMarketplace>> anunciosCarregados = new HashMap<>();
+            return conversas.listarPorParticipante(usuarioId).stream()
+                    .map(conversa -> {
+                        UUID outraParte = conversa.outraParte(usuarioId);
+                        Optional<AnuncioMarketplace> anuncio = anunciosCarregados.computeIfAbsent(conversa.anuncioId(),
+                                anuncios::buscarPorId);
+                        return new ResumoConversa(conversa.id(), conversa.anuncioId(),
+                                anuncio.map(AnuncioMarketplace::titulo).orElse(null),
+                                anuncio.map(ConsultarConversas::primeiraFoto).orElse(null),
+                                anuncio.map(AnuncioMarketplace::status).orElse(null),
+                                conversa.compradorId().equals(usuarioId) ? "COMPRADOR" : "VENDEDOR", outraParte,
+                                nomes.computeIfAbsent(outraParte, this::nome),
+                                conversa.ultimaMensagem().map(MensagemChat::texto).orElse(null),
+                                conversa.ultimaProposta().map(PropostaNegociacao::status).orElse(null),
+                                conversa.naoLidasPor(usuarioId), conversa.ultimaAtividadeEm());
+                    })
+                    .toList();
+        });
     }
 
     /** RN 11: total de mensagens recebidas e não lidas, para o menu. */
-    @Transactional(readOnly = true)
     public int contarNaoLidas() {
-        UUID usuarioId = verificadorDeAcesso.usuarioAtualId();
-        return conversas.listarPorParticipante(usuarioId).stream()
-                .mapToInt(conversa -> conversa.naoLidasPor(usuarioId))
-                .sum();
+        return transacao.consultar(() -> {
+            UUID usuarioId = verificadorDeAcesso.usuarioAtualId();
+            return conversas.listarPorParticipante(usuarioId).stream()
+                    .mapToInt(conversa -> conversa.naoLidasPor(usuarioId))
+                    .sum();
+        });
     }
 
-    @Transactional(readOnly = true)
     public DetalheConversa detalhar(UUID conversaId) {
-        UUID usuarioId = verificadorDeAcesso.usuarioAtualId();
-        ConversaChat conversa = AcessoAConversa.doParticipante(conversas, conversaId, usuarioId);
-        Optional<AnuncioMarketplace> anuncio = anuncios.buscarPorId(conversa.anuncioId());
-        StatusAnuncio status = anuncio.map(AnuncioMarketplace::status).orElse(null);
-        return new DetalheConversa(conversa,
-                anuncio.map(AnuncioMarketplace::titulo).orElse(null),
-                anuncio.map(ConsultarConversas::primeiraFoto).orElse(null),
-                anuncio.map(AnuncioMarketplace::preco).orElse(null),
-                anuncio.map(a -> a.tipoNegociacao().name()).orElse(null),
-                status,
-                nome(conversa.compradorId()), nome(conversa.vendedorId()),
-                status == StatusAnuncio.VENDIDO || status == StatusAnuncio.CANCELADO,
-                conversa.naoLidasPor(usuarioId));
+        return transacao.consultar(() -> {
+            UUID usuarioId = verificadorDeAcesso.usuarioAtualId();
+            ConversaChat conversa = AcessoAConversa.doParticipante(conversas, conversaId);
+            Optional<AnuncioMarketplace> anuncio = anuncios.buscarPorId(conversa.anuncioId());
+            StatusAnuncio status = anuncio.map(AnuncioMarketplace::status).orElse(null);
+            return new DetalheConversa(conversa,
+                    anuncio.map(AnuncioMarketplace::titulo).orElse(null),
+                    anuncio.map(ConsultarConversas::primeiraFoto).orElse(null),
+                    anuncio.map(AnuncioMarketplace::preco).orElse(null),
+                    anuncio.map(a -> a.tipoNegociacao().name()).orElse(null),
+                    status,
+                    nome(conversa.compradorId()), nome(conversa.vendedorId()),
+                    status == StatusAnuncio.VENDIDO || status == StatusAnuncio.CANCELADO,
+                    conversa.naoLidasPor(usuarioId));
+        });
     }
 
     private String nome(UUID usuarioId) {

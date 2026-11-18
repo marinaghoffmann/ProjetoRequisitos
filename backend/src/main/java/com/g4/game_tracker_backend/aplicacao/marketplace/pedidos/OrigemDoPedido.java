@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.stereotype.Component;
-
 import com.g4.game_tracker_backend.aplicacao.marketplace.negociacao.ReservasDaNegociacao;
 import com.g4.game_tracker_backend.aplicacao.marketplace.negociacao.ReservasDaNegociacao.ReservaAceita;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
@@ -19,14 +17,13 @@ import com.g4.game_tracker_backend.dominio.marketplace.pedidos.PedidoMarketplace
  * F-20 RN 1 e RN 2, usadas pela prévia e pela geração do pedido: de onde ele vem, por quanto o item sai e se
  * o anúncio ainda está livre para um pedido.
  */
-@Component
-class OrigemDoPedido {
+public class OrigemDoPedido {
 
     private final CicloDoAnuncioNoPedido anuncios;
     private final ReservasDaNegociacao reservas;
     private final PedidoMarketplaceRepositorio pedidos;
 
-    OrigemDoPedido(CicloDoAnuncioNoPedido anuncios, ReservasDaNegociacao reservas, PedidoMarketplaceRepositorio pedidos) {
+    public OrigemDoPedido(CicloDoAnuncioNoPedido anuncios, ReservasDaNegociacao reservas, PedidoMarketplaceRepositorio pedidos) {
         this.anuncios = anuncios;
         this.reservas = reservas;
         this.pedidos = pedidos;

@@ -4,16 +4,13 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.stereotype.Component;
-
 import com.g4.game_tracker_backend.dominio.marketplace.pedidos.CartaoSimulado;
 import com.g4.game_tracker_backend.dominio.marketplace.pedidos.EstrategiaDePagamento;
 import com.g4.game_tracker_backend.dominio.marketplace.pedidos.FormaPagamento;
 import com.g4.game_tracker_backend.dominio.marketplace.pedidos.TransacaoPagamento;
 
 /** RN 5: PIX simulado, aprovado na confirmação do checkout. O reembolso é uma devolução simulada. */
-@Component
-class PagamentoPix implements EstrategiaDePagamento {
+public class PagamentoPix implements EstrategiaDePagamento {
 
     @Override
     public FormaPagamento forma() {
