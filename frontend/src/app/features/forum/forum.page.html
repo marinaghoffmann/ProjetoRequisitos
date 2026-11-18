@@ -97,7 +97,7 @@
                     <a class="topico__titulo" [routerLink]="['/forum', topico.id]">{{ topico.titulo }}</a>
                     <div class="topico__meta"><span>por {{ topico.nomeAutor ?? 'usuário removido' }}</span><span>·</span><span>{{ tempoRelativo(topico.dataUltimaAtividade) }}</span></div>
                   </div>
-                  <div class="topico__contadores" aria-label="Interações"><span title="Respostas">▤ {{ topico.totalRespostas }}</span><span title="Curtidas">♡ {{ topico.totalCurtidas }}</span></div>
+                  <div class="topico__contadores" aria-label="Atividade do tópico"><span>{{ topico.totalRespostas }} {{ topico.totalRespostas === 1 ? 'resposta' : 'respostas' }}</span><span>{{ topico.totalInteracoes }} {{ topico.totalInteracoes === 1 ? 'interação' : 'interações' }}</span></div>
                 </li>
               }
             </ul>
