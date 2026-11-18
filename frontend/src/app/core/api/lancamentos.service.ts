@@ -21,13 +21,17 @@ export interface Lancamento {
   status: StatusLancamento;
   tipoData: TipoDataLancamento;
   diasRestantes: number;
+  totalInteressados: number;
   alertaAtivoDoUsuario: boolean;
   historico: AlteracaoCronograma[];
 }
 @Injectable({ providedIn: 'root' })
 export class LancamentosService {
   private readonly http = inject(HttpClient);
-  listar(): Observable<Lancamento[]> { return this.http.get<Lancamento[]>('/api/lancamentos'); }
+  listar(incluirLancados = false): Observable<Lancamento[]> {
+    const url = incluirLancados ? '/api/lancamentos?incluirLancados=true' : '/api/lancamentos';
+    return this.http.get<Lancamento[]>(url);
+  }
   buscar(id: string): Observable<Lancamento> { return this.http.get<Lancamento>(`/api/lancamentos/${id}`); }
   cadastrar(jogoId: string, dataPrevista: string, tipoData: TipoDataLancamento): Observable<Lancamento> {
     return this.http.post<Lancamento>('/api/lancamentos', { jogoId, dataPrevista, tipoData });

@@ -9,6 +9,7 @@ import com.g4.game_tracker_backend.dominio.lancamentos.*;
 interface LancamentoSpringData extends JpaRepository<LancamentoJpa,UUID> {
     Optional<LancamentoJpa> findByJogoId(UUID jogoId);
     List<LancamentoJpa> findByStatusOrderByDataPrevistaAscIdAsc(StatusLancamento status);
+    List<LancamentoJpa> findByStatusOrderByDataPrevistaDescIdAsc(StatusLancamento status);
     List<LancamentoJpa> findByStatusAndDataPrevistaLessThanEqual(StatusLancamento status,LocalDate hoje);
 }
 @Repository
@@ -20,6 +21,10 @@ public class LancamentoRepositorioJpa implements LancamentoRepositorio {
     public Optional<LancamentoFuturo> buscarPorJogo(UUID id) { return dados.findByJogoId(id).map(LancamentoJpa::dominio); }
     public List<LancamentoFuturo> listarFuturos() {
         return dados.findByStatusOrderByDataPrevistaAscIdAsc(StatusLancamento.FUTURO_LANCAMENTO)
+                .stream().map(LancamentoJpa::dominio).toList();
+    }
+    public List<LancamentoFuturo> listarLancados() {
+        return dados.findByStatusOrderByDataPrevistaDescIdAsc(StatusLancamento.LANCADO)
                 .stream().map(LancamentoJpa::dominio).toList();
     }
     public List<LancamentoFuturo> listarVencidos(LocalDate hoje) {

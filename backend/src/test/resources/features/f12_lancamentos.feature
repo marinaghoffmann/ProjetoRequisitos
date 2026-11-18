@@ -18,6 +18,7 @@ Funcionalidade: F-12 Gerenciamento de lançamentos futuros, agenda de alertas e 
     Dado que o lançamento de "GTA VI" está previsto para hoje
     Quando a rotina de transição de lançamentos é executada
     Então o lançamento de "GTA VI" deve ter status "LANCADO"
+    E o lançamento de "GTA VI" deve aparecer na consulta que inclui lançados
 
   # RN 2 - gestão do interesse e envio de alertas
   Cenário: Marcar interesse agenda notificação 24 horas antes
@@ -59,6 +60,7 @@ Funcionalidade: F-12 Gerenciamento de lançamentos futuros, agenda de alertas e 
     Quando o jogador consulta os lançamentos futuros
     Então os lançamentos devem aparecer na ordem "Jogo Y", "Jogo Z", "Jogo X"
     E apenas "Jogo Z" deve estar destacado com alerta ativo
+    E "Jogo Z" deve mostrar 1 interessado na consulta
 
   # Casos de integração e idempotência
   Cenário: Desenvolvedor vinculado pode alterar o cronograma

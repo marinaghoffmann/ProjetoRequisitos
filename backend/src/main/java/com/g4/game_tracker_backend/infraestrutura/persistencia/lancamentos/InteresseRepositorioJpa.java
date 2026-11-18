@@ -8,6 +8,7 @@ import com.g4.game_tracker_backend.dominio.lancamentos.*;
 interface InteresseSpringData extends JpaRepository<InteresseJpa,UUID> {
     Optional<InteresseJpa> findByUsuarioIdAndJogoId(UUID usuarioId,UUID jogoId);
     List<InteresseJpa> findByJogoIdAndAtivoTrue(UUID jogoId);
+    long countByJogoIdAndAtivoTrue(UUID jogoId);
     List<InteresseJpa> findByJogoId(UUID jogoId);
 }
 @Repository
@@ -22,6 +23,7 @@ public class InteresseRepositorioJpa implements InteresseLancamentoRepositorio {
     public List<InteresseEmLancamento> ativosPorJogo(UUID j) {
         return dados.findByJogoIdAndAtivoTrue(j).stream().map(InteresseJpa::dominio).toList();
     }
+    public long contarAtivosPorJogo(UUID j) { return dados.countByJogoIdAndAtivoTrue(j); }
     public List<InteresseEmLancamento> todosPorJogo(UUID j) {
         return dados.findByJogoId(j).stream().map(InteresseJpa::dominio).toList();
     }

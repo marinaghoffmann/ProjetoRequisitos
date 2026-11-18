@@ -8,6 +8,7 @@ public interface LancamentoRepositorio {
     Optional<LancamentoFuturo> buscar(UUID id);
     Optional<LancamentoFuturo> buscarPorJogo(UUID jogoId);
     List<LancamentoFuturo> listarFuturos();
+    List<LancamentoFuturo> listarLancados();
     List<LancamentoFuturo> listarVencidos(LocalDate hoje);
     void excluir(UUID id);
 }

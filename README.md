@@ -287,7 +287,7 @@ no cadastro do jogo, por si só, não cria uma inscrição na agenda.
 
 | Método | Rota | Objetivo | Quem pode |
 |---|---|---|---|
-| `GET` | `/api/lancamentos` | Listar futuros por data, com contagem regressiva e alerta do usuário | qualquer um |
+| `GET` | `/api/lancamentos` | Listar futuros por data, com contagem regressiva, total de interessados e alerta do usuário; `incluirLancados=true` acrescenta os já lançados | qualquer um |
 | `GET` | `/api/lancamentos/{id}` | Consultar lançamento e histórico de datas | qualquer um |
 | `POST` | `/api/lancamentos` | Cadastrar `{ "jogoId": "...", "dataPrevista": "AAAA-MM-DD", "tipoData": "ESTIMADA" }` | admin ou desenvolvedor vinculado ao jogo |
 | `PUT` | `/api/lancamentos/{id}` | Alterar `{ "dataPrevista": "AAAA-MM-DD", "tipoData": "CONFIRMADA" }` | admin ou desenvolvedor vinculado ao jogo |
@@ -310,8 +310,7 @@ transação. Avisos de data alterada e de lançamento próximo são internos ao 
 
 `RotinasDosLancamentos` processa alertas e transições vencidas a cada minuto. Defina
 `APP_LANCAMENTOS_ROTINAS=false` para desativá-la; os testes a desativam e invocam os
-casos de uso com um instante fixo. Frontend: `/lancamentos`, formulários de cadastro/edição
-e `/notificacoes`. Cenários BDD: `f12_lancamentos.feature`.
+casos de uso com um instante fixo. Frontend: a seção “Em breve” de `/inicio` mostra os três primeiros lançamentos reais e o link “Todos” abre `/lancamentos`; essa página mostra a agenda e, ao final, os já lançados. Os formulários de cadastro/edição e `/notificacoes` continuam disponíveis. Cenários BDD: `f12_lancamentos.feature`.
 
 ## Fórum (F-13)
 

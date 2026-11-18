@@ -26,8 +26,9 @@ public class LancamentoController {
     }
     private UUID usuario(Jwt jwt) { return jwt==null?null:UUID.fromString(jwt.getSubject()); }
     @GetMapping
-    public List<ConsultarLancamentos.Visao> listar(@AuthenticationPrincipal Jwt jwt) {
-        return consulta.listar(usuario(jwt));
+    public List<ConsultarLancamentos.Visao> listar(@RequestParam(defaultValue="false") boolean incluirLancados,
+            @AuthenticationPrincipal Jwt jwt) {
+        return incluirLancados ? consulta.listarComLancados(usuario(jwt)) : consulta.listar(usuario(jwt));
     }
     @GetMapping("/{id}")
     public ConsultarLancamentos.Visao buscar(@PathVariable UUID id,@AuthenticationPrincipal Jwt jwt) {

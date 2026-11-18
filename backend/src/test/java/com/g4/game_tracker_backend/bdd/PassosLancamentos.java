@@ -176,6 +176,17 @@ public class PassosLancamentos {
             assertEquals(l.jogoId().equals(ids.get(titulo)),l.alertaAtivoDoUsuario());
     }
 
+    @Entao("{string} deve mostrar {int} interessado na consulta")
+    public void interessadosNaConsulta(String titulo, int quantidade) {
+        var item=listados.stream().filter(l->l.jogoId().equals(ids.get(titulo))).findFirst().orElseThrow();
+        assertEquals(quantidade,item.totalInteressados());
+    }
+    @Entao("o lançamento de {string} deve aparecer na consulta que inclui lançados")
+    public void lancadoNaConsulta(String titulo) {
+        assertTrue(consulta.listarComLancados(null).stream()
+                .anyMatch(l->l.jogoId().equals(ids.get(titulo)) && l.status()==StatusLancamento.LANCADO));
+    }
+
     @Dado("um desenvolvedor vinculado ao jogo {string} autenticado")
     public void desenvolvedorDoJogo(String titulo) {
         UUID desenvolvedoraId=jogos.buscarPorId(ids.get(titulo)).orElseThrow().desenvolvedoraId();

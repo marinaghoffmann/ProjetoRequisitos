@@ -11,7 +11,7 @@ import com.g4.game_tracker_backend.dominio.lancamentos.*;
 @Service
 public class ConsultarLancamentos {
     public record Visao(UUID id, UUID jogoId, UUID desenvolvedoraId, String titulo, String capaUrl, LocalDate dataPrevista,
-            StatusLancamento status, TipoDataLancamento tipoData, long diasRestantes, boolean alertaAtivoDoUsuario,
+            StatusLancamento status, TipoDataLancamento tipoData, long diasRestantes, long totalInteressados, boolean alertaAtivoDoUsuario,
             List<AlteracaoCronograma> historico) {}
     private final LancamentoRepositorio lancamentos;
     private final InteresseLancamentoRepositorio interesses;
@@ -31,6 +31,16 @@ public class ConsultarLancamentos {
                 .map(l->visao(l,usuarioId,agora)).toList();
     }
     @Transactional(readOnly=true)
+    public List<Visao> listarComLancados(UUID usuarioId) {
+        Instant agora=Instant.now();
+        List<Visao> resultado=new java.util.ArrayList<>(listar(usuarioId));
+        lancamentos.listarLancados().stream()
+                .filter(l->jogos.buscarPorId(l.jogoId())
+                        .map(j->j.status()==StatusCatalogo.ATIVO).orElse(false))
+                .map(l->visao(l,usuarioId,agora)).forEach(resultado::add);
+        return List.copyOf(resultado);
+    }
+    @Transactional(readOnly=true)
     public Visao buscar(UUID id,UUID usuarioId) {
         LancamentoFuturo l=lancamentos.buscar(id)
                 .orElseThrow(()->new RecursoNaoEncontradoException("Lançamento não encontrado"));
@@ -42,6 +52,7 @@ public class ConsultarLancamentos {
         boolean ativo=usuarioId!=null && interesses.buscar(usuarioId,l.jogoId())
                 .map(InteresseEmLancamento::ativo).orElse(false);
         return new Visao(l.id(),l.jogoId(),j.desenvolvedoraId(),j.titulo(),j.capaUrl(),l.dataPrevista(),l.status(),l.tipoData(),
-                DatasLancamentos.diasRestantes(l.dataPrevista(),agora),ativo,l.historico());
+                DatasLancamentos.diasRestantes(l.dataPrevista(),agora),
+                interesses.contarAtivosPorJogo(l.jogoId()),ativo,l.historico());
     }
 }

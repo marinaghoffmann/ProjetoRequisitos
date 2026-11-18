@@ -7,6 +7,7 @@ public interface InteresseLancamentoRepositorio {
     Optional<InteresseEmLancamento> buscar(UUID usuarioId, UUID jogoId);
     Optional<InteresseEmLancamento> buscarPorId(UUID id);
     List<InteresseEmLancamento> ativosPorJogo(UUID jogoId);
+    long contarAtivosPorJogo(UUID jogoId);
     List<InteresseEmLancamento> todosPorJogo(UUID jogoId);
     void excluirPorJogo(UUID jogoId);
 }
