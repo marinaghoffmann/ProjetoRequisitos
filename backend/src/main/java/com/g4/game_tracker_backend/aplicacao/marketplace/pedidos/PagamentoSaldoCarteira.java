@@ -4,20 +4,17 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.stereotype.Component;
-
 import com.g4.game_tracker_backend.dominio.marketplace.pedidos.CartaoSimulado;
 import com.g4.game_tracker_backend.dominio.marketplace.pedidos.EstrategiaDePagamento;
 import com.g4.game_tracker_backend.dominio.marketplace.pedidos.FormaPagamento;
 import com.g4.game_tracker_backend.dominio.marketplace.pedidos.TransacaoPagamento;
 
 /** RN 5 e RN 6: o saldo da carteira precisa cobrir o total, que é debitado; o reembolso volta para a carteira. */
-@Component
-class PagamentoSaldoCarteira implements EstrategiaDePagamento {
+public class PagamentoSaldoCarteira implements EstrategiaDePagamento {
 
     private final MovimentarCarteira carteira;
 
-    PagamentoSaldoCarteira(MovimentarCarteira carteira) {
+    public PagamentoSaldoCarteira(MovimentarCarteira carteira) {
         this.carteira = carteira;
     }
 

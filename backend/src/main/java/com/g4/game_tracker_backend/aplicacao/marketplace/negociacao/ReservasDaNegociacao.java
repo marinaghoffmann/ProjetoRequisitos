@@ -4,10 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
+import com.g4.game_tracker_backend.aplicacao.compartilhado.ExecutorDeTransacao;
 import com.g4.game_tracker_backend.dominio.compartilhado.AcessoNegadoException;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
@@ -20,22 +17,24 @@ import com.g4.game_tracker_backend.dominio.marketplace.negociacao.TipoProposta;
 /**
  * O que a negociação (F-19) oferece ao checkout (F-20): a reserva vigente do comprador, o registro do pedido
  * gerado a partir dela e a recusa das propostas pendentes quando o anúncio é comprado direto. Roda sempre
- * dentro da transação do checkout.
+ * dentro da transação do checkout: cada operação exige uma transação já aberta.
  */
-@Service
-@Transactional(propagation = Propagation.MANDATORY)
 public class ReservasDaNegociacao {
 
     private final ConversaChatRepositorio conversas;
     private final GerenciarPropostas gerenciarPropostas;
+    private final ExecutorDeTransacao transacao;
 
-    public ReservasDaNegociacao(ConversaChatRepositorio conversas, GerenciarPropostas gerenciarPropostas) {
+    public ReservasDaNegociacao(ConversaChatRepositorio conversas, GerenciarPropostas gerenciarPropostas,
+            ExecutorDeTransacao transacao) {
         this.conversas = conversas;
         this.gerenciarPropostas = gerenciarPropostas;
+        this.transacao = transacao;
     }
 
     /** O anúncio negociado na conversa da proposta, para o checkout checar o pedido ativo (F-20 RN 2). */
     public UUID anuncioDaProposta(UUID propostaId) {
+        transacao.exigirTransacaoAtiva();
         return conversas.buscarPorProposta(propostaId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Proposta não encontrada"))
                 .anuncioId();
@@ -43,6 +42,7 @@ public class ReservasDaNegociacao {
 
     /** F-20 RN 1: só a proposta ACEITA do próprio comprador, sem pedido e dentro das 48 horas (F-19 RN 10). */
     public ReservaAceita reservaDoComprador(UUID propostaId, UUID compradorId, Instant agora) {
+        transacao.exigirTransacaoAtiva();
         ConversaChat conversa = conversas.buscarPorProposta(propostaId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Proposta não encontrada"));
         if (!conversa.compradorId().equals(compradorId)) {
@@ -61,6 +61,7 @@ public class ReservasDaNegociacao {
 
     /** F-19 RN 10: com o pedido gerado, a reserva não expira mais. */
     public void vincularPedido(UUID propostaId, UUID pedidoId) {
+        transacao.exigirTransacaoAtiva();
         ConversaChat conversa = conversas.buscarPorProposta(propostaId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Proposta não encontrada"));
         conversas.salvar(conversa.vincularPedido(propostaId, pedidoId));
@@ -68,6 +69,7 @@ public class ReservasDaNegociacao {
 
     /** Compra direta reserva o anúncio: as propostas pendentes do anúncio perdem a vez (F-19 RN 9). */
     public void recusarPropostasPendentes(UUID anuncioId, Instant agora) {
+        transacao.exigirTransacaoAtiva();
         gerenciarPropostas.recusarOutrasConversas(anuncioId, null, agora);
     }
 

@@ -4,9 +4,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
-
+import com.g4.game_tracker_backend.dominio.compartilhado.PublicadorDeEventos;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplace;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplaceRepositorio;
@@ -19,13 +17,12 @@ import com.g4.game_tracker_backend.dominio.marketplace.negociacao.AnunciosDaNego
  * Implementa a porta da negociação sobre o agregado da F-18. Cada mudança passa pelo ciclo de vida do
  * anúncio e publica o AnuncioStatusAlterado na transação de quem chamou, como pede o contrato da T07.
  */
-@Component
 public class AnunciosParaNegociacao implements AnunciosDaNegociacao {
 
     private final AnuncioMarketplaceRepositorio anuncios;
-    private final ApplicationEventPublisher eventos;
+    private final PublicadorDeEventos eventos;
 
-    public AnunciosParaNegociacao(AnuncioMarketplaceRepositorio anuncios, ApplicationEventPublisher eventos) {
+    public AnunciosParaNegociacao(AnuncioMarketplaceRepositorio anuncios, PublicadorDeEventos eventos) {
         this.anuncios = anuncios;
         this.eventos = eventos;
     }
@@ -61,7 +58,7 @@ public class AnunciosParaNegociacao implements AnunciosDaNegociacao {
     private void mudar(AnuncioMarketplace anuncio, StatusAnuncio novo) {
         MudancaDeStatusAnuncio mudanca = anuncio.mudarStatus(novo, Instant.now());
         anuncios.salvar(mudanca.anuncio());
-        eventos.publishEvent(mudanca.evento());
+        eventos.publicar(mudanca.evento());
     }
 
     private AnuncioMarketplace carregar(UUID anuncioId) {

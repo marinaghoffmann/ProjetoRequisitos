@@ -8,17 +8,19 @@ import com.g4.game_tracker_backend.dominio.marketplace.negociacao.AnunciosDaNego
 import com.g4.game_tracker_backend.dominio.marketplace.negociacao.ConversaChat;
 import com.g4.game_tracker_backend.dominio.marketplace.negociacao.ConversaChatRepositorio;
 
-/** RN 3: carrega a conversa garantindo que o usuário é o comprador ou o vendedor dela. */
+/** Carregamento com mensagem de "não encontrado" padronizada para os casos de uso da negociação. */
 final class AcessoAConversa {
 
     private AcessoAConversa() {
     }
 
-    static ConversaChat doParticipante(ConversaChatRepositorio conversas, UUID conversaId, UUID usuarioId) {
-        ConversaChat conversa = conversas.buscarPorId(conversaId)
+    /**
+     * Recebe o {@link ConversasDoParticipante}: se a conversa existe mas o usuário não é parte dela, o proxy
+     * recusa a leitura (RN 3) antes de chegar aqui.
+     */
+    static ConversaChat doParticipante(ConversaChatRepositorio conversas, UUID conversaId) {
+        return conversas.buscarPorId(conversaId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Conversa não encontrada"));
-        conversa.exigirParticipante(usuarioId);
-        return conversa;
     }
 
     static AnuncioNegociavel anuncio(AnunciosDaNegociacao anuncios, UUID anuncioId) {
