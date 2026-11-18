@@ -308,13 +308,11 @@ Fontes de dados da ficha:
 | F-11 Conclusões | `FonteDeConclusoes` | `MetricasDoJogoAlteradas(jogoId)` |
 | F-06 Wishlist | `FonteDeWishlists` | `MetricasDoJogoAlteradas(jogoId)` |
 
-Reviews e conclusões já usam fontes reais. Ao ligar a wishlist, remova a fonte correspondente de
-`MetricasDeApoioDosCenarios` (test). O volume de negociações conta os anúncios `VENDIDO` e é recalculado pelo
+Reviews, conclusões e wishlist usam fontes reais. O volume de negociações conta os anúncios `VENDIDO` e é recalculado pelo
 `AnuncioStatusAlterado`, que a F-20 publica.
 
 Pendências conhecidas da F-17:
 
-- A wishlist ainda usa dados de apoio nos cenários BDD. Em produção, o total é zero até a fonte real ser ligada.
 - Se o recálculo falhar depois do commit, o erro só vai para o log e a ficha fica desatualizada até o próximo evento.
 
 ## Journal individual (F-15 / F12 do grupo)
