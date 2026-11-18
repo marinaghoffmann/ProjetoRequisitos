@@ -2,8 +2,7 @@
 
 **Responsável:** Henrique Brito
 **Branch:** feat/HenriqueBrito
-**Base atual:** origin/main em a62ae25 (sincronizada em 2026-11-16)
-**Estado:** implementação local concluída e validada; alterações da F9 ainda não commitadas nem enviadas ao remoto.
+**Estado:** entregue no PR #25 (branch `feat/HenriqueBrito`). Notas de implementação da F-12; a referência da API está em [api.md](api.md).
 
 ## O que foi entregue
 
