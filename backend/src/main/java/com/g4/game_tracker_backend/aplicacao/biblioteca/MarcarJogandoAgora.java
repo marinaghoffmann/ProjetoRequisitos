@@ -1,5 +1,6 @@
 package com.g4.game_tracker_backend.aplicacao.biblioteca;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -45,6 +46,6 @@ public class MarcarJogandoAgora {
                     () -> new RegraDeNegocioException("O jogo a substituir não está entre os seus jogos em andamento"));
             registros.salvar(substituido.encerrar());
         }
-        registros.salvar(JogandoAgora.iniciar(usuarioId, jogoId, LocalDate.now()));
+        registros.salvar(JogandoAgora.iniciar(usuarioId, jogoId, Instant.now()));
     }
 }

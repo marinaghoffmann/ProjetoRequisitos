@@ -18,4 +18,5 @@ public interface ReviewRepositorio {
     ResumoDeNotas resumirNotas(UUID jogoId);
     /** Exclusão física: a review e as suas notas por categoria (RN 3). */
     void remover(UUID id);
+    boolean existeParaJogo(UUID jogoId);
 }

@@ -1,6 +1,8 @@
 package com.g4.game_tracker_backend.aplicacao.biblioteca;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,13 +28,20 @@ public class ListarJogandoAgora {
         this.acesso = acesso;
     }
 
+    /** Jogos em andamento do usuário autenticado. */
     @Transactional(readOnly = true)
     public List<JogoEmAndamento> executar() {
-        return registros.buscarAtivos(acesso.usuarioAtualId()).stream()
+        return executarPara(acesso.usuarioAtualId());
+    }
+
+    /** Jogos em andamento de qualquer usuário, para o perfil público. Só registros ativos. */
+    @Transactional(readOnly = true)
+    public List<JogoEmAndamento> executarPara(UUID usuarioId) {
+        return registros.buscarAtivos(usuarioId).stream()
                 .map(r -> jogos.buscarPorId(r.jogoId())
                         .map(j -> new JogoEmAndamento(r, j.titulo(), j.capaUrl()))
                         .orElse(null))
-                .filter(java.util.Objects::nonNull)
+                .filter(Objects::nonNull)
                 .toList();
     }
 }
