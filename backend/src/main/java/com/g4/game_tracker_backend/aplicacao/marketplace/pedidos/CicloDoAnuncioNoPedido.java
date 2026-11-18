@@ -3,9 +3,7 @@ package com.g4.game_tracker_backend.aplicacao.marketplace.pedidos;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
-
+import com.g4.game_tracker_backend.dominio.compartilhado.PublicadorDeEventos;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplace;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplaceRepositorio;
@@ -16,13 +14,12 @@ import com.g4.game_tracker_backend.dominio.marketplace.anuncios.StatusAnuncio;
  * Transições do anúncio disparadas pelo pedido, sempre pelo ciclo de vida da F-18 e publicando o
  * AnuncioStatusAlterado na transação do caso de uso (a F-17 recalcula o volume de negociações com ele).
  */
-@Component
-class CicloDoAnuncioNoPedido {
+public class CicloDoAnuncioNoPedido {
 
     private final AnuncioMarketplaceRepositorio anuncios;
-    private final ApplicationEventPublisher eventos;
+    private final PublicadorDeEventos eventos;
 
-    CicloDoAnuncioNoPedido(AnuncioMarketplaceRepositorio anuncios, ApplicationEventPublisher eventos) {
+    public CicloDoAnuncioNoPedido(AnuncioMarketplaceRepositorio anuncios, PublicadorDeEventos eventos) {
         this.anuncios = anuncios;
         this.eventos = eventos;
     }
@@ -53,6 +50,6 @@ class CicloDoAnuncioNoPedido {
     private void mudar(AnuncioMarketplace anuncio, StatusAnuncio novo, Instant agora) {
         MudancaDeStatusAnuncio mudanca = anuncio.mudarStatus(novo, agora);
         anuncios.salvar(mudanca.anuncio());
-        eventos.publishEvent(mudanca.evento());
+        eventos.publicar(mudanca.evento());
     }
 }

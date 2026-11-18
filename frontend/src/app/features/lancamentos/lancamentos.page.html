@@ -1,0 +1,89 @@
+<main class="pagina-lancamentos">
+  <header class="cabecalho">
+    <div>
+      <h1>Próximos lançamentos</h1>
+      <p>Acompanhe os jogos e receba um aviso 24h antes das datas confirmadas.</p>
+    </div>
+    @if (autenticacao.temPapel('ADMINISTRADOR', 'DESENVOLVEDOR')) {
+      <a class="cadastrar" routerLink="/lancamentos/novo">Cadastrar lançamento</a>
+    }
+  </header>
+
+  <section class="notificacoes" aria-labelledby="titulo-notificacoes">
+    <h2 id="titulo-notificacoes">Notificações de lançamento</h2>
+    <p class="notificacoes__ajuda">Você escolhe quais jogos acompanhar em cada lançamento.</p>
+    <div class="notificacoes__item">
+      <div><strong>Alerta 24h antes</strong><span>Para datas confirmadas dos jogos que você acompanha.</span></div>
+      <span class="notificacoes__marca" aria-hidden="true">✓</span>
+    </div>
+    <div class="notificacoes__item">
+      <div><strong>Mudanças de data</strong><span>Aviso quando um lançamento acompanhado for adiado ou antecipado.</span></div>
+      <span class="notificacoes__marca" aria-hidden="true">✓</span>
+    </div>
+  </section>
+
+  @if (erro()) { <p role="alert" class="erro">{{ erro() }}</p> }
+  @if (carregando()) {
+    <p class="estado">Carregando lançamentos…</p>
+  } @else {
+    <section aria-label="Lançamentos futuros">
+      @if (!futuros().length) {
+        <p class="estado">Nenhum lançamento futuro cadastrado por enquanto.</p>
+      } @else {
+        <div class="lista">
+          @for (l of futuros(); track l.id) {
+            <article class="lancamento" [class.lancamento--estimado]="l.tipoData === 'ESTIMADA'">
+              <a class="lancamento__capa" [routerLink]="['/catalogo', l.jogoId]" [attr.aria-label]="'Ver jogo ' + l.titulo">
+                @if (imagemUrl(l.capaUrl)) { <img [src]="imagemUrl(l.capaUrl)" [alt]="'Capa de ' + l.titulo" /> }
+                @else { <span aria-hidden="true">GT</span> }
+              </a>
+              <div class="lancamento__conteudo">
+                <h2><a [routerLink]="['/catalogo', l.jogoId]">{{ l.titulo }}</a></h2>
+                <p class="lancamento__meta">{{ l.tipoData === 'ESTIMADA' ? 'Possível lançamento' : 'Lançamento confirmado' }} · <time [attr.datetime]="l.dataPrevista">{{ data(l.dataPrevista) }}</time></p>
+                <div class="lancamento__etiquetas">
+                  <span class="lancamento__contagem">{{ contagem(l) }}</span>
+                  <span>Em breve</span>
+                  <span>{{ quantidadeInteressados(l) }}</span>
+                </div>
+                @if (l.tipoData === 'ESTIMADA') {
+                  <p class="lancamento__aviso">Data estimada: o alerta de 24h aguarda confirmação.</p>
+                } @else if (l.alertaAtivoDoUsuario) {
+                  <p class="lancamento__aviso">Alerta previsto para {{ dataAlerta(l.dataPrevista) }}, 00:00.</p>
+                }
+                @if (podeGerir(l)) { <a class="lancamento__editar" [routerLink]="['/lancamentos', l.id, 'editar']">Editar cronograma</a> }
+              </div>
+              <div class="lancamento__acao">
+                @if (autenticacao.usuarioAtual()) {
+                  <button type="button" [class.ativo]="l.alertaAtivoDoUsuario" [disabled]="ocupado() === l.id" (click)="alternar(l)">
+                    {{ ocupado() === l.id ? 'Salvando…' : l.alertaAtivoDoUsuario ? '✓ Alerta ativo' : l.tipoData === 'ESTIMADA' ? '+ Quero acompanhar' : '+ Quero jogar no lançamento' }}
+                  </button>
+                } @else { <a routerLink="/login">Entrar para acompanhar</a> }
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    @if (lancados().length) {
+      <section class="lancados" aria-labelledby="titulo-lancados">
+        <h2 id="titulo-lancados">Já lançados</h2>
+        <div class="lista">
+          @for (l of lancados(); track l.id) {
+            <article class="lancamento lancamento--lancado">
+              <a class="lancamento__capa" [routerLink]="['/catalogo', l.jogoId]" [attr.aria-label]="'Ver jogo ' + l.titulo">
+                @if (imagemUrl(l.capaUrl)) { <img [src]="imagemUrl(l.capaUrl)" [alt]="'Capa de ' + l.titulo" /> }
+                @else { <span aria-hidden="true">GT</span> }
+              </a>
+              <div class="lancamento__conteudo">
+                <h3><a [routerLink]="['/catalogo', l.jogoId]">{{ l.titulo }}</a></h3>
+                <p class="lancamento__meta">Lançado em <time [attr.datetime]="l.dataPrevista">{{ data(l.dataPrevista) }}</time></p>
+                <div class="lancamento__etiquetas"><span>Lançado</span><span>{{ quantidadeInteressados(l) }}</span></div>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    }
+  }
+</main>

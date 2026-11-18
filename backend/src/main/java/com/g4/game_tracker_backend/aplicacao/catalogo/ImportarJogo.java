@@ -21,13 +21,16 @@ import com.g4.game_tracker_backend.dominio.identidade.Papel;
 public class ImportarJogo {
 
     private final JogoRepositorio jogos;
+    private final SalvarJogoComEvento salvarComEvento;
     private final DesenvolvedoraRepositorio desenvolvedoras;
     private final GeneroRepositorio generos;
     private final VerificadorDeAcesso verificadorDeAcesso;
 
     public ImportarJogo(JogoRepositorio jogos, DesenvolvedoraRepositorio desenvolvedoras,
-            GeneroRepositorio generos, VerificadorDeAcesso verificadorDeAcesso) {
+            GeneroRepositorio generos, VerificadorDeAcesso verificadorDeAcesso,
+            SalvarJogoComEvento salvarComEvento) {
         this.jogos = jogos;
+        this.salvarComEvento = salvarComEvento;
         this.desenvolvedoras = desenvolvedoras;
         this.generos = generos;
         this.verificadorDeAcesso = verificadorDeAcesso;
@@ -44,8 +47,8 @@ public class ImportarJogo {
 
         Jogo existente = jogos.buscarPorIdentificadorExterno(identificadorExterno).orElse(null);
         if (existente != null) {
-            return jogos.salvar(existente.atualizarDados(titulo, tituloOriginal, resumo,
-                    desenvolvedora.id(), generosIds, dataLancamento, capaUrl, trailerUrl));
+            return salvarComEvento.salvar(existente, existente.atualizarDados(titulo, tituloOriginal, resumo,
+                    desenvolvedora.id(), generosIds, dataLancamento == null ? existente.dataLancamento() : dataLancamento, capaUrl, trailerUrl));
         }
         return jogos.salvar(Jogo.importar(titulo, tituloOriginal, resumo, identificadorExterno,
                 desenvolvedora.id(), generosIds, dataLancamento, capaUrl, trailerUrl));

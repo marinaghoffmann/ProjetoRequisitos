@@ -1,79 +1,123 @@
-<main class="pagina-forum">
+<main class="pagina-comunidade">
   <header class="cabecalho">
     <div>
-      <a class="voltar" routerLink="/">← Game Tracker</a>
-      <h1>Fórum</h1>
-      <p>Tire dúvidas, compartilhe estratégias e converse sobre os jogos do catálogo.</p>
+      <h1>Comunidade</h1>
+      <p>Discussões, teorias, ajuda e boas histórias.</p>
     </div>
     @if (autenticacao.usuarioAtual()) {
-      <a class="botao" routerLink="/forum/novo">Novo tópico</a>
+      <button type="button" class="botao-novo" (click)="abrirEditor()">{{ editorAberto() ? 'Fechar editor' : '+ Novo tópico' }}</button>
     } @else {
-      <a class="botao" routerLink="/login">Entrar para participar</a>
+      <a class="botao-novo" routerLink="/login">Entrar para participar</a>
     }
   </header>
 
-  <form class="filtros" (ngSubmit)="pesquisar()">
-    <label>
-      Jogo
-      <select name="jogoId" [(ngModel)]="filtro.jogoId">
-        <option value="">Todos os tópicos</option>
-        @for (jogo of jogos(); track jogo.id) {
-          <option [value]="jogo.id">{{ jogo.titulo }}</option>
-        }
-      </select>
-    </label>
-    <label>
-      Categoria
-      <input name="categoria" type="search" [(ngModel)]="filtro.categoria" placeholder="Ex.: Geral, Dicas" />
-    </label>
-    <div class="filtros__botoes">
-      <button type="submit">Filtrar</button>
-      <button class="botao--secundario" type="button" (click)="limpar()">Limpar</button>
-    </div>
-  </form>
+  <div class="layout-comunidade">
+    <div class="coluna-principal">
+      @if (editorAberto()) {
+        <section class="editor" aria-label="Novo tópico">
+          <h2>Iniciar uma discussão</h2>
+          <p>Escolha uma categoria e conte o que está pensando.</p>
+          <form (ngSubmit)="publicar()">
+            <label for="novo-titulo">Título</label>
+            <input id="novo-titulo" name="titulo" [(ngModel)]="rascunho.titulo" maxlength="150" required placeholder="Sobre o que você quer conversar?" />
+            <div class="editor__linha">
+              <div><label for="nova-categoria">Categoria</label>
+                <select id="nova-categoria" name="categoria" [(ngModel)]="rascunho.categoria">
+                  <option value="Discussão geral">Discussão geral</option>
+                  <option value="Recomendações">Recomendações</option>
+                  <option value="Ajuda">Ajuda</option>
+                  <option value="Spoilers">Spoilers</option>
+                </select>
+              </div>
+              <div><label for="novo-jogo">Jogo (opcional)</label>
+                <select id="novo-jogo" name="jogoId" [(ngModel)]="rascunho.jogoId">
+                  <option value="">Geral, sem jogo</option>
+                  @for (jogo of jogos(); track jogo.id) { <option [value]="jogo.id">{{ jogo.titulo }}</option> }
+                </select>
+              </div>
+            </div>
+            <label for="novo-conteudo">Mensagem</label>
+            <div class="markdown-toolbar" aria-label="Formatação Markdown">
+              <button type="button" (click)="formatar(novoConteudo, 'negrito')" title="Negrito">B</button>
+              <button type="button" (click)="formatar(novoConteudo, 'italico')" title="Itálico"><i>I</i></button>
+              <button type="button" (click)="formatar(novoConteudo, 'codigo')" title="Código">&lt;/&gt;</button>
+              <button type="button" (click)="formatar(novoConteudo, 'citacao')" title="Citação">❝</button>
+              <button type="button" (click)="formatar(novoConteudo, 'lista')" title="Lista">☷</button>
+            </div>
+            <textarea #novoConteudo id="novo-conteudo" name="conteudo" [(ngModel)]="rascunho.conteudo" rows="6" maxlength="10000" required placeholder="Escreva sua mensagem…"></textarea>
+            <details class="ajuda-markdown"><summary>Prévia do texto</summary>
+              <div class="markdown-forum" [innerHTML]="markdown(rascunho.conteudo)"></div>
+            </details>
+            <app-anexo-imagens [(imagens)]="imagens" [(enviando)]="anexando" />
+            @if (erro(); as mensagem) { <p class="mensagem-erro" role="alert">{{ mensagem }}</p> }
+            <div class="editor__acoes"><button type="submit" [disabled]="salvando() || anexando() || !rascunho.titulo.trim() || !rascunho.conteudo.trim()">{{ salvando() ? 'Publicando…' : 'Publicar tópico' }}</button>
+              <button type="button" class="botao--secundario" (click)="abrirEditor()">Cancelar</button></div>
+          </form>
+        </section>
+      }
 
-  @if (carregando()) {
-    <p class="estado">Carregando tópicos…</p>
-  } @else if (erro(); as mensagem) {
-    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
-  } @else if (pagina(); as resultado) {
-    @if (!resultado.itens.length) {
-      <p class="estado">Nenhum tópico encontrado.</p>
-    } @else {
-      <ul class="topicos" aria-label="Tópicos do fórum">
-        @for (topico of resultado.itens; track topico.id) {
-          <li class="topico">
-            <a class="topico__capa" [routerLink]="['/forum', topico.id]" [style.--capa]="capaDoJogo(topico.jogoId)"
-              [attr.title]="tituloDoJogo(topico.jogoId)" aria-hidden="true" tabindex="-1">
-              @if (capaDoJogo(topico.jogoId) === 'none') {
-                <span class="topico__capa-vazia">🎮</span>
+      <section class="painel-lista" aria-label="Discussões">
+        <div class="abas-ordem" role="group" aria-label="Ordenar tópicos">
+          <button type="button" [class.ativo]="filtro.ordem === 'recentes'" (click)="escolherOrdem('recentes')">Recentes</button>
+          <button type="button" [class.ativo]="filtro.ordem === 'emAlta'" (click)="escolherOrdem('emAlta')">Em alta</button>
+        </div>
+        <div class="filtros" aria-label="Filtrar tópicos">
+          <div class="filtros__linha" role="group" aria-label="Categoria">
+            @for (categoria of categorias; track categoria) {
+              <button type="button" [class.ativo]="filtro.categoria === categoria" (click)="escolherCategoria(categoria)">{{ categoria }}</button>
+            }
+          </div>
+          <div class="filtros__linha" role="group" aria-label="Status">
+            @for (estado of estados; track estado.label) {
+              <button type="button" [class.ativo]="filtro.status === estado.valor" (click)="escolherStatus(estado.valor)">{{ estado.label }}</button>
+            }
+          </div>
+          <label class="jogo-filtro">Jogo
+            <select [(ngModel)]="filtro.jogoId" (ngModelChange)="escolherJogo()" aria-label="Filtrar por jogo">
+              <option value="">Todos os jogos</option><option value="__GERAIS__">Discussões gerais (sem jogo)</option>
+              @for (jogo of jogos(); track jogo.id) { <option [value]="jogo.id">{{ jogo.titulo }}</option> }
+            </select>
+          </label>
+        </div>
+
+        @if (carregando()) {
+          <p class="estado">Carregando tópicos…</p>
+        } @else if (erro() && !editorAberto()) {
+          <p class="mensagem-erro" role="alert">{{ erro() }}</p>
+        } @else if (pagina(); as resultado) {
+          @if (!resultado.itens.length) { <p class="estado">Nenhum tópico encontrado.</p> }
+          @else {
+            <ul class="topicos" aria-label="Tópicos da comunidade">
+              @for (topico of resultado.itens; track topico.id) {
+                <li class="topico">
+                  <span class="avatar" [style.background]="avatarDe(topico.avatarAutorUrl)" [style.backgroundColor]="corDoAvatar(topico.autorId)">{{ topico.avatarAutorUrl ? '' : iniciais(topico.nomeAutor) }}</span>
+                  <div class="topico__corpo">
+                    <div class="topico__etiquetas"><span>{{ categoriaDoTopico(topico.categoria) }}</span>@if (topico.jogoId) { <span>·</span><span>{{ tituloDoJogo(topico.jogoId) }}</span> }
+                      <span class="estado-topico" [class.resolvido]="topico.status === 'RESOLVIDO'" [class.encerrado]="topico.status === 'ENCERRADO'">{{ status[topico.status] }}</span></div>
+                    <a class="topico__titulo" [routerLink]="['/forum', topico.id]">{{ topico.titulo }}</a>
+                    <div class="topico__meta"><span>por {{ topico.nomeAutor ?? 'usuário removido' }}</span><span>·</span><span>{{ tempoRelativo(topico.dataUltimaAtividade) }}</span></div>
+                  </div>
+                  <div class="topico__contadores" aria-label="Atividade do tópico"><span>{{ topico.totalRespostas }} {{ topico.totalRespostas === 1 ? 'resposta' : 'respostas' }}</span><span>{{ topico.totalInteracoes }} {{ topico.totalInteracoes === 1 ? 'interação' : 'interações' }}</span></div>
+                </li>
               }
-            </a>
-            <div class="topico__corpo">
-              <a class="topico__titulo" [routerLink]="['/forum', topico.id]">{{ topico.titulo }}</a>
-              <p class="etiquetas">
-                <span class="etiqueta" [class.etiqueta--alerta]="topico.status === 'ENCERRADO'"
-                  [class.etiqueta--ok]="topico.status === 'RESOLVIDO'">{{ status[topico.status] }}</span>
-                <span class="etiqueta">{{ topico.categoria }}</span>
-              </p>
-              <p class="detalhe">por {{ topico.nomeAutor ?? 'usuário removido' }}</p>
-            </div>
-            <div class="topico__numeros">
-              <strong>{{ topico.totalRespostas }}</strong>
-              <span>resposta(s)</span>
-              <small>Última interação {{ topico.dataUltimaAtividade | date: 'dd/MM/yyyy HH:mm' }}</small>
-            </div>
-          </li>
+            </ul>
+            <nav class="paginacao" aria-label="Paginação">
+              <span>Mostrando {{ inicioDaPagina(resultado) }}–{{ fimDaPagina(resultado) }} de {{ resultado.totalItens }}</span>
+              <div class="paginacao__botoes">
+                <button type="button" [disabled]="resultado.pagina <= 1" (click)="carregar(resultado.pagina - 1)" aria-label="Página anterior">‹</button>
+                @for (numero of paginas(resultado.totalPaginas, resultado.pagina); track numero) {
+                  <button type="button" [class.ativo]="resultado.pagina === numero" (click)="carregar(numero)" [attr.aria-label]="'Página ' + numero">{{ numero }}</button>
+                }
+                <button type="button" [disabled]="resultado.pagina >= resultado.totalPaginas" (click)="carregar(resultado.pagina + 1)" aria-label="Próxima página">›</button>
+              </div>
+            </nav>
+          }
         }
-      </ul>
-
-      <nav class="paginacao" aria-label="Paginação">
-        <button class="botao--secundario" type="button" [disabled]="resultado.pagina <= 1"
-          (click)="carregar(resultado.pagina - 1)">← Anterior</button>
-        <span>Página {{ resultado.pagina }} de {{ resultado.totalPaginas }} ({{ resultado.totalItens }} tópicos)</span>
-        <button class="botao--secundario" type="button" [disabled]="resultado.pagina >= resultado.totalPaginas"
-          (click)="carregar(resultado.pagina + 1)">Próxima →</button>
-      </nav>
-    }
-  }
+      </section>
+    </div>
+    <aside class="lateral" aria-label="Informações da comunidade">
+      <section><h2>Regras do fórum</h2><p>Você edita seus tópicos e respostas por até 48 horas. Tópicos encerrados não aceitam novas respostas.</p></section>
+      <section><h2>Comunidade segura</h2><p>Denúncias e análise por moderadores chegam na etapa de moderação.</p></section>
+    </aside>
+  </div>
 </main>

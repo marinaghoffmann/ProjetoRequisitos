@@ -300,3 +300,25 @@ form > button[type='submit'] { margin-top: 0.5rem; min-height: 2.75rem; }
   border-radius: 50%;
   object-fit: cover;
 }
+
+// Formatação do fórum: o HTML é gerado pelo parser e sanitizado pelo Angular.
+.pagina-topico .texto.markdown-forum { white-space: normal; }
+.markdown-forum {
+  overflow-wrap: anywhere;
+  > :first-child { margin-top: 0; }
+  > :last-child { margin-bottom: 0; }
+  ul, ol { padding-left: 1.5rem; }
+  pre { max-width: 100%; overflow-x: auto; padding: 0.8rem; border-radius: 8px; background: var(--surface-2); }
+  pre code { padding: 0; color: var(--text); }
+  blockquote { margin-left: 0; padding-left: 0.9rem; border-left: 2px solid var(--line); color: var(--muted); }
+}
+.ajuda-markdown {
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  summary { cursor: pointer; color: var(--text); font-weight: 700; }
+  p { margin: 0.6rem 0; }
+  .markdown-forum { margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px solid var(--line-soft); color: var(--text); }
+}

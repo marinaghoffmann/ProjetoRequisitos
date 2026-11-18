@@ -15,6 +15,7 @@ import com.g4.game_tracker_backend.dominio.forum.FiltroTopicos;
 import com.g4.game_tracker_backend.dominio.forum.ResumoTopico;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForumRepositorio;
+import com.g4.game_tracker_backend.dominio.identidade.Usuario;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
 
 /** Consultas públicas da F-13: tópicos paginados por jogo ou categoria e um tópico com as suas respostas. */
@@ -50,10 +51,10 @@ public class ConsultarForum {
 
     /** Nome de exibição de cada autor, para as telas não mostrarem apenas identificadores. */
     @Transactional(readOnly = true)
-    public Map<UUID, String> nomesDosAutores(Collection<UUID> autorIds) {
-        Map<UUID, String> nomes = new HashMap<>();
+    public Map<UUID, Usuario> autores(Collection<UUID> autorIds) {
+        Map<UUID, Usuario> nomes = new HashMap<>();
         for (UUID autorId : new HashSet<>(autorIds)) {
-            usuarios.buscarPorId(autorId).ifPresent(usuario -> nomes.put(autorId, usuario.nome()));
+            usuarios.buscarPorId(autorId).ifPresent(usuario -> nomes.put(autorId, usuario));
         }
         return nomes;
     }

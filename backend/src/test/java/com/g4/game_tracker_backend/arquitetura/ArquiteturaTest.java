@@ -45,6 +45,37 @@ class ArquiteturaTest {
                 .check(CLASSES);
     }
 
+    /**
+     * Meta da arquitetura limpa: casos de uso em Java puro, com transação e eventos atrás de portas
+     * ({@code ExecutorDeTransacao}, {@code PublicadorDeEventos}) e wiring em {@code infraestrutura.configuracao}.
+     * Os contextos abaixo já foram migrados. Ao migrar outro contexto, inclua o pacote dele na lista; quando
+     * todos estiverem aqui, troque a lista por "..aplicacao..".
+     */
+    @Test
+    void aplicacaoMigradaNaoDependeDoSpring() {
+        noClasses().that().resideInAnyPackage(
+                        "..aplicacao.compartilhado..",
+                        "..aplicacao.marketplace.negociacao..",
+                        "..aplicacao.marketplace.pedidos..")
+                .should().dependOnClassesThat()
+                .resideInAnyPackage("org.springframework..")
+                .because("os casos de uso não dependem de framework; o Spring entra só pela infraestrutura")
+                .check(CLASSES);
+    }
+
+    /**
+     * No Context Map o catálogo é upstream dos lançamentos (F-12): ele publica eventos (DataJogoAlterada,
+     * JogoDesativado) e quem depende dele reage, nunca o contrário.
+     */
+    @Test
+    void catalogoNaoDependeDosLancamentos() {
+        noClasses().that().resideInAnyPackage("..dominio.catalogo..", "..aplicacao.catalogo..")
+                .should().dependOnClassesThat()
+                .resideInAnyPackage("..lancamentos..")
+                .because("o catálogo é upstream dos lançamentos no Context Map")
+                .check(CLASSES);
+    }
+
     @Test
     void apresentacaoNaoAcessaInfraestrutura() {
         noClasses().that().resideInAPackage("..apresentacao..")

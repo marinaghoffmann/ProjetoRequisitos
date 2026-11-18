@@ -35,20 +35,20 @@ public class EditarTopico {
     @Transactional
     public TopicoDeForum executar(UUID id, String titulo, String conteudo, String categoria,
             List<String> imagens) {
-        TopicoDeForum atual = TopicosDoForum.visivel(topicos, id);
+        TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, id);
         return topicos.salvar(atual.editar(verificadorDeAcesso.usuarioAtualId(), titulo, conteudo, categoria,
                 imagens, Instant.now()));
     }
 
     @Transactional
     public TopicoDeForum alterarStatus(UUID id, StatusTopico status) {
-        TopicoDeForum atual = TopicosDoForum.visivel(topicos, id);
+        TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, id);
         return topicos.salvar(atual.alterarStatus(verificadorDeAcesso.usuarioAtualId(), status, Instant.now()));
     }
 
     @Transactional
     public void excluir(UUID id) {
-        TopicoDeForum atual = TopicosDoForum.visivel(topicos, id);
+        TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, id);
         topicos.salvar(atual.remover(verificadorDeAcesso.usuarioAtualId()));
     }
 }

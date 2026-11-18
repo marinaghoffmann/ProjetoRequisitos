@@ -1,248 +1,58 @@
-// Botões, campos, filtros e etiquetas vêm do tema global (styles.scss).
-.pagina-forum {
-  width: min(60rem, calc(100% - 2rem));
+.pagina-comunidade {
+  width: min(83rem, calc(100% - 2.5rem));
   margin: 0 auto;
-  padding: 3rem 0 5rem;
+  padding: 2.1rem 0 5rem;
 }
-
 .cabecalho {
-  align-items: flex-end;
-
-  h1 {
-    margin: 0.35rem 0 0.4rem;
-    font-size: clamp(1.9rem, 4vw, 2.5rem);
-    line-height: 1.05;
-    letter-spacing: -0.03em;
-  }
-
-  p {
-    max-width: 34rem;
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.9rem;
-  }
-}
-
-.voltar {
-  color: var(--muted);
-  font-size: 0.8rem;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: var(--accent);
-    text-decoration: none;
-  }
-}
-
-.estado {
-  padding: 2.5rem 1rem;
-  border: 1px dashed var(--line);
-  border-radius: var(--radius);
-  color: var(--muted);
-  text-align: center;
-}
-
-// ===== Lista de tópicos =====
-.topicos {
-  display: grid;
-  gap: 0.75rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.topico {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.25rem;
-  padding: 1.1rem 1.25rem 1.1rem 1.5rem;
-  overflow: hidden;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius);
-  background: var(--surface);
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-
-  // faixa de destaque que aparece ao passar o mouse
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 3px;
-    background: var(--accent);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-
-  &:hover,
-  &:focus-within {
-    border-color: rgb(217 255 67 / 30%);
-    box-shadow: 0 8px 24px rgb(0 0 0 / 30%);
-    transform: translateY(-1px);
-
-    &::before {
-      opacity: 1;
-    }
-  }
-
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  h1 { margin: 0 0 0.25rem; font-size: clamp(2rem, 3.5vw, 2.7rem); }
+  p { margin: 0; color: var(--muted); }
 }
+.botao-novo { display: inline-flex; align-items: center; justify-content: center; padding: 0.7rem 1.2rem; border-radius: 9px; background: var(--accent); color: #151a0b; font-weight: 800; white-space: nowrap; &:hover { background: var(--accent-deep); color: #151a0b; text-decoration: none; } }
+.layout-comunidade { display: grid; grid-template-columns: minmax(0, 1fr) 17.5rem; gap: 1.4rem; align-items: start; }
+.coluna-principal { min-width: 0; }
+.painel-lista, .editor, .lateral section { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.editor { margin-bottom: 1rem; padding: 1.35rem; h2 { margin: 0; font-size: 1.2rem; } p { margin: 0.3rem 0 1.1rem; color: var(--muted); font-size: 0.85rem; } form { display: grid; gap: 0.6rem; } label { margin-top: 0.25rem; } textarea { resize: vertical; } }
+.editor__linha { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; > div { display: grid; gap: 0.4rem; } }
+.editor__acoes { display: flex; gap: 0.65rem; margin-top: 0.5rem; }
+.markdown-toolbar { display: flex; gap: 0.2rem; padding: 0.25rem; border: 1px solid var(--line); border-radius: 8px 8px 0 0; background: var(--surface-2); button { min-width: 2rem; padding: 0.35rem; border: 0; background: transparent; color: var(--muted); font-weight: 700; &:hover { color: var(--accent); } } }
+.markdown-toolbar + textarea { border-top: 0; border-radius: 0 0 8px 8px; }
+.ajuda-markdown { padding: 0.45rem 0.65rem; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); summary { cursor: pointer; } .markdown-forum { padding-top: 0.5rem; color: var(--text); } }
+.abas-ordem { display: flex; gap: 1.2rem; padding: 0 1.2rem; border-bottom: 1px solid var(--line); button { padding: 0.9rem 0.15rem; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); font-weight: 700; &.ativo { border-bottom-color: var(--accent); color: var(--accent); } } }
+.filtros { display: block; margin: 0; padding: 1rem 1.2rem 0.9rem; border: 0; border-radius: 0; background: transparent; }
+.filtros__linha { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; button { min-height: 2rem; padding: 0.35rem 0.7rem; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); color: var(--muted); font-size: 0.75rem; font-weight: 600; &.ativo { border-color: var(--accent); background: rgb(217 255 67 / 10%); color: var(--accent); } } }
+.jogo-filtro { display: flex; align-items: center; gap: 0.7rem; max-width: 20rem; select { min-height: 2rem; padding: 0.25rem 0.5rem; font-size: 0.78rem; } }
+.topicos { margin: 0; padding: 0; list-style: none; }
+.topico { display: flex; align-items: center; gap: 0.9rem; padding: 1.15rem 1.2rem; border-top: 1px solid var(--line-soft); &:hover { background: rgb(255 255 255 / 2%); } }
+.avatar { display: grid; flex: 0 0 2.55rem; place-items: center; width: 2.55rem; height: 2.55rem; border-radius: 50%; background-color: #38556a; color: white; font: 700 0.8rem var(--font-title); }
+.topico__corpo { flex: 1; min-width: 0; }
+.topico__etiquetas { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.3rem; color: var(--accent); font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; span:nth-child(2) { color: var(--muted); } }
+.estado-topico { margin-left: 0.35rem; padding: 0.14rem 0.45rem; border: 1px solid var(--line); border-radius: 5px; color: var(--muted); text-transform: none; letter-spacing: 0; &.resolvido { color: var(--success); border-color: rgb(92 255 146 / 35%); } &.encerrado { color: #ffad88; border-color: rgb(255 173 136 / 35%); } }
+.topico__titulo { display: block; overflow: hidden; color: var(--text); font: 700 1rem var(--font-title); text-overflow: ellipsis; white-space: nowrap; &:hover { color: var(--accent); text-decoration: none; } }
+.topico__meta { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.25rem; color: var(--muted); font-size: 0.76rem; }
+.topico__contadores { display: flex; gap: 0.8rem; color: var(--muted); font-size: 0.78rem; white-space: nowrap; }
+.estado { padding: 2rem; color: var(--muted); text-align: center; }
+.paginacao { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; padding: 1rem 1.2rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.75rem; }
+.paginacao__botoes { display: flex; gap: 0.25rem; button { min-width: 2rem; min-height: 2rem; padding: 0.2rem; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); color: var(--text); &.ativo { border-color: var(--accent); background: var(--accent); color: #151a0b; } &:disabled { opacity: 0.35; } } }
+.lateral { display: grid; gap: 1rem; section { padding: 1.1rem; } h2 { margin: 0 0 0.8rem; font-size: 0.95rem; } ul { margin: 0; padding-left: 1.1rem; color: var(--muted); font-size: 0.77rem; line-height: 1.7; } li::marker { color: var(--accent); } p { margin: 0; color: var(--muted); font-size: 0.78rem; line-height: 1.6; } }
+@media (max-width: 60rem) { .layout-comunidade { grid-template-columns: 1fr; } .lateral { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 38rem) { .pagina-comunidade { width: min(100% - 1rem, 83rem); padding-top: 1rem; } .cabecalho { align-items: flex-start; flex-direction: column; } .editor__linha, .lateral { grid-template-columns: 1fr; } .topico { align-items: flex-start; } .topico__contadores { flex-direction: column; align-items: flex-end; gap: 0.2rem; } }
 
-.topico__corpo {
-  flex: 1;
-  min-width: 0;
-}
+/* A lista usa o mesmo tratamento leve do protótipo da comunidade. */
+.painel-lista { border: 0; background: transparent; }
+.abas-ordem { gap: 0.45rem; margin-bottom: 1rem; padding: 0; border: 0; button { padding: 0.5rem 0.9rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted); font-size: 0.75rem; &.ativo { border-color: var(--accent); background: var(--accent); color: #151a0b; } } }
+.filtros { margin: 0 0 1rem; padding: 0; }
+.filtros__linha { button { border-radius: 999px; &.ativo { border-color: var(--accent); background: var(--accent); color: #151a0b; } } }
+.jogo-filtro select { max-width: 11rem; }
+.topico { padding: 1.15rem 0.4rem; border-top: 0; border-bottom: 1px solid var(--line); }
+.topico__contadores { display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem; min-width: 6.8rem; color: var(--muted); font-size: 0.72rem; }
+.topico__contadores span:first-child { color: var(--text); }
+.paginacao { padding-left: 0; padding-right: 0; border: 0; }
+.lateral section { background: var(--surface); }
+.lateral h2 { padding-bottom: 0.7rem; border-bottom: 1px solid var(--line); }
 
-// Imagem do jogo: fundo borrado preenche o quadro e a capa aparece inteira por cima
-.topico__capa {
-  position: relative;
-  display: grid;
-  flex: 0 0 8.5rem;
-  place-items: center;
-  align-self: stretch;
-  min-height: 4.75rem;
-  overflow: hidden;
-  border-radius: 9px;
-  background: linear-gradient(150deg, #1b1445, #0f2b4a 60%, #3b1d5c);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%);
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-  }
-
-  &::before {
-    inset: -12px;
-    background: var(--capa, none) center / cover no-repeat;
-    filter: blur(14px) brightness(0.55) saturate(1.2);
-  }
-
-  &::after {
-    inset: 0;
-    background: var(--capa, none) center / contain no-repeat;
-    transition: transform 0.25s ease;
-  }
-
-  .topico:hover &::after {
-    transform: scale(1.05);
-  }
-}
-
-.topico__capa-vazia {
-  position: relative;
-  z-index: 1;
-  font-size: 1.6rem;
-  opacity: 0.6;
-}
-
-.topico__titulo {
-  display: block;
-  overflow: hidden;
-  color: var(--text);
-  font-family: var(--font-title);
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  text-overflow: ellipsis;
-
-  &:hover {
-    color: var(--accent);
-    text-decoration: none;
-  }
-}
-
-.etiquetas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin: 0.6rem 0;
-}
-
-.etiqueta--ok {
-  border-color: rgb(92 255 146 / 35%);
-  background: rgb(92 255 146 / 10%);
-  color: var(--success);
-}
-
-.detalhe {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.8rem;
-}
-
-// Contador de respostas em "pílula" + data da última interação
-.topico__numeros {
-  display: grid;
-  flex: 0 0 auto;
-  justify-items: end;
-  align-content: center;
-  gap: 0.2rem;
-  min-width: 8.5rem;
-  color: var(--muted);
-  font-size: 0.78rem;
-  text-align: right;
-
-  strong {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 2.4rem;
-    height: 2rem;
-    padding: 0 0.6rem;
-    border-radius: 999px;
-    background: rgb(217 255 67 / 10%);
-    color: var(--accent);
-    font-family: var(--font-title);
-    font-size: 1rem;
-  }
-
-  small {
-    margin-top: 0.35rem;
-    color: var(--faint);
-    font-size: 0.7rem;
-  }
-}
-
-// ===== Paginação =====
-.paginacao {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1.75rem;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-@media (max-width: 42rem) {
-  .cabecalho {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .topico {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .topico__capa {
-    flex-basis: auto;
-    aspect-ratio: 16 / 9;
-    min-height: 0;
-  }
-
-  .topico__numeros {
-    grid-auto-flow: column;
-    align-items: center;
-    justify-items: start;
-    gap: 0.6rem;
-    text-align: left;
-
-    small {
-      margin: 0;
-    }
-  }
-}
+.estado-topico:not(.resolvido):not(.encerrado) { border-color: var(--accent); color: var(--accent); }

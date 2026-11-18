@@ -180,23 +180,31 @@
       <section class="hm-painel">
         <div class="hm-painel__cab">
           <h2>Em breve</h2>
-          <a href="#" class="hm-link">
+          <a routerLink="/lancamentos" class="hm-link">
             Todos
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
           </a>
         </div>
-        <ul class="hm-breve">
-          @for (l of emBreve; track l.titulo) {
-            <li>
-              <time class="hm-breve__data"><b>{{ l.dia }}</b>{{ l.mes }}</time>
-              <span class="hm-breve__capa" [style.background]="l.capa"></span>
-              <p>
-                <strong>{{ l.titulo }}</strong>
-                <span>{{ l.meta }}</span>
-              </p>
-            </li>
-          }
-        </ul>
+        @if (carregandoLancamentos()) {
+          <p class="hm-breve__estado">Carregando lançamentos…</p>
+        } @else if (erroLancamentos()) {
+          <p class="hm-breve__estado" role="alert">{{ erroLancamentos() }}</p>
+        } @else if (!emBreve().length) {
+          <p class="hm-breve__estado">Nenhum lançamento previsto por enquanto.</p>
+        } @else {
+          <ul class="hm-breve">
+            @for (l of emBreve(); track l.id) {
+              <li>
+                <time class="hm-breve__data" [attr.datetime]="l.dataPrevista"><b>{{ diaLancamento(l.dataPrevista) }}</b>{{ mesLancamento(l.dataPrevista) }}</time>
+                <span class="hm-breve__capa" [style.background]="capaLancamento(l)"></span>
+                <p>
+                  <a [routerLink]="['/catalogo', l.jogoId]">{{ l.titulo }}</a>
+                  <span>{{ l.tipoData === 'ESTIMADA' ? 'Data estimada' : 'Data confirmada' }} · {{ l.diasRestantes }} {{ l.diasRestantes === 1 ? 'dia' : 'dias' }}</span>
+                </p>
+              </li>
+            }
+          </ul>
+        }
       </section>
 
       <section class="hm-desafio">

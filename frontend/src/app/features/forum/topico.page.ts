@@ -1,13 +1,15 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { DatePipe, NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { ForumService, RespostaForum, STATUS_TOPICO, StatusTopico, Topico } from '../../core/api/forum.service';
+import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
 import { urlDaImagem } from '../marketplace/imagem';
 import { AnexoImagens } from './anexo-imagens.component';
+import { formatarMarkdownForum } from './markdown-forum';
 
 /**
  * Tópico com as respostas em árvore. Os botões de editar e excluir só aparecem para o autor e,
@@ -15,19 +17,22 @@ import { AnexoImagens } from './anexo-imagens.component';
  */
 @Component({
   selector: 'app-topico',
-  imports: [AnexoImagens, DatePipe, FormsModule, NgTemplateOutlet, RouterLink],
+  imports: [AnexoImagens, FormsModule, NgTemplateOutlet, RouterLink],
   templateUrl: './topico.page.html',
   styleUrl: './topico.page.scss',
 })
 export class TopicoPage {
   private readonly forum = inject(ForumService);
+  private readonly catalogo = inject(CatalogoService);
   private readonly roteador = inject(Router);
   protected readonly autenticacao = inject(AutenticacaoService);
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
 
   protected readonly status = STATUS_TOPICO;
+  protected readonly markdown = formatarMarkdownForum;
   protected readonly urlDaImagem = urlDaImagem;
   protected readonly topico = signal<Topico | null>(null);
+  protected readonly jogos = signal<Jogo[]>([]);
   protected readonly carregando = signal(true);
   protected readonly enviando = signal(false);
   protected readonly erro = signal<string | null>(null);
@@ -54,6 +59,7 @@ export class TopicoPage {
   });
 
   constructor() {
+    this.catalogo.listarJogos().subscribe({ next: (jogos) => this.jogos.set(jogos) });
     this.forum.buscarTopico(this.id).subscribe({
       next: (topico) => this.atualizar(topico),
       error: (e: ErroApi) => {
@@ -75,13 +81,62 @@ export class TopicoPage {
     return (nome ?? '?').trim().slice(0, 2).toUpperCase();
   }
 
-  /**
-   * Foto de perfil do autor como valor de `background`, ou null (mostra as iniciais).
-   * Por enquanto só conhecemos a foto do usuário logado; as dos demais dependem de a API do fórum devolvê-las.
-   */
-  protected avatarDe(autorId: string): string | null {
-    const atual = this.autenticacao.usuarioAtual();
-    return atual?.id === autorId && atual.avatarUrl ? `url("${encodeURI(atual.avatarUrl)}") center / cover no-repeat` : null;
+  protected corDoAvatar(id: string): string {
+    const cores = ['#9752c8', '#487db5', '#bf6695', '#557f80', '#ba7c46'];
+    return cores[id.charCodeAt(0) % cores.length];
+  }
+
+  protected avatarDe(url: string | null): string | null {
+    return url ? `url("${encodeURI(url)}") center / cover no-repeat` : null;
+  }
+
+  protected tituloDoJogo(jogoId: string | null): string {
+    return jogoId ? (this.jogos().find((jogo) => jogo.id === jogoId)?.titulo ?? 'Jogo') : 'Geral';
+  }
+
+  protected categoria(categoria: string): string {
+    return categoria === 'Geral' ? 'Discussão geral' : categoria;
+  }
+
+  protected papel(papel: string | null): string {
+    return ({ COMUM: 'Jogador', DESENVOLVEDOR: 'Desenvolvedor', MODERADOR: 'Moderador',
+      ADMINISTRADOR: 'Administrador' } as Record<string, string>)[papel ?? ''] ?? 'Membro';
+  }
+
+  protected tempoRelativo(data: string): string {
+    const segundos = Math.round((Date.parse(data) - Date.now()) / 1000);
+    const absoluto = Math.abs(segundos);
+    if (absoluto < 60) return 'agora';
+    const unidade: Intl.RelativeTimeFormatUnit = absoluto < 3600 ? 'minute' : absoluto < 86400 ? 'hour' : 'day';
+    const divisor = unidade === 'minute' ? 60 : unidade === 'hour' ? 3600 : 86400;
+    return new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' }).format(Math.round(segundos / divisor), unidade);
+  }
+
+  protected formatar(campo: HTMLTextAreaElement, alvo: 'novaResposta' | 'replica' | 'textoEditado',
+    tipo: 'negrito' | 'italico' | 'codigo' | 'citacao' | 'lista'): void {
+    const valor = this[alvo];
+    const selecionado = valor.slice(campo.selectionStart, campo.selectionEnd) || 'texto';
+    const trecho = ({ negrito: `**${selecionado}**`, italico: `*${selecionado}*`,
+      codigo: `\`${selecionado}\``, citacao: `> ${selecionado}`, lista: `- ${selecionado}` })[tipo];
+    this[alvo] = valor.slice(0, campo.selectionStart) + trecho + valor.slice(campo.selectionEnd);
+    campo.focus();
+  }
+
+  protected curtir(respostaId?: string): void {
+    const atual = this.topico();
+    if (!atual || this.enviando()) return;
+    const curtido = respostaId
+      ? atual.respostas.find((resposta) => resposta.id === respostaId)?.curtidaPeloUsuario ?? false
+      : atual.curtidoPeloUsuario;
+    this.enviando.set(true);
+    this.erro.set(null);
+    this.forum.definirCurtida(this.id, !curtido, respostaId).subscribe({
+      next: () => this.forum.buscarTopico(this.id).subscribe({
+        next: (topico) => this.atualizar(topico),
+        error: (e: ErroApi) => { this.erro.set(e.mensagem); this.enviando.set(false); },
+      }),
+      error: (e: ErroApi) => { this.erro.set(e.mensagem); this.enviando.set(false); },
+    });
   }
 
   protected dentroDoPrazo(editavelAte: string): boolean {

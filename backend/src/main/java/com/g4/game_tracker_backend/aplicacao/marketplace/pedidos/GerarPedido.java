@@ -3,9 +3,7 @@ package com.g4.game_tracker_backend.aplicacao.marketplace.pedidos;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import com.g4.game_tracker_backend.aplicacao.compartilhado.ExecutorDeTransacao;
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.aplicacao.marketplace.negociacao.ReservasDaNegociacao;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplace;
@@ -23,7 +21,6 @@ import com.g4.game_tracker_backend.dominio.marketplace.pedidos.TransacaoPagament
  * escolhida (RN 5) e gera o pedido já pago, com o valor em custódia (RN 7). Tudo numa transação: se a cobrança
  * for recusada, nada é gravado.
  */
-@Service
 public class GerarPedido {
 
     private final OrigemDoPedido origens;
@@ -32,38 +29,42 @@ public class GerarPedido {
     private final CicloDoAnuncioNoPedido anuncios;
     private final ReservasDaNegociacao reservas;
     private final VerificadorDeAcesso verificadorDeAcesso;
+    private final ExecutorDeTransacao transacao;
 
     public GerarPedido(OrigemDoPedido origens, FormasDePagamento formas, PedidoMarketplaceRepositorio pedidos,
-            CicloDoAnuncioNoPedido anuncios, ReservasDaNegociacao reservas, VerificadorDeAcesso verificadorDeAcesso) {
+            CicloDoAnuncioNoPedido anuncios, ReservasDaNegociacao reservas, VerificadorDeAcesso verificadorDeAcesso,
+            ExecutorDeTransacao transacao) {
         this.origens = origens;
         this.formas = formas;
         this.pedidos = pedidos;
         this.anuncios = anuncios;
         this.reservas = reservas;
         this.verificadorDeAcesso = verificadorDeAcesso;
+        this.transacao = transacao;
     }
 
-    @Transactional
     public PedidoMarketplace executar(UUID anuncioId, UUID propostaId, EnderecoEntrega endereco, OpcaoFrete frete,
             FormaPagamento forma, CartaoSimulado cartao) {
-        UUID compradorId = verificadorDeAcesso.usuarioAtualId();
-        Instant agora = Instant.now();
-        OrigemDoPedido.Resolvida origem = origens.resolver(anuncioId, propostaId, compradorId, agora);
-        AnuncioMarketplace anuncio = origem.anuncio();
+        return transacao.executar(() -> {
+            UUID compradorId = verificadorDeAcesso.usuarioAtualId();
+            Instant agora = Instant.now();
+            OrigemDoPedido.Resolvida origem = origens.resolver(anuncioId, propostaId, compradorId, agora);
+            AnuncioMarketplace anuncio = origem.anuncio();
 
-        var estrategia = formas.para(forma);
-        TransacaoPagamento pagamento = estrategia.cobrar(compradorId,
-                PedidoMarketplace.calcularTotal(origem.valorItem(), frete), cartao, agora);
-        PedidoMarketplace pedido = pedidos.salvar(PedidoMarketplace.gerar(origem.origem(), anuncio.id(),
-                anuncio.jogoId(), anuncio.titulo(), origem.propostaId(), origem.jogoOferecidoEmTroca(), compradorId,
-                anuncio.vendedorId(), origem.valorItem(), frete, endereco, pagamento, agora));
+            var estrategia = formas.para(forma);
+            TransacaoPagamento pagamento = estrategia.cobrar(compradorId,
+                    PedidoMarketplace.calcularTotal(origem.valorItem(), frete), cartao, agora);
+            PedidoMarketplace pedido = pedidos.salvar(PedidoMarketplace.gerar(origem.origem(), anuncio.id(),
+                    anuncio.jogoId(), anuncio.titulo(), origem.propostaId(), origem.jogoOferecidoEmTroca(), compradorId,
+                    anuncio.vendedorId(), origem.valorItem(), frete, endereco, pagamento, agora));
 
-        if (origem.origem() == OrigemPedido.PROPOSTA) {
-            reservas.vincularPedido(origem.propostaId(), pedido.id());
-        } else {
-            anuncios.reservar(anuncio, agora);
-            reservas.recusarPropostasPendentes(anuncio.id(), agora);
-        }
-        return pedido;
+            if (origem.origem() == OrigemPedido.PROPOSTA) {
+                reservas.vincularPedido(origem.propostaId(), pedido.id());
+            } else {
+                anuncios.reservar(anuncio, agora);
+                reservas.recusarPropostasPendentes(anuncio.id(), agora);
+            }
+            return pedido;
+        });
     }
 }

@@ -4,7 +4,8 @@
 
 | O quê | Comando | Onde |
 |---|---|---|
-| Banco PostgreSQL | `docker compose up -d` | raiz |
+| Tudo (banco, backend e frontend) | `docker compose up --build` (antes: `cp .env.example .env` e preencher) | raiz |
+| Só o banco PostgreSQL | `docker compose up -d postgres` | raiz |
 | Backend (Postgres) | `./mvnw spring-boot:run` | `backend/` |
 | Backend sem Docker (H2 em memória) | `./mvnw spring-boot:run -Dspring-boot.run.profiles=h2` | `backend/` |
 | Frontend | `npm ci` e depois `npm start` | `frontend/` |
@@ -33,7 +34,7 @@ subpacote por contexto delimitado do modelo CML (`catalogo`, `avaliacao`, `bibli
 | Camada | Contém | Pode depender de |
 |---|---|---|
 | `dominio` | Entidades, objetos de valor, regras de negócio, eventos e **interfaces** de repositório. Java puro. | nada |
-| `aplicacao` | Casos de uso (um serviço por fluxo), transações | `dominio` |
+| `aplicacao` | Casos de uso (um serviço por fluxo). Transação e eventos pelas portas `ExecutorDeTransacao` e `PublicadorDeEventos` (já assim na negociação e nos pedidos) | `dominio` |
 | `infraestrutura` | Entidades JPA, repositórios Spring Data, mapeadores, clientes de API externa, configurações | `dominio`, `aplicacao` |
 | `apresentacao` | Controllers REST (`/api/...`) e DTOs (records) | `aplicacao`, `dominio` |
 

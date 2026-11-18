@@ -20,15 +20,17 @@ public class ImportarJogoSteam {
 
     private final ImportadorJogoExterno importador;
     private final JogoRepositorio jogos;
+    private final SalvarJogoComEvento salvarComEvento;
     private final DesenvolvedoraRepositorio desenvolvedoras;
     private final GeneroRepositorio generos;
     private final VerificadorDeAcesso verificadorDeAcesso;
 
     public ImportarJogoSteam(ImportadorJogoExterno importador, JogoRepositorio jogos,
             DesenvolvedoraRepositorio desenvolvedoras, GeneroRepositorio generos,
-            VerificadorDeAcesso verificadorDeAcesso) {
+            VerificadorDeAcesso verificadorDeAcesso, SalvarJogoComEvento salvarComEvento) {
         this.importador = importador;
         this.jogos = jogos;
+        this.salvarComEvento = salvarComEvento;
         this.desenvolvedoras = desenvolvedoras;
         this.generos = generos;
         this.verificadorDeAcesso = verificadorDeAcesso;
@@ -51,8 +53,9 @@ public class ImportarJogoSteam {
         }
         Jogo existente = jogos.buscarPorIdentificadorExterno("STEAM-" + dados.identificador()).orElse(null);
         if (existente != null) {
-            return jogos.salvar(existente.atualizarDados(dados.titulo(), dados.tituloOriginal(), dados.resumo(),
-                    desenvolvedora.id(), generoIds, dados.dataLancamento(), dados.capaUrl(), ""));
+            return salvarComEvento.salvar(existente, existente.atualizarDados(dados.titulo(), dados.tituloOriginal(), dados.resumo(),
+                    desenvolvedora.id(), generoIds, dados.dataLancamento() == null ? existente.dataLancamento() : dados.dataLancamento(),
+                    dados.capaUrl(), ""));
         }
         return jogos.salvar(Jogo.importar(dados.titulo(), dados.tituloOriginal(), dados.resumo(),
                 "STEAM-" + dados.identificador(), desenvolvedora.id(), generoIds, dados.dataLancamento(),

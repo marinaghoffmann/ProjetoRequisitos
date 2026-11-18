@@ -28,13 +28,15 @@
 //  F-20 Pedido, checkout com custodia (escrow) e entrega
 //  F-21 Reputacao de compradores e vendedores
 //
-// Padroes de projeto (GoF) previstos no modelo:
-//  - Template Method : F-01 (CadastroJogoTemplate: origem API x origem Manual/Criador)
-//  - Proxy           : F-01 (ProxyBaseExternaJogos sobre IBaseExternaJogosGateway)
-//  - Strategy        : F-10 (ISimilaridadeStrategy) e F-20 (IFormaPagamentoStrategy)
-//  - Observer        : F-16 e F-17 (observadores dos eventos de review, zerado e compra)
-//  - Decorator       : F-14 e F-15 (IConteudoExibivel: mascara de spoiler e texto removido pela moderacao)
-//  - Iterator        : F-13 e F-16 (paginacao de topicos e navegacao da timeline)
+// Padroes de projeto (GoF) no modelo. [codigo] = implementado no backend; [previsto] = so no modelo.
+//  - Strategy        : F-10 (ISimilaridadeStrategy) e F-20 (IFormaPagamentoStrategy)              [codigo]
+//  - Observer        : F-16 e F-17 (observadores dos eventos de review, zerado e compra)          [codigo]
+//  - Proxy           : F-19 (ConversasDoParticipante: proxy de protecao da RN 3)                  [codigo]
+//  - Template Method : F-19 e F-20 (RotinaDePrazo: reserva de 48 h, envio e custodia)              [codigo]
+//  - Template Method : F-01 (CadastroJogoTemplate: origem API x origem Manual/Criador)            [previsto]
+//  - Proxy           : F-01 (ProxyBaseExternaJogos sobre IBaseExternaJogosGateway)                [previsto]
+//  - Decorator       : F-14 e F-15 (IConteudoExibivel: mascara de spoiler e texto removido pela moderacao) [previsto]
+//  - Iterator        : F-13 e F-16 (paginacao de topicos e navegacao da timeline)                 [previsto]
 // =============================================================================
 
 Domain GameTracker {
@@ -101,8 +103,16 @@ BoundedContext ContextoIdentidadeUsuario implements IdentidadeUsuarioSubdomain {
             String                  enderecoEmail
             String                  hashSenha
             - List<@PapelUsuario>   papeis
-            - @DesenvolvedoraId     desenvolvedoraVinculadaId    // F-01 RN 2: obrigatorio para o papel DESENVOLVEDOR
+            String                  desenvolvedoraVinculadaId    // F-01 RN 2: obrigatorio para o papel DESENVOLVEDOR.
+                                                                 // Id da Desenvolvedora do ContextoCatalogoJogos, guardado
+                                                                 // como valor: a identidade e upstream do catalogo.
             DateTime                criadoEm
+
+            Repository IUsuarioRepository {
+                Optional<@Usuario> buscarPorId(@UsuarioId usuarioId);
+                Optional<@Usuario> buscarPorEmail(String enderecoEmail);
+                @Usuario salvar(@Usuario usuario);
+            }
         }
 
         enum PapelUsuario { JOGADOR, DESENVOLVEDOR, MODERADOR, ADMINISTRADOR }
@@ -113,11 +123,6 @@ BoundedContext ContextoIdentidadeUsuario implements IdentidadeUsuarioSubdomain {
             Boolean possuiPapel(@UsuarioId usuarioId, @PapelUsuario papel);
         }
 
-        Repository IUsuarioRepositorio {
-            Optional<@Usuario> buscarPorId(@UsuarioId usuarioId);
-            Optional<@Usuario> buscarPorEmail(String enderecoEmail);
-            @Usuario salvar(@Usuario usuario);
-        }
     }
 }
 
@@ -144,10 +149,19 @@ BoundedContext ContextoCatalogoJogos implements CatalogoJogosSubdomain {
             Date                        dataLancamento
             - List<@GeneroId>           generos
             - List<@PlataformaId>       plataformas
-            - List<String>              tags                      // usadas no calculo de similaridade (F-10)
+            List<String>                tags                      // usadas no calculo de similaridade (F-10)
             - @StatusAtivacao           status                    // RN 3: INATIVO = exclusao logica
             DateTime                    criadoEm
             DateTime                    atualizadoEm
+
+            Repository IJogoRepository {
+                @Jogo salvar(@Jogo jogo);
+                Optional<@Jogo> buscarPorId(@JogoId jogoId);
+                Optional<@Jogo> buscarPorIdentificadorExterno(@IdentificadorExterno identificador);
+                Boolean existePorTituloEDesenvolvedora(String titulo, @DesenvolvedoraId desenvolvedoraId);
+                List<@Jogo> filtrar(@FiltroCatalogo filtro, Integer pagina, Integer tamanho);
+                void remover(@JogoId jogoId);                         // exclusao fisica: somente sem vinculos
+            }
         }
 
         ValueObject JogoId { String id }
@@ -167,9 +181,9 @@ BoundedContext ContextoCatalogoJogos implements CatalogoJogosSubdomain {
             String                  urlCapa
             String                  resumo
             Date                    dataLancamento
-            - List<String>          nomesGeneros
-            - List<String>          nomesPlataformas
-            - List<String>          tags
+            List<String>            nomesGeneros
+            List<String>            nomesPlataformas
+            List<String>            tags
         }
 
         ValueObject FiltroCatalogo {
@@ -223,15 +237,6 @@ BoundedContext ContextoCatalogoJogos implements CatalogoJogosSubdomain {
             - @JogoId   jogoId
             DateTime    desativadoEm
         }
-
-        Repository IJogoRepositorio {
-            @Jogo salvar(@Jogo jogo);
-            Optional<@Jogo> buscarPorId(@JogoId jogoId);
-            Optional<@Jogo> buscarPorIdentificadorExterno(@IdentificadorExterno identificador);
-            Boolean existePorTituloEDesenvolvedora(String titulo, @DesenvolvedoraId desenvolvedoraId);
-            List<@Jogo> filtrar(@FiltroCatalogo filtro, Integer pagina, Integer tamanho);
-            void remover(@JogoId jogoId);                         // exclusao fisica: somente sem vinculos
-        }
     }
 
     // F-01 Perfil institucional da desenvolvedora
@@ -248,6 +253,13 @@ BoundedContext ContextoCatalogoJogos implements CatalogoJogosSubdomain {
             - @StatusAtivacao           status                    // RN 2: precisa estar ATIVA para cadastro manual
             DateTime                    criadaEm
             DateTime                    atualizadaEm
+
+            Repository IDesenvolvedoraRepository {
+                @Desenvolvedora salvar(@Desenvolvedora desenvolvedora);
+                Optional<@Desenvolvedora> buscarPorId(@DesenvolvedoraId desenvolvedoraId);
+                Optional<@Desenvolvedora> buscarPorNome(String nome);
+                Integer contarJogosVinculados(@DesenvolvedoraId desenvolvedoraId);
+            }
         }
 
         ValueObject DesenvolvedoraId { String id }
@@ -263,13 +275,6 @@ BoundedContext ContextoCatalogoJogos implements CatalogoJogosSubdomain {
             @DesenvolvedoraId obterOuCriarPorNome(String nome);  // usado pela importacao via API
             void remover(@DesenvolvedoraId desenvolvedoraId, @UsuarioId administrador);  // RN 3: logica se houver jogos
         }
-
-        Repository IDesenvolvedoraRepositorio {
-            @Desenvolvedora salvar(@Desenvolvedora desenvolvedora);
-            Optional<@Desenvolvedora> buscarPorId(@DesenvolvedoraId desenvolvedoraId);
-            Optional<@Desenvolvedora> buscarPorNome(String nome);
-            Integer contarJogosVinculados(@DesenvolvedoraId desenvolvedoraId);
-        }
     }
 
     Aggregate Genero {
@@ -278,15 +283,15 @@ BoundedContext ContextoCatalogoJogos implements CatalogoJogosSubdomain {
             aggregateRoot
             - @GeneroId generoId
             String      nome
+
+            Repository IGeneroRepository {
+                Optional<@Genero> buscarPorNome(String nome);
+                @Genero salvar(@Genero genero);
+                List<@Genero> listarTodos();
+            }
         }
 
         ValueObject GeneroId { String id }
-
-        Repository IGeneroRepositorio {
-            Optional<@Genero> buscarPorNome(String nome);
-            @Genero salvar(@Genero genero);
-            List<@Genero> listarTodos();
-        }
     }
 
     Aggregate Plataforma {
@@ -295,15 +300,15 @@ BoundedContext ContextoCatalogoJogos implements CatalogoJogosSubdomain {
             aggregateRoot
             - @PlataformaId plataformaId
             String          nome
+
+            Repository IPlataformaRepository {
+                Optional<@Plataforma> buscarPorNome(String nome);
+                @Plataforma salvar(@Plataforma plataforma);
+                List<@Plataforma> listarTodas();
+            }
         }
 
         ValueObject PlataformaId { String id }
-
-        Repository IPlataformaRepositorio {
-            Optional<@Plataforma> buscarPorNome(String nome);
-            @Plataforma salvar(@Plataforma plataforma);
-            List<@Plataforma> listarTodas();
-        }
     }
 }
 
@@ -320,8 +325,17 @@ BoundedContext ContextoLancamentos implements CatalogoJogosSubdomain {
             - @JogoId                           jogoId
             DateTime                            dataPrevista      // RN 1: maior que a data atual
             - @StatusLancamento                 status            // RN 1: FUTURO_LANCAMENTO -> LANCADO
+            - @TipoDataLancamento               tipoData          // RN 1 e 2: so a data CONFIRMADA lanca e gera alerta
             - List<@AlteracaoCronograma>        historico         // RN 3
             DateTime                            cadastradoEm
+
+            Repository ILancamentoRepository {
+                @LancamentoFuturo salvar(@LancamentoFuturo lancamento);
+                Optional<@LancamentoFuturo> buscarPorId(@LancamentoId lancamentoId);
+                List<@LancamentoFuturo> listarFuturosOrdenadosPorData();
+                List<@LancamentoFuturo> listarComDataAtingida(DateTime agora);
+                void remover(@LancamentoId lancamentoId);
+            }
         }
 
         Entity AlteracaoCronograma {
@@ -333,6 +347,7 @@ BoundedContext ContextoLancamentos implements CatalogoJogosSubdomain {
         }
 
         enum StatusLancamento { FUTURO_LANCAMENTO, LANCADO }
+        enum TipoDataLancamento { ESTIMADA, CONFIRMADA }
         ValueObject LancamentoId            { String id }
         ValueObject AlteracaoCronogramaId   { String id }
 
@@ -369,14 +384,6 @@ BoundedContext ContextoLancamentos implements CatalogoJogosSubdomain {
             - @JogoId   jogoId
             DateTime    lancadoEm
         }
-
-        Repository ILancamentoRepositorio {
-            @LancamentoFuturo salvar(@LancamentoFuturo lancamento);
-            Optional<@LancamentoFuturo> buscarPorId(@LancamentoId lancamentoId);
-            List<@LancamentoFuturo> listarFuturosOrdenadosPorData();
-            List<@LancamentoFuturo> listarComDataAtingida(DateTime agora);
-            void remover(@LancamentoId lancamentoId);
-        }
     }
 
     Aggregate InteresseLancamento {
@@ -388,6 +395,13 @@ BoundedContext ContextoLancamentos implements CatalogoJogosSubdomain {
             - @JogoId                   jogoId
             Boolean                     ativo                     // RN 2: marcar e desmarcar a qualquer momento
             DateTime                    registradoEm
+
+            Repository IInteresseLancamentoRepository {
+                @InteresseEmLancamento salvar(@InteresseEmLancamento interesse);
+                Optional<@InteresseEmLancamento> buscarPorUsuarioEJogo(@UsuarioId usuarioId, @JogoId jogoId);
+                List<@InteresseEmLancamento> listarAtivosPorJogo(@JogoId jogoId);
+                List<@InteresseEmLancamento> listarComNotificacaoPendente(DateTime agora);
+            }
         }
 
         Entity NotificacaoLancamento {
@@ -403,13 +417,6 @@ BoundedContext ContextoLancamentos implements CatalogoJogosSubdomain {
             @InteresseEmLancamento alternarInteresse(@UsuarioId usuarioId, @JogoId jogoId);
             Integer reagendarNotificacoes(@JogoId jogoId, DateTime novaData);   // chamado apos DataLancamentoAlteradaEvent
             Integer dispararNotificacoesPendentes(DateTime agora);
-        }
-
-        Repository IInteresseLancamentoRepositorio {
-            @InteresseEmLancamento salvar(@InteresseEmLancamento interesse);
-            Optional<@InteresseEmLancamento> buscarPorUsuarioEJogo(@UsuarioId usuarioId, @JogoId jogoId);
-            List<@InteresseEmLancamento> listarAtivosPorJogo(@JogoId jogoId);
-            List<@InteresseEmLancamento> listarComNotificacaoPendente(DateTime agora);
         }
     }
 }
@@ -434,6 +441,16 @@ BoundedContext ContextoAvaliacao implements AvaliacaoComunidadeSubdomain {
             - List<@NotaPorCategoria>     notasPorCategoria       // RN 3: removidas em cascata
             DateTime                      criadaEm
             DateTime                      atualizadaEm
+
+            Repository IReviewRepository {
+                @Review salvar(@Review review);
+                Optional<@Review> buscarPorId(@ReviewId reviewId);
+                Optional<@Review> buscarPorAutorEJogo(@UsuarioId autorId, @JogoId jogoId);
+                List<@Review> listarPorJogo(@JogoId jogoId, Integer pagina, Integer tamanho);
+                List<@Review> listarPorAutor(@UsuarioId autorId);
+                Integer contarAtivasPorJogo(@JogoId jogoId);
+                void remover(@ReviewId reviewId);
+            }
         }
 
         Entity NotaPorCategoria {
@@ -495,16 +512,6 @@ BoundedContext ContextoAvaliacao implements AvaliacaoComunidadeSubdomain {
             - @JogoId    jogoId
             DateTime     excluidaEm
         }
-
-        Repository IReviewRepositorio {
-            @Review salvar(@Review review);
-            Optional<@Review> buscarPorId(@ReviewId reviewId);
-            Optional<@Review> buscarPorAutorEJogo(@UsuarioId autorId, @JogoId jogoId);
-            List<@Review> listarPorJogo(@JogoId jogoId, Integer pagina, Integer tamanho);
-            List<@Review> listarPorAutor(@UsuarioId autorId);
-            Integer contarAtivasPorJogo(@JogoId jogoId);
-            void remover(@ReviewId reviewId);
-        }
     }
 }
 
@@ -527,6 +534,11 @@ BoundedContext ContextoEstatisticas implements AvaliacaoComunidadeSubdomain {
             Integer                 totalNegociacoesMarketplace
             Boolean                 elegivelExibicaoPublica       // RN 3: true com 3 ou mais reviews ativas
             DateTime                atualizadaEm
+
+            Repository IEstatisticaJogoRepository {
+                @EstatisticaJogo salvar(@EstatisticaJogo estatistica);
+                Optional<@EstatisticaJogo> buscarPorJogo(@JogoId jogoId);
+            }
         }
 
         ValueObject EstatisticaJogoId { String id }
@@ -565,11 +577,6 @@ BoundedContext ContextoEstatisticas implements AvaliacaoComunidadeSubdomain {
             Integer contarPresencaEmWishlists(@JogoId jogoId);
             Integer contarNegociacoesConcluidas(@JogoId jogoId);
         }
-
-        Repository IEstatisticaJogoRepositorio {
-            @EstatisticaJogo salvar(@EstatisticaJogo estatistica);
-            Optional<@EstatisticaJogo> buscarPorJogo(@JogoId jogoId);
-        }
     }
 }
 
@@ -592,6 +599,15 @@ BoundedContext ContextoListasPersonalizadas implements BibliotecaPessoalSubdomai
             - List<@ItemDaLista>    itens                         // RN 2: sem jogo repetido; RN 3: maximo 100
             DateTime                criadaEm
             DateTime                atualizadaEm
+
+            Repository IListaRepository {
+                @ListaPersonalizada salvar(@ListaPersonalizada lista);
+                Optional<@ListaPersonalizada> buscarPorId(@ListaId listaId);
+                List<@ListaPersonalizada> listarPorDono(@UsuarioId donoId);
+                Boolean existePorDonoETituloIgnorandoCaixa(@UsuarioId donoId, String titulo);
+                Boolean existeItemComJogo(@JogoId jogoId);            // usado pela exclusao logica do catalogo (F-01 RN 3)
+                void remover(@ListaId listaId);
+            }
         }
 
         Entity ItemDaLista {
@@ -626,15 +642,6 @@ BoundedContext ContextoListasPersonalizadas implements BibliotecaPessoalSubdomai
         Service ConsultaListasService {
             List<@ResumoLista> consultarPorUsuario(@UsuarioId donoId);
         }
-
-        Repository IListaRepositorio {
-            @ListaPersonalizada salvar(@ListaPersonalizada lista);
-            Optional<@ListaPersonalizada> buscarPorId(@ListaId listaId);
-            List<@ListaPersonalizada> listarPorDono(@UsuarioId donoId);
-            Boolean existePorDonoETituloIgnorandoCaixa(@UsuarioId donoId, String titulo);
-            Boolean existeItemComJogo(@JogoId jogoId);            // usado pela exclusao logica do catalogo (F-01 RN 3)
-            void remover(@ListaId listaId);
-        }
     }
 }
 
@@ -651,6 +658,12 @@ BoundedContext ContextoWishlist implements BibliotecaPessoalSubdomain {
             - @UsuarioId            donoId                        // RN 1: exatamente uma por usuario
             - List<@ItemWishlist>   itens                         // RN 2: sem jogo duplicado
             DateTime                criadaEm
+
+            Repository IWishlistRepository {
+                @Wishlist salvar(@Wishlist wishlist);
+                Optional<@Wishlist> buscarPorDono(@UsuarioId donoId);
+                Integer contarWishlistsComJogo(@JogoId jogoId);
+            }
         }
 
         Entity ItemWishlist {
@@ -685,12 +698,6 @@ BoundedContext ContextoWishlist implements BibliotecaPessoalSubdomain {
             - @UsuarioId usuarioId
             - @JogoId    jogoId
         }
-
-        Repository IWishlistRepositorio {
-            @Wishlist salvar(@Wishlist wishlist);
-            Optional<@Wishlist> buscarPorDono(@UsuarioId donoId);
-            Integer contarWishlistsComJogo(@JogoId jogoId);
-        }
     }
 }
 
@@ -706,6 +713,11 @@ BoundedContext ContextoPerfilJogador implements BibliotecaPessoalSubdomain {
             - @PainelCurrentlyPlayingId     painelId
             - @UsuarioId                    usuarioId
             - List<@JogoEmAndamento>        jogos                 // RN 1: no maximo 5 simultaneos
+
+            Repository IPainelCurrentlyPlayingRepository {
+                @PainelCurrentlyPlaying salvar(@PainelCurrentlyPlaying painel);
+                Optional<@PainelCurrentlyPlaying> buscarPorUsuario(@UsuarioId usuarioId);
+            }
         }
 
         Entity JogoEmAndamento {
@@ -727,11 +739,6 @@ BoundedContext ContextoPerfilJogador implements BibliotecaPessoalSubdomain {
             void removerDoDestaque(@UsuarioId usuarioId, @JogoId jogoId);
             List<@JogoEmAndamento> consultarPorUsuario(@UsuarioId usuarioId);
         }
-
-        Repository IPainelCurrentlyPlayingRepositorio {
-            @PainelCurrentlyPlaying salvar(@PainelCurrentlyPlaying painel);
-            Optional<@PainelCurrentlyPlaying> buscarPorUsuario(@UsuarioId usuarioId);
-        }
     }
 
     // F-08 Gerenciamento de jogos favoritos e personalizacao do perfil publico
@@ -745,6 +752,11 @@ BoundedContext ContextoPerfilJogador implements BibliotecaPessoalSubdomain {
             - @UrlImagemCapa        capa                          // RN 3: .png, .jpg ou .webp
             - List<@JogoFavorito>   favoritos                     // RN 1: no maximo 4
             DateTime                atualizadoEm
+
+            Repository IPerfilPublicoRepository {
+                @PerfilPublico salvar(@PerfilPublico perfil);
+                Optional<@PerfilPublico> buscarPorUsuario(@UsuarioId usuarioId);
+            }
         }
 
         Entity JogoFavorito {
@@ -770,11 +782,6 @@ BoundedContext ContextoPerfilJogador implements BibliotecaPessoalSubdomain {
             @PerfilPublico definirCapa(@UsuarioId usuarioId, @UrlImagemCapa capa);
             @PerfilPublico consultarPerfil(@UsuarioId usuarioId);
         }
-
-        Repository IPerfilPublicoRepositorio {
-            @PerfilPublico salvar(@PerfilPublico perfil);
-            Optional<@PerfilPublico> buscarPorUsuario(@UsuarioId usuarioId);
-        }
     }
 }
 
@@ -792,6 +799,13 @@ BoundedContext ContextoConclusoes implements BibliotecaPessoalSubdomain {
             - @JogoId                       jogoId
             Integer                         totalConclusoes       // incrementa ao registrar e decrementa ao excluir
             - List<@RegistroDeConclusao>    registros
+
+            Repository IHistoricoConclusoesRepository {
+                @HistoricoConclusoes salvar(@HistoricoConclusoes historico);
+                Optional<@HistoricoConclusoes> buscarPorUsuarioEJogo(@UsuarioId usuarioId, @JogoId jogoId);
+                Optional<@HistoricoConclusoes> buscarPorRegistro(@RegistroConclusaoId registroId);
+                Integer contarConclusoesDoJogo(@JogoId jogoId);
+            }
         }
 
         Entity RegistroDeConclusao {
@@ -829,13 +843,6 @@ BoundedContext ContextoConclusoes implements BibliotecaPessoalSubdomain {
             - @JogoId               jogoId
             - @RegistroConclusaoId  registroId
         }
-
-        Repository IHistoricoConclusoesRepositorio {
-            @HistoricoConclusoes salvar(@HistoricoConclusoes historico);
-            Optional<@HistoricoConclusoes> buscarPorUsuarioEJogo(@UsuarioId usuarioId, @JogoId jogoId);
-            Optional<@HistoricoConclusoes> buscarPorRegistro(@RegistroConclusaoId registroId);
-            Integer contarConclusoesDoJogo(@JogoId jogoId);
-        }
     }
 }
 
@@ -859,6 +866,13 @@ BoundedContext ContextoSimilaridade implements DescobertaJogosSubdomain {
             Integer                 totalFeedbacksNegativos
             Boolean                 rebaixada                     // RN 2: mais de 15 negativos
             DateTime                calculadaEm
+
+            Repository ISimilaridadeRepository {
+                @SimilaridadeJogo salvar(@SimilaridadeJogo similaridade);
+                Optional<@SimilaridadeJogo> buscarPar(@JogoId jogoAId, @JogoId jogoBId);
+                List<@SimilaridadeJogo> listarPorJogoOrdenadoPorGrau(@JogoId jogoId, Integer limite);
+                void remover(@SimilaridadeId similaridadeId);
+            }
         }
 
         enum OrigemSimilaridade { AUTOMATICA, MANUAL }
@@ -866,8 +880,8 @@ BoundedContext ContextoSimilaridade implements DescobertaJogosSubdomain {
 
         ValueObject PerfilJogo {
             - @JogoId           jogoId
-            - List<String>      generos
-            - List<String>      tags
+            List<String>        generos
+            List<String>        tags
             - @DesenvolvedoraId desenvolvedoraId
         }
 
@@ -897,13 +911,6 @@ BoundedContext ContextoSimilaridade implements DescobertaJogosSubdomain {
             @PerfilJogo obterPerfil(@JogoId jogoId);
             List<@PerfilJogo> listarCandidatos(@JogoId jogoId);
         }
-
-        Repository ISimilaridadeRepositorio {
-            @SimilaridadeJogo salvar(@SimilaridadeJogo similaridade);
-            Optional<@SimilaridadeJogo> buscarPar(@JogoId jogoAId, @JogoId jogoBId);
-            List<@SimilaridadeJogo> listarPorJogoOrdenadoPorGrau(@JogoId jogoId, Integer limite);
-            void remover(@SimilaridadeId similaridadeId);
-        }
     }
 
     Aggregate FeedbackSugestao {
@@ -916,6 +923,13 @@ BoundedContext ContextoSimilaridade implements DescobertaJogosSubdomain {
             - @TipoFeedback         tipo
             DateTime                registradoEm
             DateTime                atualizadoEm
+
+            Repository IFeedbackSugestaoRepository {
+                @FeedbackDeSugestao salvar(@FeedbackDeSugestao feedback);
+                Boolean existePorUsuarioESimilaridade(@UsuarioId usuarioId, @SimilaridadeId similaridadeId);
+                Integer contarNegativos(@SimilaridadeId similaridadeId);
+                void remover(@FeedbackSugestaoId feedbackId);
+            }
         }
 
         enum TipoFeedback { UTIL, NAO_RELEVANTE }
@@ -925,13 +939,6 @@ BoundedContext ContextoSimilaridade implements DescobertaJogosSubdomain {
             @FeedbackDeSugestao registrar(@UsuarioId usuarioId, @SimilaridadeId similaridadeId, @TipoFeedback tipo);
             @FeedbackDeSugestao editar(@FeedbackSugestaoId feedbackId, @UsuarioId solicitante, @TipoFeedback novoTipo);
             void remover(@FeedbackSugestaoId feedbackId, @UsuarioId solicitante);
-        }
-
-        Repository IFeedbackSugestaoRepositorio {
-            @FeedbackDeSugestao salvar(@FeedbackDeSugestao feedback);
-            Boolean existePorUsuarioESimilaridade(@UsuarioId usuarioId, @SimilaridadeId similaridadeId);
-            Integer contarNegativos(@SimilaridadeId similaridadeId);
-            void remover(@FeedbackSugestaoId feedbackId);
         }
     }
 }
@@ -952,7 +959,7 @@ BoundedContext ContextoDiarioJogatina implements DiarioJogatinaSubdomain {
             - @JogoId               jogoId                        // opcional
             DateTime                dataSessao
             String                  texto
-            - List<String>          tags
+            List<String>            tags
             - List<@AnexoJournal>   anexos                        // F-15 RN 2: no maximo 3
             Boolean                 contemSpoiler                 // F-15 RN 3: exige clique para exibir
             - @TipoOrigem           tipoOrigem                    // F-16 RN 3: AUTOMATICO nao editavel
@@ -960,6 +967,16 @@ BoundedContext ContextoDiarioJogatina implements DiarioJogatinaSubdomain {
             String                  origemId                      // id da review, do registro ou do pedido
             DateTime                criadaEm
             DateTime                atualizadaEm
+
+            Repository IEntradaJournalRepository {
+                @EntradaDeJournal salvar(@EntradaDeJournal entrada);
+                Optional<@EntradaDeJournal> buscarPorId(@EntradaJournalId entradaId);
+                Optional<@EntradaDeJournal> buscarPorOrigem(@TipoEventoPlataforma evento, String origemId);
+                List<@EntradaDeJournal> filtrar(@UsuarioId donoId, @FiltroJournal filtro);
+                List<@EntradaDeJournal> listarTimelinePorData(@UsuarioId donoId);
+                Boolean existePorJogo(@JogoId jogoId);                // usado pela exclusao logica do catalogo
+                void remover(@EntradaJournalId entradaId);
+            }
         }
 
         Entity AnexoJournal {
@@ -1022,16 +1039,6 @@ BoundedContext ContextoDiarioJogatina implements DiarioJogatinaSubdomain {
             Boolean hasNext();
             @EntradaDeJournal next();
         }
-
-        Repository IEntradaJournalRepositorio {
-            @EntradaDeJournal salvar(@EntradaDeJournal entrada);
-            Optional<@EntradaDeJournal> buscarPorId(@EntradaJournalId entradaId);
-            Optional<@EntradaDeJournal> buscarPorOrigem(@TipoEventoPlataforma evento, String origemId);
-            List<@EntradaDeJournal> filtrar(@UsuarioId donoId, @FiltroJournal filtro);
-            List<@EntradaDeJournal> listarTimelinePorData(@UsuarioId donoId);
-            Boolean existePorJogo(@JogoId jogoId);                // usado pela exclusao logica do catalogo
-            void remover(@EntradaJournalId entradaId);
-        }
     }
 }
 
@@ -1060,6 +1067,13 @@ BoundedContext ContextoForum implements ComunidadeForumSubdomain {
             DateTime                publicadoEm                   // RN 2: janela de edicao de 48h
             DateTime                editadoEm
             - List<@RespostaForum>  respostas
+
+            Repository ITopicoRepository {
+                @TopicoDeForum salvar(@TopicoDeForum topico);
+                Optional<@TopicoDeForum> buscarPorId(@TopicoId topicoId);
+                List<@ResumoTopico> listarPorJogoPaginado(@JogoId jogoId, Integer pagina, Integer tamanho);
+                List<@ResumoTopico> listarPorCategoriaPaginado(String categoria, Integer pagina, Integer tamanho);
+            }
         }
 
         Entity RespostaForum {
@@ -1115,13 +1129,6 @@ BoundedContext ContextoForum implements ComunidadeForumSubdomain {
             - @UsuarioId        autorId
             DateTime            publicadaEm
         }
-
-        Repository ITopicoRepositorio {
-            @TopicoDeForum salvar(@TopicoDeForum topico);
-            Optional<@TopicoDeForum> buscarPorId(@TopicoId topicoId);
-            List<@ResumoTopico> listarPorJogoPaginado(@JogoId jogoId, Integer pagina, Integer tamanho);
-            List<@ResumoTopico> listarPorCategoriaPaginado(String categoria, Integer pagina, Integer tamanho);
-        }
     }
 }
 
@@ -1142,6 +1149,12 @@ BoundedContext ContextoModeracao implements ComunidadeForumSubdomain {
             - @StatusDenuncia           status
             DateTime                    registradaEm
             DateTime                    analisadaEm
+
+            Repository IDenunciaRepository {
+                @DenunciaConteudo salvar(@DenunciaConteudo denuncia);
+                Optional<@DenunciaConteudo> buscarPorId(@DenunciaId denunciaId);
+                List<@DenunciaConteudo> listarPorStatus(@StatusDenuncia status);
+            }
         }
 
         enum TipoConteudo   { TOPICO, RESPOSTA, COMENTARIO }
@@ -1151,12 +1164,6 @@ BoundedContext ContextoModeracao implements ComunidadeForumSubdomain {
         Service DenunciaService {
             @DenunciaConteudo denunciar(@UsuarioId denuncianteId, @TipoConteudo tipo, String conteudoId, String motivo);
             List<@DenunciaConteudo> consultarFilaPendente();
-        }
-
-        Repository IDenunciaRepositorio {
-            @DenunciaConteudo salvar(@DenunciaConteudo denuncia);
-            Optional<@DenunciaConteudo> buscarPorId(@DenunciaId denunciaId);
-            List<@DenunciaConteudo> listarPorStatus(@StatusDenuncia status);
         }
     }
 
@@ -1172,6 +1179,11 @@ BoundedContext ContextoModeracao implements ComunidadeForumSubdomain {
             String                  conteudoId
             String                  justificativa                 // RN 1: obrigatoria para OCULTAR e EXCLUIR
             DateTime                registradoEm
+
+            Repository ILogModeracaoRepository {
+                @LogDeModeracao salvar(@LogDeModeracao log);
+                List<@LogDeModeracao> listarPorData(Integer pagina, Integer tamanho);
+            }
         }
 
         enum TipoAcaoModeracao { OCULTAR, EDITAR, MOVER, EXCLUIR, ENCERRAR_TOPICO, ADVERTIR_USUARIO }
@@ -1206,11 +1218,6 @@ BoundedContext ContextoModeracao implements ComunidadeForumSubdomain {
             - @TipoAcaoModeracao    acao
             String                  conteudoId
         }
-
-        Repository ILogModeracaoRepositorio {
-            @LogDeModeracao salvar(@LogDeModeracao log);
-            List<@LogDeModeracao> listarPorData(Integer pagina, Integer tamanho);
-        }
     }
 
     Aggregate Advertencia {
@@ -1222,14 +1229,14 @@ BoundedContext ContextoModeracao implements ComunidadeForumSubdomain {
             - @UsuarioId        moderadorId
             String              motivo
             DateTime            registradaEm
+
+            Repository IAdvertenciaRepository {
+                @Advertencia salvar(@Advertencia advertencia);
+                List<@Advertencia> listarPorUsuario(@UsuarioId usuarioId);
+            }
         }
 
         ValueObject AdvertenciaId { String id }
-
-        Repository IAdvertenciaRepositorio {
-            @Advertencia salvar(@Advertencia advertencia);
-            List<@Advertencia> listarPorUsuario(@UsuarioId usuarioId);
-        }
     }
 }
 
@@ -1258,6 +1265,14 @@ BoundedContext ContextoAnuncios implements MarketplaceSubdomain {
             - @StatusAnuncio            status                    // RN 2: ciclo de vida
             DateTime                    criadoEm
             DateTime                    atualizadoEm
+
+            Repository IAnuncioRepository {
+                @AnuncioMarketplace salvar(@AnuncioMarketplace anuncio);
+                Optional<@AnuncioMarketplace> buscarPorId(@AnuncioId anuncioId);
+                List<@AnuncioMarketplace> buscarPublicos(@FiltroAnuncio filtro, Integer pagina, Integer tamanho);
+                List<@AnuncioMarketplace> listarPorVendedor(@UsuarioId vendedorId);
+                void remover(@AnuncioId anuncioId);
+            }
         }
 
         Entity FotoAnuncio {
@@ -1309,14 +1324,6 @@ BoundedContext ContextoAnuncios implements MarketplaceSubdomain {
             - @AnuncioId    anuncioId
             - @JogoId       jogoId
             DateTime        vendidoEm
-        }
-
-        Repository IAnuncioRepositorio {
-            @AnuncioMarketplace salvar(@AnuncioMarketplace anuncio);
-            Optional<@AnuncioMarketplace> buscarPorId(@AnuncioId anuncioId);
-            List<@AnuncioMarketplace> buscarPublicos(@FiltroAnuncio filtro, Integer pagina, Integer tamanho);
-            List<@AnuncioMarketplace> listarPorVendedor(@UsuarioId vendedorId);
-            void remover(@AnuncioId anuncioId);
         }
     }
 }
@@ -1416,6 +1423,14 @@ BoundedContext ContextoNegociacao implements MarketplaceSubdomain {
             List<@ResumoConversa> consultarConversas(@UsuarioId usuarioId);
             Integer contarNaoLidas(@UsuarioId usuarioId);                                  // total do menu
             @ConversaChat consultarConversa(@ConversaId conversaId, @UsuarioId solicitante);   // RN 3: 403 para terceiros
+        }
+
+        // Padrao Proxy (GoF), proxy de protecao: ConversasDoParticipante tem a mesma interface do
+        // ConversaChatRepository e so entrega a conversa ao comprador ou ao vendedor (RN 3). Os casos de uso
+        // do usuario recebem o proxy; as rotinas do sistema usam o repositorio real.
+        Service ConversasDoParticipante {
+            Optional<@ConversaChat> buscarPorId(@ConversaId conversaId);
+            List<@ConversaChat> listarPorParticipante(@UsuarioId usuarioId);
         }
 
         // Porta ACL para o ContextoAnuncios (F-18): le o anuncio e muda o status pelo ciclo de vida dele.
@@ -1575,6 +1590,14 @@ BoundedContext ContextoPedidos implements MarketplaceSubdomain {
             @TransacaoPagamento cobrar(@UsuarioId compradorId, BigDecimal total, @CartaoSimulado cartao, DateTime agora);
             void reembolsar(@UsuarioId compradorId, @TransacaoPagamento pagamento, DateTime agora);
         }
+
+        // Padrao Template Method (GoF): RotinaDePrazo.executar() e final e fixa o esqueleto das rotinas
+        // agendadas: busca os vencidos, trata cada um na propria transacao e registra a falha sem parar as
+        // demais. Subclasses: ExpirarReservasVencidas (F-19 RN 10), CancelarPedidosSemEnvio (RN 9) e
+        // LiberarCustodiaPorTolerancia (RN 7).
+        Service RotinaDePrazo {
+            Integer executar(DateTime agora);
+        }
     }
 
     // RN 6: criada na primeira transacao do usuario, com saldo inicial de simulacao de R$ 500,00.
@@ -1620,6 +1643,12 @@ BoundedContext ContextoReputacao implements MarketplaceSubdomain {
             - List<@TagComportamento>       tags
             String                          comentario
             DateTime                        criadaEm              // RN 2: ate 15 dias apos a entrega
+
+            Repository IAvaliacaoMarketplaceRepository {
+                @AvaliacaoMarketplace salvar(@AvaliacaoMarketplace avaliacao);
+                Boolean existePorPedidoEAvaliador(@PedidoId pedidoId, @UsuarioId avaliadorId);
+                List<@AvaliacaoMarketplace> listarRecebidas(@UsuarioId avaliadoId);
+            }
         }
 
         enum PapelNaNegociacao { COMPRADOR, VENDEDOR }
@@ -1641,12 +1670,6 @@ BoundedContext ContextoReputacao implements MarketplaceSubdomain {
             - @UsuarioId                avaliadoId
             Integer                     estrelas
         }
-
-        Repository IAvaliacaoMarketplaceRepositorio {
-            @AvaliacaoMarketplace salvar(@AvaliacaoMarketplace avaliacao);
-            Boolean existePorPedidoEAvaliador(@PedidoId pedidoId, @UsuarioId avaliadorId);
-            List<@AvaliacaoMarketplace> listarRecebidas(@UsuarioId avaliadoId);
-        }
     }
 
     Aggregate ReputacaoUsuario {
@@ -1659,6 +1682,11 @@ BoundedContext ContextoReputacao implements MarketplaceSubdomain {
             Integer         totalAvaliacoes
             Integer         negociacoesBemSucedidas               // RN 3: incrementado a cada avaliacao
             DateTime        atualizadaEm
+
+            Repository IReputacaoRepository {
+                @ReputacaoUsuario salvar(@ReputacaoUsuario reputacao);
+                Optional<@ReputacaoUsuario> buscarPorUsuario(@UsuarioId usuarioId);
+            }
         }
 
         ValueObject ReputacaoId { String id }
@@ -1666,11 +1694,6 @@ BoundedContext ContextoReputacao implements MarketplaceSubdomain {
         Service RecalculoReputacaoService {
             @ReputacaoUsuario recalcular(@UsuarioId usuarioId, Integer novasEstrelas);
             @ReputacaoUsuario consultar(@UsuarioId usuarioId);
-        }
-
-        Repository IReputacaoRepositorio {
-            @ReputacaoUsuario salvar(@ReputacaoUsuario reputacao);
-            Optional<@ReputacaoUsuario> buscarPorUsuario(@UsuarioId usuarioId);
         }
     }
 }
@@ -1695,6 +1718,11 @@ BoundedContext ContextoNotificacao implements NotificacaoSubdomain {
             - @StatusNotificacao    status
             DateTime                geradaEm
             DateTime                lidaEm
+
+            Repository INotificacaoRepository {
+                @Notificacao salvar(@Notificacao notificacao);
+                List<@Notificacao> listarPorDestinatario(@UsuarioId destinatarioId);
+            }
         }
 
         enum TipoNotificacao   { LANCAMENTO_PROXIMO, LANCAMENTO_ADIADO, ADVERTENCIA }
@@ -1704,11 +1732,6 @@ BoundedContext ContextoNotificacao implements NotificacaoSubdomain {
         Service DespachoNotificacaoService {
             @Notificacao despachar(@UsuarioId destinatarioId, @TipoNotificacao tipo, String titulo, String mensagem);
             void marcarComoLida(@NotificacaoId notificacaoId, @UsuarioId destinatarioId);
-        }
-
-        Repository INotificacaoRepositorio {
-            @Notificacao salvar(@Notificacao notificacao);
-            List<@Notificacao> listarPorDestinatario(@UsuarioId destinatarioId);
         }
     }
 }
@@ -1758,6 +1781,7 @@ ContextMap GameTrackerContextMap {
     ContextoIdentidadeUsuario [U,OHS,PL]->[D,CF] ContextoNegociacao
     ContextoIdentidadeUsuario [U,OHS,PL]->[D,CF] ContextoPedidos
     ContextoIdentidadeUsuario [U,OHS,PL]->[D,CF] ContextoReputacao
+    ContextoIdentidadeUsuario [U,OHS,PL]->[D,CF] ContextoNotificacao
 
     // O catalogo e a referencia de jogos para os demais contextos.
     ContextoCatalogoJogos [U,OHS,PL]->[D,CF] ContextoLancamentos
@@ -1771,6 +1795,7 @@ ContextMap GameTrackerContextMap {
     ContextoCatalogoJogos [U,OHS,PL]->[D,ACL] ContextoSimilaridade
     ContextoCatalogoJogos [U,OHS,PL]->[D,CF] ContextoAnuncios
     ContextoCatalogoJogos [U,OHS,PL]->[D,CF] ContextoPedidos
+    ContextoCatalogoJogos [U,OHS,PL]->[D,CF] ContextoEstatisticas   // F-17: uma ficha de estatisticas por jogo
 
     // F-01 RN 3: a verificacao de vinculos antes da exclusao (reviews, journal, listas) e feita
     // pela porta IVinculosJogoGateway, implementada na camada de aplicacao para nao criar ciclo
