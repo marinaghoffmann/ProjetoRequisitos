@@ -152,11 +152,13 @@ Divergências no conteúdo do CML:
 - Descreve um **Template Method** `CadastroJogoTemplate` e um **Proxy** `ProxyBaseExternaJogos` /
   `IgdbGateway` para a F-01, mas **nenhum dos dois existe** no código. A importação real usa a Steam
   (`SteamImportador`, `ImportarJogoSteam`).
-- Relação `ContextoPedidos -> ContextoEstatisticas`: as estatísticas não leem pedidos (só reviews,
-  conclusões e wishlists).
+- Relação `ContextoPedidos -> ContextoEstatisticas`: correta. A conclusão do pedido marca o anúncio como
+  VENDIDO e o `ObservadorEstatisticaJogo` recalcula o volume de negociações pelo `AnuncioStatusAlterado`.
+  (Na primeira leitura deste diagnóstico ela foi apontada, por engano, como inexistente.)
 - `ContextoCatalogoJogos -> ContextoSimilaridade` como ACL está correto (`PerfilJogoGateway` /
   `PerfilJogoDoCatalogo`).
-- Não foi possível validar a abertura no Context Mapper nesta máquina (plugin do Eclipse/VS Code).
+- Validado com o parser do Context Mapper 6.12 (o da extensão do VS Code): **14 erros** de sintaxe e de
+  referência. O arquivo não abria sem erros. Corrigido na Fase 2: 0 erros, 0 avisos.
 
 ## 7. Padrões de projeto
 
