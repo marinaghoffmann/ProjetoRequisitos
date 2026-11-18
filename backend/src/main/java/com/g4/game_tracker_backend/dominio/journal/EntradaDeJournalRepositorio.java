@@ -1,6 +1,7 @@
 package com.g4.game_tracker_backend.dominio.journal;
 
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 import com.g4.game_tracker_backend.dominio.compartilhado.Pagina;
@@ -8,6 +9,9 @@ import com.g4.game_tracker_backend.dominio.compartilhado.Pagina;
 public interface EntradaDeJournalRepositorio {
     EntradaDeJournal salvar(EntradaDeJournal entrada);
     Optional<EntradaDeJournal> buscarPorId(UUID id);
+    Optional<EntradaDeJournal> buscarParaAlterar(UUID id);
+    Pagina<EntradaDeJournal> filtrar(UUID donoId, FiltroJournal filtro, int pagina, int tamanho);
+    List<String> listarTags(UUID donoId);
     /** A entrada automática gerada por uma ação de origem (F-16 RN 2). */
     Optional<EntradaDeJournal> buscarPorOrigem(TipoEventoPlataforma evento, String origemId);
     /** Timeline do jogador, manuais e automáticas, da sessão mais recente para a mais antiga. Página a partir de 1. */

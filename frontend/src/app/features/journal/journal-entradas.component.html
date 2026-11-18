@@ -1,0 +1,79 @@
+<section class="journal">
+  <header class="journal__cabecalho">
+    <div><h1>{{ publico() ? 'Journal' : 'Meu Journal' }}</h1><p>Memórias, descobertas e histórias das suas sessões.</p></div>
+    @if (!publico()) { <button type="button" (click)="editor()?.abrir()">＋ Nova entrada</button> }
+  </header>
+  <form class="journal__filtros" [formGroup]="filtros" (ngSubmit)="carregar(1)" aria-label="Filtros do journal">
+    <label>Origem <select formControlName="origem"><option value="">Todas</option><option value="MANUAL">Manuais</option><option value="AUTOMATICO">Automáticas</option></select></label>
+    <label>Jogo <select formControlName="jogoId"><option value="">Todos</option>
+      @for (jogo of jogos(); track jogo.id) { <option [value]="jogo.id">{{ jogo.titulo }}</option> }
+    </select></label>
+    <label>Tag <select formControlName="tag"><option value="">Todas</option>
+      @for (tag of tags(); track tag) { <option [value]="tag">#{{ tag }}</option> }
+    </select></label>
+    <label>De <input type="date" formControlName="inicio" /></label>
+    <label>Até <input type="date" formControlName="fim" /></label>
+    <div class="journal__filtrar"><button type="submit" [disabled]="carregando()">Filtrar</button><button type="button" class="botao--secundario" (click)="limpar()">Limpar</button></div>
+  </form>
+  @if (erroCatalogo(); as mensagem) { <p class="mensagem-erro" role="alert">Jogos: {{ mensagem }} <button type="button" class="acao" (click)="carregarJogos()">Tentar novamente</button></p> }
+  @if (erroTags(); as mensagem) { <p class="mensagem-erro" role="alert">Tags: {{ mensagem }} <button type="button" class="acao" (click)="carregarTags()">Tentar novamente</button></p> }
+  @if (mensagem()) { <p class="mensagem-sucesso" role="status">{{ mensagem() }}</p> }
+  @if (erro(); as mensagem) { <p class="mensagem-erro" role="alert">{{ mensagem }}</p> }
+  @if (carregando()) {
+    <p class="estado" role="status">Carregando o Journal…</p>
+  } @else if (pagina(); as resultado) {
+    @if (!resultado.itens.length) {
+      <p class="estado">Nenhuma entrada encontrada. {{ publico() ? '' : 'Registre uma memória em “Nova entrada” ou ajuste os filtros.' }}</p>
+    }
+    <ol class="journal__lista">
+      @for (original of resultado.itens; track original.id) {
+        @let entrada = reveladas().get(original.id) ?? original;
+        <li class="journal__item">
+          <time [attr.datetime]="entrada.dataSessao">{{ entrada.dataSessao | date:'dd/MM/yyyy':'UTC' }}</time>
+          <article>
+            @if (entrada.jogoId) {
+              <a class="journal__jogo" [routerLink]="['/catalogo', entrada.jogoId]">
+                @if (entrada.jogoCapaUrl) { <img #capa [src]="entrada.jogoCapaUrl" alt="" (error)="capa.hidden = true" /> }
+                {{ entrada.jogoTitulo ?? 'Jogo indisponível' }}
+              </a>
+            }
+            <h2>{{ entrada.titulo }}</h2>
+            @if (entrada.mascarada) {
+              <button type="button" class="journal__spoiler" [disabled]="!!ocupada()" (click)="revelar(entrada)">Esta entrada contém spoilers. Clique para mostrar.</button>
+            } @else {
+              @if (entrada.texto !== entrada.titulo) { <p class="journal__texto">{{ entrada.texto }}</p> }
+              @if (entrada.anexos.length) {
+                <ul class="journal__imagens" aria-label="Imagens da sessão">
+                  @for (anexo of entrada.anexos; track anexo.id) {
+                    <li><a [href]="imagem(entrada, anexo.id)" target="_blank" rel="noopener" [attr.aria-label]="'Ampliar ' + anexo.nomeArquivo">
+                      <img [src]="imagem(entrada, anexo.id)" [alt]="anexo.nomeArquivo" loading="lazy" /></a></li>
+                  }
+                </ul>
+              }
+              @if (publico() && original.mascarada) { <button type="button" class="acao" (click)="ocultar(entrada.id)">Ocultar spoiler</button> }
+            }
+            <footer>
+              <div class="journal__tags">
+                @if (entrada.tipoOrigem === 'AUTOMATICO') { <span class="journal__origem">Automática</span> }
+                @if (entrada.contemSpoiler) { <span class="journal__aviso">Spoiler</span> }
+                @for (tag of entrada.tags; track tag) { <span>#{{ tag }}</span> }
+              </div>
+              @if (!publico() && entrada.editavel) {
+                <div class="journal__acoes"><button type="button" class="acao" [disabled]="!!ocupada()" (click)="editor()?.abrir(entrada)">Editar</button>
+                  <button type="button" class="acao acao--perigo" [disabled]="!!ocupada()" (click)="excluir(entrada)">{{ ocupada() === entrada.id ? 'Excluindo…' : 'Excluir' }}</button></div>
+              }
+            </footer>
+          </article>
+        </li>
+      }
+    </ol>
+    @if (resultado.totalPaginas > 1) {
+      <nav class="journal__paginacao" aria-label="Paginação do Journal">
+        <button type="button" class="botao--secundario" [disabled]="resultado.pagina <= 1" (click)="carregar(resultado.pagina - 1)">Mais recentes</button>
+        <span>{{ resultado.pagina }} / {{ resultado.totalPaginas }}</span>
+        <button type="button" class="botao--secundario" [disabled]="resultado.pagina >= resultado.totalPaginas" (click)="carregar(resultado.pagina + 1)">Mais antigas</button>
+      </nav>
+    }
+  }
+</section>
+@if (!publico()) { <app-journal-editor (salvo)="salvo()" /> }

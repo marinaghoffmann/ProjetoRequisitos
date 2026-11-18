@@ -317,6 +317,40 @@ Pendências conhecidas da F-17:
 - A wishlist ainda usa dados de apoio nos cenários BDD. Em produção, o total é zero até a fonte real ser ligada.
 - Se o recálculo falhar depois do commit, o erro só vai para o log e a ficha fica desatualizada até o próximo evento.
 
+## Journal individual (F-15 / F12 do grupo)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/journal/entradas` | Consultar entradas com `origem`, `jogoId`, `tag`, `inicio`, `fim`, `pagina`, `tamanho` | autenticado, somente próprias |
+| `GET` | `/api/journal/entradas/tags` | Tags disponíveis para o filtro | autenticado, somente próprias |
+| `GET` | `/api/journal/entradas/{id}` | Dados completos para edição | dono |
+| `POST` | `/api/journal/entradas` | Criar anotação e imagens em um multipart | autenticado |
+| `PUT` | `/api/journal/entradas/{id}` | Editar anotação e anexos no mesmo multipart | dono de entrada manual |
+| `DELETE` | `/api/journal/entradas/{id}` | Excluir entrada manual, tags e imagens | dono |
+| `GET` | `/api/perfis/{donoId}/journal` | Journal público paginado, com os mesmos filtros e spoilers ocultos | público |
+| `GET` | `/api/perfis/{donoId}/journal/tags` | Tags públicas do perfil | público |
+| `GET` | `/api/perfis/{donoId}/journal/{id}?revelarSpoiler=true` | Revelar anotação após clique explícito | público |
+| `GET` | `/api/journal/entradas/{id}/anexos/{anexoId}` | Imagem vinculada à entrada; spoiler exige `revelarSpoiler=true` | público |
+
+POST/PUT recebem a parte JSON `entrada` (`Content-Type: application/json`):
+
+```json
+{"jogoId":null,"dataSessao":"2026-11-18","titulo":"Uma descoberta","texto":"Explorei uma nova região.","tags":["exploração"],"contemSpoiler":false,"anexosMantidos":[]}
+```
+
+Cada arquivo novo vem na parte `imagens`. Na edição, `anexosMantidos` preserva os IDs listados;
+omitir o campo preserva todos os existentes. A data da sessão é obrigatória. Jogo e título são opcionais.
+Tags são normalizadas e únicas (até seis); imagens PNG/JPG/WebP (até três de 2 MB cada).
+Entradas automáticas aparecem nas consultas, mas não podem ser editadas ou excluídas pelo CRUD manual.
+
+A consulta pública devolve `texto: null`, `mascarada: true` e `anexos: []` nos spoilers até a revelação.
+Os dados ocultos não ficam apenas borrados no HTML. A mídia binária usa `Cache-Control: no-store`.
+O próprio Journal e a timeline do dono exibem o texto completo. Datas dos filtros são inclusivas.
+
+Persistência: `journal_entradas`, `journal_tags` e `journal_anexos` (conteúdo binário no banco).
+Gravação e exclusão das imagens participam da mesma transação da entrada. Frontend: `/journal` e aba
+Journal do perfil; roteiro completo em [f12-journal.md](f12-journal.md).
+
 ## Timeline automática do journal (F-16)
 
 | Método | Rota | Objetivo | Quem pode |
@@ -347,9 +381,8 @@ Eventos publicados **dentro** da transação do caso de uso, depois de gravar. A
 Os eventos ficam em `dominio/journal/eventos`. Ao ligar uma funcionalidade real, troque nos steps da F-16 a ação
 correspondente de `AcoesDeApoioDaTimeline` (test) pelo caso de uso de verdade e apague-a de lá.
 
-Para a F-15: a edição de entradas precisa passar por `EntradaDeJournal.editar(...)`, que já aplica a RN 1 da F-15
-(só o dono) e a RN 3 da F-16. A exclusão de uma entrada automática pelo jogador não está definida nas histórias; combine
-antes de liberar.
+O CRUD manual da F-15 passa por `EntradaDeJournal.editar(...)`, aplicando propriedade e bloqueio de alterações
+nas automáticas. A exclusão de entradas automáticas continua vinculada à ação de origem, sem botão no CRUD manual.
 
 Pendências conhecidas da F-16:
 

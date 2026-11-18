@@ -11,6 +11,7 @@ import { ErroApi } from '../../core/http/erro-api';
 import { PerfilListasComponent } from './perfil-listas.component';
 import { PerfilReviewsComponent } from './perfil-reviews.component';
 import { FavoritosComponent } from './favoritos.component';
+import { JournalEntradasComponent } from '../journal/journal-entradas.component';
 import { PerfilPublico, PerfilPublicoService } from '../../core/api/perfil-publico.service';
 
 const ROTULOS_PAPEL: Record<string, string> = {
@@ -30,7 +31,7 @@ const GRADIENTES = [
 
 @Component({
   selector: 'app-perfil-page',
-  imports: [RouterLink, PerfilReviewsComponent, PerfilListasComponent, FavoritosComponent],
+  imports: [RouterLink, PerfilReviewsComponent, PerfilListasComponent, FavoritosComponent, JournalEntradasComponent],
   templateUrl: './perfil.page.html',
   styleUrl: './perfil.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -66,7 +67,7 @@ export class PerfilPage implements OnInit {
   protected readonly rotulos = ROTULOS_PROGRESSO;
 
   // ===== Ainda não existe backend para estes blocos (aparecem como "Fazendo") =====
-  protected readonly abas = ['Journal', 'Biblioteca'];
+  protected readonly abas = ['Biblioteca'];
   /** Aba exibida: "Atividade" (padrão) ou uma das que já funcionam (Reviews, F-02; Listas, F-04). */
   protected readonly aba = signal('Atividade');
   protected readonly estatisticas = ['jogos', 'zerados', 'seguidores', 'seguindo'];

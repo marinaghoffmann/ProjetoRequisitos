@@ -21,7 +21,7 @@
 <main>
   @if (visualizacaoPublica()) {
     <div class="pf-publico">
-      <p>Perfil público <span>Biografia, capa e jogos favoritos.</span></p>
+      <p>Perfil público <span>Biografia, capa, jogos favoritos e Journal.</span></p>
       @if (meuPerfil()) {
         <a routerLink="/perfil">Voltar ao meu perfil</a>
       }
@@ -81,6 +81,7 @@
         <button type="button" class="pf-aba" [class.pf-aba--ativa]="aba() === 'Atividade'" (click)="aba.set('Atividade')">Atividade</button>
         <button type="button" class="pf-aba" [class.pf-aba--ativa]="aba() === 'Reviews'" (click)="aba.set('Reviews')">Reviews</button>
         <button type="button" class="pf-aba" [class.pf-aba--ativa]="aba() === 'Listas'" (click)="aba.set('Listas')">Listas</button>
+        <button type="button" class="pf-aba" [class.pf-aba--ativa]="aba() === 'Journal'" (click)="aba.set('Journal')">Journal</button>
         @for (a of abas; track a) {
           <span class="pf-aba pf-aba--breve" title="Fazendo">{{ a }} <i>Fazendo</i></span>
         }
@@ -89,10 +90,16 @@
 
       <app-favoritos [favoritos]="u.favoritos" [editavel]="podeEditar()" (alterado)="carregarPerfil()" />
 
+      @if (visualizacaoPublica()) {
+        <app-journal-entradas [publico]="true" [donoId]="u.id" />
+      }
+
       @if (aba() === 'Reviews') {
       <app-perfil-reviews />
       } @else if (aba() === 'Listas') {
       <app-perfil-listas />
+      } @else if (aba() === 'Journal' && podeEditar()) {
+      <app-journal-entradas />
       } @else {
       @if (podeEditar()) {
       <!-- Jogando agora (dados reais) -->

@@ -1,0 +1,60 @@
+<dialog #dialogo aria-labelledby="titulo-editor-journal" (close)="limparImagens()"
+  (cancel)="salvando() && $event.preventDefault()">
+  <header>
+    <h2 id="titulo-editor-journal">{{ entrada() ? 'Editar entrada do Journal' : 'Nova entrada no Journal' }}</h2>
+    <button type="button" class="fechar" aria-label="Fechar" [disabled]="salvando()" (click)="fechar()">×</button>
+  </header>
+  <form [formGroup]="formulario" (ngSubmit)="salvar()">
+    <fieldset [disabled]="salvando()">
+      <div class="duas-colunas">
+        <label>Jogo (opcional)
+          <select formControlName="jogoId">
+            <option value="">Sem jogo associado</option>
+            @if (jogoAusente()) {
+              <option [value]="entrada()!.jogoId">{{ entrada()!.jogoTitulo ?? 'Jogo indisponível' }}</option>
+            }
+            @for (jogo of jogos(); track jogo.id) { <option [value]="jogo.id">{{ jogo.titulo }}</option> }
+          </select>
+        </label>
+        <label>Data da jogatina <input type="date" formControlName="dataSessao" required /></label>
+      </div>
+      @if (erroJogos(); as mensagem) {
+        <p role="alert">{{ mensagem }} <button type="button" class="acao" (click)="carregarJogos()">Tentar novamente</button></p>
+      }
+      <label>Título <input type="text" formControlName="titulo" maxlength="120" placeholder="Dê um título a este momento" /></label>
+      <label>O que aconteceu?
+        <textarea formControlName="texto" rows="5" maxlength="5000" required placeholder="Conte sua história, descoberta ou impressão…"></textarea>
+      </label>
+      <small>{{ formulario.controls.texto.value.length }}/5000 caracteres</small>
+      <label>Tags (separadas por vírgula)
+        <input type="text" formControlName="tags" placeholder="lore, chefe, momento favorito" aria-describedby="contador-tags" />
+      </label>
+      <small id="contador-tags" [class.erro-tags]="tags().length > 6">{{ tags().length }} de 6 tags</small>
+      <div class="imagens">
+        <span>Imagens da sessão ({{ totalImagens() }}/3)</span>
+        @if (totalImagens()) {
+          <ul class="previas">
+            @for (anexo of mantidos(); track anexo.id) {
+              <li><img [src]="imagem(anexo)" [alt]="anexo.nomeArquivo" />
+                <button type="button" [attr.aria-label]="'Remover imagem ' + anexo.nomeArquivo" (click)="removerMantida(anexo.id)">×</button></li>
+            }
+            @for (imagem of novas(); track imagem.url; let i = $index) {
+              <li><img [src]="imagem.url" [alt]="imagem.arquivo.name" />
+                <button type="button" [attr.aria-label]="'Remover imagem ' + imagem.arquivo.name" (click)="removerNova(i)">×</button></li>
+            }
+          </ul>
+        }
+        <label class="upload">Adicionar imagens
+          <input type="file" accept="image/png,image/jpeg,image/webp" multiple (change)="escolher($event)" />
+        </label>
+        <small>.png, .jpg ou .webp · até 2 MB cada</small>
+      </div>
+      <label class="opcao"><input type="checkbox" formControlName="contemSpoiler" /> Contém spoilers (fica oculta até o leitor clicar)</label>
+    </fieldset>
+    @if (erro(); as mensagem) { <p class="mensagem-erro" role="alert">{{ mensagem }}</p> }
+    <footer>
+      <button type="button" class="botao--secundario" [disabled]="salvando()" (click)="fechar()">Cancelar</button>
+      <button type="submit" [disabled]="salvando() || formulario.invalid || tags().length > 6">{{ salvando() ? 'Salvando…' : entrada() ? 'Salvar alterações' : 'Salvar entrada' }}</button>
+    </footer>
+  </form>
+</dialog>
