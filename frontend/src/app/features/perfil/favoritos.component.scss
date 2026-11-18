@@ -1,0 +1,23 @@
+:host { display: block; margin: 2rem 0; }
+header, .acoes, footer { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+header { justify-content: space-between; margin-bottom: 1rem; }
+h2 { margin: 0; font-size: 1.2rem; }
+.favoritos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); list-style: none; padding: 0; gap: 1rem; }
+li { min-width: 0; }
+.capa, .vazio { position: relative; display: grid; place-items: center; aspect-ratio: 2 / 3; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
+.capa img { width: 100%; height: 100%; object-fit: cover; }
+.capa img[hidden] { display: none; }
+.posicao { position: absolute; bottom: .5rem; left: .5rem; background: var(--bg); padding: .2rem .5rem; border-radius: 4px; }
+.titulo { display: block; color: var(--text); margin: .5rem 0; font-weight: 700; overflow-wrap: anywhere; }
+button, select { padding: .4rem .6rem; border: 1px solid var(--line); border-radius: 6px; font: inherit; color: var(--text); background: var(--surface-2); max-width: 100%; }
+button { cursor: pointer; }
+button:disabled { opacity: .5; cursor: default; }
+.ordem { display: flex; align-items: center; gap: .5rem; margin: .5rem 0; }
+.acoes button, .ordem { font-size: .75rem; }
+dialog { width: min(480px, calc(100% - 2rem)); max-height: calc(100% - 2rem); padding: 1.5rem; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+dialog::backdrop { background: rgb(0 0 0 / 70%); backdrop-filter: blur(4px); }
+dialog label { display: grid; gap: .5rem; margin: 1rem 0; }
+dialog select { width: 100%; }
+footer { justify-content: flex-end; margin-top: 1rem; }
+[role='alert'] { color: var(--danger); }
+@media (max-width: 650px) { .favoritos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

@@ -1,0 +1,64 @@
+<header>
+  <h2>Quatro favoritos</h2>
+  @if (editavel() && favoritos().length < 4) {
+    <button type="button" [disabled]="ocupada()" (click)="abrir()">Adicionar favorito</button>
+  }
+</header>
+@if (erro(); as mensagem) { <p role="alert">{{ mensagem }}</p> }
+<ol class="favoritos">
+  @for (slot of slots; track slot) {
+    <li>
+      @if (favoritos()[slot - 1]; as favorito) {
+        <a class="capa" [routerLink]="['/catalogo', favorito.jogoId]">
+          @if (favorito.capaUrl) {
+            <img #imagem [src]="favorito.capaUrl" [alt]="favorito.titulo" (error)="imagem.hidden = true" />
+          }
+          <span class="posicao">#{{ slot }}</span>
+        </a>
+        <a class="titulo" [routerLink]="['/catalogo', favorito.jogoId]">{{ favorito.titulo }}</a>
+        @if (editavel()) {
+          <label class="ordem">Posição
+            <select #posicao [disabled]="ocupada()" [attr.aria-label]="'Posição de ' + favorito.titulo"
+              (change)="mover(favorito.jogoId, posicao.value)">
+              @for (destino of slots.slice(0, favoritos().length); track destino) {
+                <option [value]="destino" [selected]="slot === destino">{{ destino }}</option>
+              }
+            </select>
+          </label>
+          <div class="acoes">
+            <button type="button" [disabled]="ocupada()" (click)="abrir(slot)">Substituir</button>
+            <button type="button" [disabled]="ocupada()" (click)="remover(favorito.jogoId)">Remover</button>
+          </div>
+        }
+      } @else {
+        <div class="vazio">#{{ slot }}
+          @if (editavel()) {
+            <button type="button" [disabled]="ocupada()" (click)="abrir()">Adicionar</button>
+          }
+        </div>
+      }
+    </li>
+  }
+</ol>
+<dialog #dialogo aria-labelledby="titulo-favorito" (cancel)="ocupada() && $event.preventDefault()">
+  <form (submit)="$event.preventDefault(); salvar()">
+    <h2 id="titulo-favorito">{{ substituindo() ? 'Substituir favorito' : 'Adicionar favorito' }}</h2>
+    @if (erroCatalogo(); as mensagem) {
+      <p role="alert">{{ mensagem }}</p>
+      <button type="button" (click)="carregarJogos()">Tentar novamente</button>
+    }
+    <label>Jogo
+      <select #jogo [disabled]="ocupada() || carregando()" (change)="selecionado.set(jogo.value)">
+        <option value="" [selected]="!selecionado()">{{ carregando() ? 'Carregando…' : 'Selecione um jogo' }}</option>
+        @for (item of jogos(); track item.id) {
+          <option [value]="item.id" [disabled]="jaFavorito(item.id)" [selected]="selecionado() === item.id">{{ item.titulo }}</option>
+        }
+      </select>
+    </label>
+    @if (erro(); as mensagem) { <p role="alert">{{ mensagem }}</p> }
+    <footer>
+      <button type="button" [disabled]="ocupada()" (click)="fechar()">Cancelar</button>
+      <button type="submit" [disabled]="ocupada() || !selecionado()">{{ ocupada() ? 'Salvando…' : 'Salvar' }}</button>
+    </footer>
+  </form>
+</dialog>

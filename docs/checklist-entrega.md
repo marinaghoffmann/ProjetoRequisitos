@@ -13,8 +13,8 @@ Atualizado em 17/11/2026, na branch `chore/elevar-entrega`. Legenda: ✅ cumprid
 | 3b | Mapa de histórias do usuário | ✅ | `entregaveis/mapa/` |
 | 3c | Protótipos de alta fidelidade | 🟡 `TODO(grupo)` | `entregaveis/prototipo/prototipo.md`: falta o link **público** `*.figma.site` |
 | 3d | Modelo dos subdomínios no Context Mapper (`.cml`) | ✅ | `entregaveis/cml/game_tracker.cml`: 0 erros e 0 avisos no parser do Context Mapper 6.12 |
-| 3e | Cenários de teste BDD | 🟡 | 20 `.feature` em `backend/src/test/resources/features/`; 6 funcionalidades com `@pendente` (seção 2) |
-| 3f | Automação dos cenários com Cucumber | 🟡 | `backend/src/test/java/.../bdd/`: 183 de 228 cenários rodando e passando; relatório em `backend/target/cucumber-relatorio.html` |
+| 3e | Cenários de teste BDD | 🟡 | 20 `.feature` em `backend/src/test/resources/features/`; 5 funcionalidades com `@pendente` (seção 2) |
+| 3f | Automação dos cenários com Cucumber | 🟡 | `backend/src/test/java/.../bdd/`: 202 de 234 cenários rodando e passando; relatório em `backend/target/cucumber-relatorio.html` |
 | 4 | DDD preliminar, estratégico, tático e operacional; arquitetura limpa | ✅ | Seção "DDD nos quatro níveis" do README; `ArquiteturaTest` com 5 regras |
 | 5 | 4 ou mais padrões de projeto (Iterator, Decorator, Observer, Proxy, Strategy, Template Method) | ✅ 4 de 6 | Strategy, Observer, Proxy e Template Method em código e testados (seção 3). Meta de 6: faltam Decorator e Iterator. |
 | 6 | Persistência com mapeamento objeto-relacional | ✅ | `infraestrutura/persistencia/**` (`XxxJpa` + adapters), PostgreSQL no `docker-compose.yml` |
@@ -32,7 +32,7 @@ Atualizado em 17/11/2026, na branch `chore/elevar-entrega`. Legenda: ✅ cumprid
 | F-04 | Listas personalizadas | Lavínia | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 9/9 |
 | F-06 | Wishlist | Caio | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | 0/6 |
 | F-07 | Currently Playing | Caio | 🟡 | 🟡 | ✅ | ✅ | ✅ | ✅ | ❌ | 0/6 |
-| F-08 | Favoritos e perfil público | Bruno | 🟡 | 🟡 | 🟡 | 🟡 | 🟡 | ✅ | ❌ | 0/9 |
+| F-08 | Favoritos e perfil público | Bruno | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 13/13 |
 | F-10 | Similaridade | Lavínia | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 10/10 |
 | F-11 | Registros de "zerado" | Bruno | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 13/13 |
 | F-12 | Lançamentos futuros | Henrique | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 22/22 |
@@ -83,5 +83,5 @@ O que falta em cada parcial está em [diagnostico.md](diagnostico.md) (seção 3
 - [ ] Cada integrante anexa as suas interações de IA em `entregaveis/ia/interacoes/` e completa a declaração.
 - [ ] Regerar `entregaveis/dominio/descricao_do_dominio.pdf` a partir do `.md` atualizado.
 - [ ] Exportar os slides para `entregaveis/apresentacao/`.
-- [ ] Remover todos os `@pendente` (F-01, F-06, F-07, F-08, F-14, F-15) com os cenários passando.
+- [ ] Remover todos os `@pendente` (F-01, F-06, F-07, F-14, F-15) com os cenários passando.
 - [ ] Implementar Decorator e Iterator para chegar a 6 padrões (um por integrante).

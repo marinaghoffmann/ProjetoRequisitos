@@ -6,7 +6,7 @@ uma: a leitura adotada (a mais conservadora) e quem decide.
 | # | Funcionalidade | Dúvida | Leitura adotada | Responsável |
 |---|---|---|---|---|
 | P1 | F-20 RN 7 | ~~A história dizia "7 dias pós-entrega", mas a plataforma não sabe quando o item chegou: a única confirmação de entrega é a do próprio comprador.~~ **Resolvida.** | O prazo conta a partir do **envio** (registro do código de rastreio). História, glossário, CML, `.feature` e código estão alinhados. | Marina |
-| P2 | F-08 RN 3 | O código limita a biografia a 160 caracteres (`Usuario.BIO_MAXIMA`), mas a RN, o glossário e o `.feature` pedem 500. | Vale a RN (500). O código precisa ser ajustado. | Bruno |
+| P2 | F-08 RN 3 | ~~O código limitava a biografia a 160 caracteres, mas a RN, o glossário e o `.feature` pedem 500.~~ **Resolvida** no PR #26: `Usuario.BIO_MAXIMA = 500`. | Vale a RN (500). | Bruno |
 | P3 | F-07 RN 3 | A RN pede data **e hora** de início; o código guarda só a data (`LocalDate`). | Vale a RN. O código precisa ser ajustado. | Caio |
 | P4 | F-01 RN 3 | A RN pede exclusão definitiva quando o jogo não tem vínculos e lógica quando tem; o código sempre faz a lógica. | Vale a RN. Os 2 cenários `@pendente` do `f01_catalogo_jogos.feature` cobrem isso. | Caio |
 | P5 | F-01 | O glossário e o CML falam em base externa "IGDB ou RAWG", e o código importa da Steam. | `TODO(grupo)`: decidir se o glossário e o CML passam a citar a Steam ou se a integração muda. | Caio |

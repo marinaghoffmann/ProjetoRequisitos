@@ -49,7 +49,7 @@ numeração interna de 1 a 18, mostrada na coluna "Nº grupo".
 | ContextoListasPersonalizadas | `biblioteca.listas` | F-04 Listas personalizadas | 3 | Lavínia | ✅ |
 | ContextoWishlist | — | F-06 Wishlist | 4 | Caio | ❌ |
 | ContextoPerfilJogador | `biblioteca` e `identidade` | F-07 Currently Playing | 5 | Caio | 🟡 sem BDD |
-| ContextoPerfilJogador | `identidade` | F-08 Favoritos e perfil público | 6 | Bruno | 🟡 sem favoritos |
+| ContextoPerfilJogador | `biblioteca.perfil` e `identidade` | F-08 Favoritos e perfil público | 6 | Bruno | ✅ |
 | ContextoConclusoes | `biblioteca.conclusoes` | F-11 Registros de "zerado" | 8 | Bruno | ✅ |
 | ContextoSimilaridade | `descoberta.similaridade` | F-10 Similares e feedback | 7 | Lavínia | ✅ |
 | ContextoDiarioJogatina | `journal` | F-15 Journal manual | 12 | Bruno | 🟡 só domínio |

@@ -380,6 +380,27 @@ automática da timeline passa a apontar para o jogo correto.
 Os cenários de aceitação estão em `f11_conclusoes.feature`.
 - Não há visão pública da timeline; o perfil público é da F-06/F-08.
 
+## Favoritos e perfil público (F-08)
+
+O próprio perfil (`/perfil`) permite adicionar até quatro favoritos, substituir, remover e mudar a posição.
+Os slots ficam compactados na ordem de exibição. Também é possível favoritar pela página de um jogo.
+O endereço `/perfil/{id}` pode ser compartilhado e consultado sem login, com bio, avatar, capa e favoritos ordenados.
+O link "Ver perfil público" abre essa visualização em uma nova aba, sempre sem controles de edição, inclusive para o dono.
+A edição do perfil aceita bio de até 500 caracteres e capa por upload ou URL HTTP(S) terminada em PNG, JPG ou WebP.
+Consultas públicas não incluem email, senha ou identificadores de autenticação.
+
+| Método | Rota | Objetivo |
+|---|---|---|
+| `GET` | `/api/perfis/{id}` | Perfil público e favoritos em ordem |
+| `POST` | `/api/perfis/me/favoritos` | Adicionar `{ jogoId, slot? }` |
+| `PATCH` | `/api/perfis/me/favoritos/{jogoId}/posicao` | Mover com `{ slot }` |
+| `PUT` | `/api/perfis/me/favoritos/slots/{slot}` | Substituir com `{ jogoId }` |
+| `DELETE` | `/api/perfis/me/favoritos/{jogoId}` | Remover e compactar posições |
+
+As escritas operam exclusivamente sobre o usuário autenticado. O bloqueio da linha do dono serializa
+alterações simultâneas, inclusive na primeira inclusão. As referências a jogos são UUIDs.
+Os cenários de aceitação estão em `f08_perfil_favoritos.feature`, usando os casos de uso e persistência reais.
+
 ## Lançamentos futuros e alertas (F-12)
 
 Os lançamentos são cadastrados **explicitamente** para jogos ativos do catálogo. Uma data futura

@@ -19,7 +19,7 @@ export class EditarPerfilPage {
   private readonly roteador = inject(Router);
   private readonly builder = inject(FormBuilder).nonNullable;
 
-  protected readonly limiteBio = 160;
+  protected readonly limiteBio = 500;
   protected readonly salvando = signal(false);
   protected readonly erro = signal<string | null>(null);
 
@@ -32,6 +32,7 @@ export class EditarPerfilPage {
     nome: ['', [Validators.required, Validators.maxLength(80)]],
     bio: ['', Validators.maxLength(this.limiteBio)],
     localizacao: ['', Validators.maxLength(80)],
+    bannerUrl: ['', Validators.maxLength(255)],
   });
 
   constructor() {
@@ -60,7 +61,8 @@ export class EditarPerfilPage {
     this.salvando.set(true);
     this.erro.set(null);
     this.autenticacao
-      .atualizarPerfil({ nome, bio: dados.bio.trim(), localizacao: dados.localizacao.trim() })
+      .atualizarPerfil({ nome, bio: dados.bio.trim(), localizacao: dados.localizacao.trim(),
+        bannerUrl: dados.bannerUrl.trim() })
       .subscribe({
         next: () => this.roteador.navigate(['/perfil']),
         error: (e: ErroApi) => {
@@ -89,7 +91,10 @@ export class EditarPerfilPage {
     this.erro.set(null);
     this.enviando.set(tipo);
     this.autenticacao.enviarImagem(tipo, arquivo).subscribe({
-      next: () => this.enviando.set(null),
+      next: (usuario) => {
+        if (tipo === 'banner') this.formulario.controls.bannerUrl.setValue(usuario.bannerUrl ?? '');
+        this.enviando.set(null);
+      },
       error: (e: ErroApi) => {
         this.erro.set(e.mensagem);
         this.enviando.set(null);
@@ -107,6 +112,7 @@ export class EditarPerfilPage {
       nome: usuario.nome,
       bio: usuario.bio ?? '',
       localizacao: usuario.localizacao ?? '',
+      bannerUrl: usuario.bannerUrl ?? '',
     });
   }
 }
