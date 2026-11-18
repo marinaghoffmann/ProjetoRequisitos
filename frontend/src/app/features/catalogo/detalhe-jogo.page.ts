@@ -8,6 +8,7 @@ import {
 } from '../../core/api/jogando-agora.service';
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { PerfilPublicoService } from '../../core/api/perfil-publico.service';
+import { ItemWishlist, WishlistService } from '../../core/api/wishlist.service';
 import { ErroApi } from '../../core/http/erro-api';
 import { AdicionarAListaComponent } from './adicionar-a-lista.component';
 import { ConclusoesJogoComponent } from './conclusoes-jogo.component';
@@ -79,7 +80,11 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
                 <a routerLink="/login" class="primario">Entre para marcar</a>
               }
               @if (autenticacao.usuarioAtual()) { <app-adicionar-a-lista [jogoId]="j.id" /> }
-              <button type="button" disabled title="Em breve">Wishlist</button>
+              @if (autenticacao.usuarioAtual()) {
+                <button type="button" [disabled]="salvandoWishlist()" (click)="alternarWishlist(j.id)">
+                  {{ wishlistIds().includes(j.id) ? 'Na wishlist' : 'Adicionar à wishlist' }}
+                </button>
+              }
               @if (autenticacao.usuarioAtual()) {
                 <button type="button" (click)="conclusoes()?.nova()">Marcar zerado</button>
               }
@@ -95,6 +100,7 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
 
             @if (erroJogando(); as m) { <p class="erro" role="alert">{{ m }}</p> }
             @if (erroFavorito(); as mensagem) { <p class="erro" role="alert">{{ mensagem }}</p> }
+            @if (erroWishlist(); as mensagem) { <p class="erro" role="alert">{{ mensagem }}</p> }
             @if (feedbackFavorito(); as mensagem) { <p role="status">{{ mensagem }}</p> }
             @if (escolhendoSubstituto()) {
               <div class="lightbox" (click)="escolhendoSubstituto.set(false)">
@@ -184,10 +190,14 @@ export class DetalheJogoPage {
   private readonly catalogo = inject(CatalogoService);
   private readonly jogando = inject(JogandoAgoraService);
   private readonly perfis = inject(PerfilPublicoService);
+  private readonly wishlist = inject(WishlistService);
   protected readonly favoritosIds = signal<string[]>([]);
   protected readonly salvandoFavorito = signal(false);
   protected readonly erroFavorito = signal<string | null>(null);
   protected readonly feedbackFavorito = signal('');
+  protected readonly wishlistIds = signal<string[]>([]);
+  protected readonly salvandoWishlist = signal(false);
+  protected readonly erroWishlist = signal<string | null>(null);
 
   protected readonly jogo = signal<Jogo | null>(null);
   protected readonly erro = signal<string | null>(null);
@@ -247,6 +257,7 @@ export class DetalheJogoPage {
         const usuario = this.autenticacao.usuarioAtual();
         if (usuario) {
           this.recarregar();
+          this.carregarWishlist();
           this.perfis.consultar(usuario.id).subscribe({
             next: (perfil) => this.favoritosIds.set(perfil.favoritos.map((favorito) => favorito.jogoId)),
             error: (erro: ErroApi) => this.erroFavorito.set(erro.mensagem),
@@ -364,6 +375,33 @@ export class DetalheJogoPage {
       error: (erro: ErroApi) => {
         this.erroFavorito.set(erro.mensagem);
         this.salvandoFavorito.set(false);
+      },
+    });
+  }
+
+  // ===== Wishlist =====
+
+  private carregarWishlist(): void {
+    this.wishlist.listar().subscribe({
+      next: (itens: ItemWishlist[]) => this.wishlistIds.set(itens.map((i) => i.jogoId)),
+      error: () => {},
+    });
+  }
+
+  protected alternarWishlist(id: string): void {
+    if (this.salvandoWishlist()) return;
+    const remover = this.wishlistIds().includes(id);
+    this.salvandoWishlist.set(true);
+    this.erroWishlist.set(null);
+    const requisicao = remover ? this.wishlist.remover(id) : this.wishlist.adicionar(id);
+    requisicao.subscribe({
+      next: () => {
+        this.wishlistIds.update((ids) => remover ? ids.filter((x) => x !== id) : [...ids, id]);
+        this.salvandoWishlist.set(false);
+      },
+      error: (e: ErroApi) => {
+        this.erroWishlist.set(e.mensagem);
+        this.salvandoWishlist.set(false);
       },
     });
   }
