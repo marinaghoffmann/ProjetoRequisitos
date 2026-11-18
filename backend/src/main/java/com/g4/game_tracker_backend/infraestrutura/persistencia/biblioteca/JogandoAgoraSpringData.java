@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 interface JogandoAgoraSpringData extends JpaRepository<JogandoAgoraJpa, UUID> {
 
-    Optional<JogandoAgoraJpa> findByUsuarioIdAndAtivoTrueOrderByIniciadoEmDesc(UUID usuarioId);
+    List<JogandoAgoraJpa> findByUsuarioIdAndAtivoTrueOrderByIniciadoEmDesc(UUID usuarioId);
 
     Optional<JogandoAgoraJpa> findByUsuarioIdAndJogoIdAndAtivoTrue(UUID usuarioId, UUID jogoId);
 

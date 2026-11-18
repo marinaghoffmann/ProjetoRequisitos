@@ -26,11 +26,6 @@ class PerfilJogoDoCatalogoTest {
     private PerfilJogoDoCatalogo gateway(Jogo... jogos) {
         JogoRepositorio repositorio = new JogoRepositorio() {
             @Override
-            public void remover(UUID id) {
-                throw new UnsupportedOperationException("não usado neste teste");
-            }
-
-            @Override
             public Jogo salvar(Jogo jogo) {
                 return jogo;
             }
