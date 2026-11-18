@@ -95,6 +95,11 @@ public final class Jogo {
                 desenvolvedoraId, generosIds, dataLancamento, capaUrl, trailerUrl, metadadosJson);
     }
 
+    public Jogo comDataLancamento(LocalDate novaData) {
+        return new Jogo(id, titulo, tituloOriginal, slug, resumo, identificadorExterno, origem,
+                status, desenvolvedoraId, generosIds, novaData, capaUrl, trailerUrl, metadadosJson);
+    }
+
     public Jogo desativar() {
         return new Jogo(id, titulo, tituloOriginal, slug, resumo, identificadorExterno, origem,
                 StatusCatalogo.INATIVO, desenvolvedoraId, generosIds, dataLancamento, capaUrl, trailerUrl)

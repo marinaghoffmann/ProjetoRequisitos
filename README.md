@@ -43,7 +43,7 @@ numeração interna de 1 a 18, mostrada na coluna "Nº grupo".
 |---|---|---|---|---|---|
 | ContextoIdentidadeUsuario | `identidade` | T02 Cadastro, login (JWT) e papéis | — | grupo | ✅ |
 | ContextoCatalogoJogos | `catalogo` | F-01 Catálogo, importação e desenvolvedoras | 1 | Caio | 🟡 RN 3 pendente |
-| ContextoLancamentos | — | F-12 Lançamentos futuros e alertas | 9 | Henrique | ❌ |
+| ContextoLancamentos | `lancamentos` | F-12 Lançamentos futuros e alertas | 9 | Henrique | ✅ |
 | ContextoAvaliacao | `avaliacao.reviews` | F-02 Reviews e notas por categoria | 2 | Lavínia | ✅ |
 | ContextoEstatisticas | `avaliacao.estatisticas` | F-17 Estatísticas da comunidade | 14 | Davi | ✅ |
 | ContextoListasPersonalizadas | `biblioteca.listas` | F-04 Listas personalizadas | 3 | Lavínia | ✅ |
@@ -60,7 +60,7 @@ numeração interna de 1 a 18, mostrada na coluna "Nº grupo".
 | ContextoNegociacao | `marketplace.negociacao` | F-19 Chat e propostas | 16 | Marina | ✅ |
 | ContextoPedidos | `marketplace.pedidos` | F-20 Pedido, checkout e entrega | 17 | Marina | ✅ |
 | ContextoReputacao | `marketplace.reputacao` | F-21 Reputação | 18 | Davi | ✅ |
-| ContextoNotificacao | — | (apoio da F-12 e da F-14) | — | — | ❌ só no modelo |
+| ContextoNotificacao | `notificacao` | Notificações internas (apoio da F-12 e da F-14) | — | Henrique | ✅ usada pela F-12 |
 
 `compartilhado` é o shared kernel: exceções de domínio, `Pagina` e a porta `PublicadorDeEventos`. `status` é técnico
 (saúde da API). O detalhe por camada está na matriz de [docs/checklist-entrega.md](docs/checklist-entrega.md).

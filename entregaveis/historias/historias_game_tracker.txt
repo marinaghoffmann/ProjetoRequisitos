@@ -231,7 +231,7 @@ RN 1
 Título
 validação de data e transição automática de status
 Descrição
-A inclusão de um jogo nesta categoria exige que a data prevista de lançamento seja maior que a data atual. Quando o sistema atinge a data do lançamento, o status é alterado automaticamente para "Lançado".
+A inclusão de um jogo nesta categoria exige que a data prevista de lançamento seja maior que a data atual. A data é informada como Confirmada (data oficial) ou Estimada (previsão ainda sem confirmação). Quando o sistema atinge a data confirmada, o status é alterado automaticamente para "Lançado". Uma data estimada é exibida publicamente como previsão, mas não muda o status nem gera alertas até ser confirmada.
 RN 2
 Título
 gestão do interesse e envio de alertas

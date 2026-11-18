@@ -325,6 +325,7 @@ BoundedContext ContextoLancamentos implements CatalogoJogosSubdomain {
             - @JogoId                           jogoId
             DateTime                            dataPrevista      // RN 1: maior que a data atual
             - @StatusLancamento                 status            // RN 1: FUTURO_LANCAMENTO -> LANCADO
+            - @TipoDataLancamento               tipoData          // RN 1 e 2: so a data CONFIRMADA lanca e gera alerta
             - List<@AlteracaoCronograma>        historico         // RN 3
             DateTime                            cadastradoEm
 
@@ -346,6 +347,7 @@ BoundedContext ContextoLancamentos implements CatalogoJogosSubdomain {
         }
 
         enum StatusLancamento { FUTURO_LANCAMENTO, LANCADO }
+        enum TipoDataLancamento { ESTIMADA, CONFIRMADA }
         ValueObject LancamentoId            { String id }
         ValueObject AlteracaoCronogramaId   { String id }
 

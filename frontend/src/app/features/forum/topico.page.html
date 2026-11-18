@@ -1,150 +1,115 @@
 <main class="pagina-topico">
-  <a class="voltar" routerLink="/forum">← Fórum</a>
-
-  @if (carregando()) {
-    <p class="estado">Carregando tópico…</p>
-  } @else if (topico(); as t) {
-    <article class="topico">
-      <p class="etiquetas">
-        <span class="etiqueta" [class.etiqueta--alerta]="t.status === 'ENCERRADO'"
-          [class.etiqueta--ok]="t.status === 'RESOLVIDO'">{{ status[t.status] }}</span>
-        <span class="etiqueta">{{ t.categoria }}</span>
-      </p>
+  <a class="voltar" routerLink="/forum">← Voltar à comunidade</a>
+  @if (carregando()) { <p class="estado">Carregando tópico…</p> }
+  @else if (topico(); as t) {
+    <header class="cabecalho-topico">
+      <p class="caminho">{{ categoria(t.categoria) }}@if (t.jogoId) { · {{ tituloDoJogo(t.jogoId) }} }</p>
+      <span class="etiqueta" [class.etiqueta--alerta]="t.status === 'ENCERRADO'" [class.etiqueta--ok]="t.status === 'RESOLVIDO'">{{ status[t.status] }}</span>
       <h1>{{ t.titulo }}</h1>
-      <div class="autor">
-        <span class="avatar" [style.background]="avatarDe(t.autorId)">{{ avatarDe(t.autorId) ? '' : iniciais(t.nomeAutor) }}</span>
-        <p class="autoria">
-          <strong>{{ t.nomeAutor ?? 'usuário removido' }}</strong>
-          <time>{{ t.publicadoEm | date: 'dd/MM/yyyy HH:mm' }}</time>
-          @if (t.editadoEm) {
-            <span>(editado)</span>
-          }
-        </p>
-      </div>
-      <p class="texto">{{ t.conteudo }}</p>
-      @if (t.imagens.length) {
-        <ul class="galeria" aria-label="Imagens do tópico">
-          @for (url of t.imagens; track url) {
-            <li>
-              <a [href]="urlDaImagem(url)" target="_blank" rel="noopener" title="Abrir em tamanho original">
-                <img [src]="urlDaImagem(url)" alt="Imagem anexada ao tópico" loading="lazy" />
-              </a>
-            </li>
-          }
-        </ul>
-      }
+      <p class="resumo-topico"><span class="avatar avatar--cabecalho" [style.background]="avatarDe(t.avatarAutorUrl)" [style.backgroundColor]="corDoAvatar(t.autorId)">{{ t.avatarAutorUrl ? '' : iniciais(t.nomeAutor) }}</span> por {{ t.nomeAutor ?? 'usuário removido' }} · {{ tempoRelativo(t.publicadoEm) }} · {{ t.totalRespostas }} {{ t.totalRespostas === 1 ? 'resposta' : 'respostas' }} · {{ t.totalInteracoes }} interações · última atividade {{ tempoRelativo(t.dataUltimaAtividade) }}</p>
+    </header>
 
-      @if (ehAutor(t.autorId) && t.status !== 'ENCERRADO') {
+    <article class="postagem postagem--principal">
+      <div class="autor-coluna">
+        <span class="avatar" [style.background]="avatarDe(t.avatarAutorUrl)" [style.backgroundColor]="corDoAvatar(t.autorId)">{{ t.avatarAutorUrl ? '' : iniciais(t.nomeAutor) }}</span>
+        <strong>{{ t.nomeAutor ?? 'usuário removido' }}</strong>
+        <small>{{ papel(t.papelAutor) }}</small>
+      </div>
+      <div class="postagem__corpo">
+        <div class="postagem__data"><time>{{ tempoRelativo(t.publicadoEm) }}</time>@if (t.editadoEm) { <span>· editado</span> }</div>
+        <div class="texto markdown-forum" [innerHTML]="markdown(t.conteudo)"></div>
+        @if (t.imagens.length) {
+          <ul class="galeria" aria-label="Imagens do tópico">@for (url of t.imagens; track url) {
+            <li><a [href]="urlDaImagem(url)" target="_blank" rel="noopener" title="Abrir em tamanho original"><img [src]="urlDaImagem(url)" alt="Imagem anexada ao tópico" loading="lazy" /></a></li>
+          }</ul>
+        }
         <div class="acoes">
-          @if (dentroDoPrazo(t.editavelAte)) {
-            <a class="acao" [routerLink]="['/forum', t.id, 'editar']">Editar</a>
+          @if (autenticacao.usuarioAtual()) {
+            <button class="acao curtida" [class.curtida--ativa]="t.curtidoPeloUsuario" type="button" [disabled]="enviando()" (click)="curtir()" [attr.aria-label]="t.curtidoPeloUsuario ? 'Descurtir tópico' : 'Curtir tópico'">{{ t.curtidoPeloUsuario ? '♥' : '♡' }} {{ t.totalCurtidas }}</button>
+          } @else { <span class="curtida-estatica">♡ {{ t.totalCurtidas }}</span> }
+          @if (ehAutor(t.autorId) && t.status !== 'ENCERRADO') {
+            @if (dentroDoPrazo(t.editavelAte)) { <a class="acao" [routerLink]="['/forum', t.id, 'editar']">Editar</a> }
+            @if (t.status === 'ABERTO') { <button class="acao" type="button" (click)="alterarStatus('RESOLVIDO')">Marcar como resolvido</button> }
+            @else { <button class="acao" type="button" (click)="alterarStatus('ABERTO')">Reabrir</button> }
+            <button class="acao" type="button" (click)="alterarStatus('ENCERRADO')">Encerrar</button>
+            <button class="acao acao--perigo" type="button" (click)="excluirTopico()">Excluir</button>
           }
-          @if (t.status === 'ABERTO') {
-            <button class="acao" type="button" (click)="alterarStatus('RESOLVIDO')">Marcar como resolvido</button>
-          } @else {
-            <button class="acao" type="button" (click)="alterarStatus('ABERTO')">Reabrir</button>
-          }
-          <button class="acao" type="button" (click)="alterarStatus('ENCERRADO')">Encerrar</button>
-          <button class="acao acao--perigo" type="button" (click)="excluirTopico()">Excluir</button>
         </div>
-      }
+      </div>
     </article>
 
-    @if (erro(); as mensagem) {
-      <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
-    }
-
-    <section aria-label="Respostas">
-      <h2>{{ t.totalRespostas }} resposta(s)</h2>
-      @if (!t.respostas.length) {
-        <p class="estado">Ninguém respondeu ainda.</p>
-      }
+    @if (erro(); as mensagem) { <p class="mensagem-erro" role="alert">{{ mensagem }}</p> }
+    <section class="secao-respostas" aria-label="Respostas">
+      <h2>Respostas <span>{{ t.totalRespostas }}</span></h2>
+      @if (!t.respostas.length) { <p class="estado">Ninguém respondeu ainda.</p> }
       <ng-container [ngTemplateOutlet]="arvore" [ngTemplateOutletContext]="{ $implicit: filhas().get('') ?? [] }" />
     </section>
 
-    @if (encerrado()) {
-      <p class="aviso">Este tópico está encerrado e não aceita novas respostas.</p>
-    } @else if (autenticacao.usuarioAtual()) {
-      <form class="formulario" (ngSubmit)="responder()">
+    @if (encerrado()) { <p class="aviso">Este tópico está encerrado e não aceita novas respostas.</p> }
+    @else if (autenticacao.usuarioAtual()) {
+      <form class="formulario formulario--principal" (ngSubmit)="responder()">
+        <h2>Participe da conversa</h2>
         <label for="nova-resposta">Sua resposta</label>
-        <textarea id="nova-resposta" name="novaResposta" rows="4" maxlength="5000" [(ngModel)]="novaResposta"></textarea>
+        <div class="markdown-toolbar" aria-label="Formatação Markdown">
+          <button type="button" (click)="formatar(campoResposta, 'novaResposta', 'negrito')" title="Negrito">B</button>
+          <button type="button" (click)="formatar(campoResposta, 'novaResposta', 'italico')" title="Itálico"><i>I</i></button>
+          <button type="button" (click)="formatar(campoResposta, 'novaResposta', 'codigo')" title="Código">&lt;/&gt;</button>
+          <button type="button" (click)="formatar(campoResposta, 'novaResposta', 'citacao')" title="Citação">❝</button>
+          <button type="button" (click)="formatar(campoResposta, 'novaResposta', 'lista')" title="Lista">☷</button>
+        </div>
+        <textarea #campoResposta id="nova-resposta" name="novaResposta" rows="4" maxlength="5000" [(ngModel)]="novaResposta" placeholder="Escreva sua resposta…"></textarea>
+        <details class="ajuda-markdown"><summary>Ajuda e prévia do texto</summary><p>Use **negrito**, *itálico*, listas, `código` e [links](https://exemplo.com).</p><div class="markdown-forum" [innerHTML]="markdown(novaResposta)"></div></details>
         <app-anexo-imagens [(imagens)]="imagensNovaResposta" [(enviando)]="anexando" />
         <button type="submit" [disabled]="enviando() || anexando() || !novaResposta.trim()">Responder</button>
       </form>
-    } @else {
-      <p class="aviso"><a routerLink="/login">Entre na sua conta</a> para responder.</p>
-    }
-  } @else if (erro(); as mensagem) {
-    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
-  }
+    } @else { <p class="aviso"><a routerLink="/login">Entre na sua conta</a> para responder.</p> }
+  } @else if (erro(); as mensagem) { <p class="mensagem-erro" role="alert">{{ mensagem }}</p> }
 </main>
 
 <ng-template #arvore let-respostas>
   <ul class="respostas">
     @for (resposta of respostas; track resposta.id) {
       <li class="resposta">
-        <div class="autor">
-          <span class="avatar avatar--p" [style.background]="avatarDe(resposta.autorId)">{{ avatarDe(resposta.autorId) ? '' : iniciais(resposta.nomeAutor) }}</span>
-          <p class="autoria">
-            <strong>{{ resposta.nomeAutor ?? 'usuário removido' }}</strong>
-            <time>{{ resposta.publicadaEm | date: 'dd/MM/yyyy HH:mm' }}</time>
-            @if (resposta.editadaEm && !resposta.removida) {
-              <span>(editada)</span>
-            }
-          </p>
-        </div>
-
-        @if (resposta.removida) {
-          <p class="texto texto--removido">Resposta removida pelo autor.</p>
-        } @else if (editando() === resposta.id) {
-          <form class="formulario" (ngSubmit)="salvarEdicao(resposta)">
-            <textarea name="textoEditado" rows="3" maxlength="5000" [(ngModel)]="textoEditado"></textarea>
-            <div class="acoes">
-              <button class="acao" type="submit" [disabled]="enviando() || !textoEditado.trim()">Salvar</button>
-              <button class="acao acao--secundaria" type="button" (click)="editando.set(null)">Cancelar</button>
-            </div>
-          </form>
-        } @else {
-          <p class="texto">{{ resposta.conteudo }}</p>
-          @if (resposta.imagens.length) {
-            <ul class="galeria galeria--resposta" aria-label="Imagens da resposta">
-              @for (url of resposta.imagens; track url) {
-                <li>
-                  <a [href]="urlDaImagem(url)" target="_blank" rel="noopener" title="Abrir em tamanho original">
-                    <img [src]="urlDaImagem(url)" alt="Imagem anexada à resposta" loading="lazy" />
-                  </a>
-                </li>
-              }
-            </ul>
-          }
-          @if (!encerrado() && autenticacao.usuarioAtual()) {
-            <div class="acoes">
-              <button class="acao acao--secundaria" type="button" (click)="abrirReplica(resposta)">Responder</button>
-              @if (ehAutor(resposta.autorId)) {
-                @if (dentroDoPrazo(resposta.editavelAte)) {
-                  <button class="acao acao--secundaria" type="button" (click)="abrirEdicao(resposta)">Editar</button>
+        <article class="postagem">
+          <div class="autor-coluna">
+            <span class="avatar avatar--p" [style.background]="avatarDe(resposta.avatarAutorUrl)" [style.backgroundColor]="corDoAvatar(resposta.autorId)">{{ resposta.avatarAutorUrl ? '' : iniciais(resposta.nomeAutor) }}</span>
+            <strong>{{ resposta.nomeAutor ?? 'usuário removido' }}</strong><small>{{ papel(resposta.papelAutor) }}</small>
+          </div>
+          <div class="postagem__corpo">
+            <div class="postagem__data"><time>{{ tempoRelativo(resposta.publicadaEm) }}</time>@if (resposta.editadaEm && !resposta.removida) { <span>· editada</span> }</div>
+            @if (resposta.removida) { <p class="texto texto--removido">Resposta removida pelo autor.</p> }
+            @else if (editando() === resposta.id) {
+              <form class="formulario" (ngSubmit)="salvarEdicao(resposta)">
+                <textarea name="textoEditado" aria-label="Editar resposta" rows="3" maxlength="5000" [(ngModel)]="textoEditado"></textarea>
+                <details class="ajuda-markdown"><summary>Ajuda e prévia do texto</summary><div class="markdown-forum" [innerHTML]="markdown(textoEditado)"></div></details>
+                <div class="acoes"><button class="acao" type="submit" [disabled]="enviando() || !textoEditado.trim()">Salvar</button><button class="acao acao--secundaria" type="button" (click)="editando.set(null)">Cancelar</button></div>
+              </form>
+            } @else {
+              <div class="texto markdown-forum" [innerHTML]="markdown(resposta.conteudo)"></div>
+              @if (resposta.imagens.length) { <ul class="galeria galeria--resposta" aria-label="Imagens da resposta">@for (url of resposta.imagens; track url) { <li><a [href]="urlDaImagem(url)" target="_blank" rel="noopener" title="Abrir em tamanho original"><img [src]="urlDaImagem(url)" alt="Imagem anexada à resposta" loading="lazy" /></a></li> }</ul> }
+              <div class="acoes">
+                @if (autenticacao.usuarioAtual() && !resposta.removida) { <button class="acao curtida" [class.curtida--ativa]="resposta.curtidaPeloUsuario" type="button" [disabled]="enviando()" (click)="curtir(resposta.id)" [attr.aria-label]="resposta.curtidaPeloUsuario ? 'Descurtir resposta' : 'Curtir resposta'">{{ resposta.curtidaPeloUsuario ? '♥' : '♡' }} {{ resposta.totalCurtidas }}</button> }
+                @else { <span class="curtida-estatica">♡ {{ resposta.totalCurtidas }}</span> }
+                @if (!encerrado() && autenticacao.usuarioAtual()) {
+                  <button class="acao acao--secundaria" type="button" (click)="abrirReplica(resposta)">Responder</button>
+                  @if (ehAutor(resposta.autorId)) {
+                    @if (dentroDoPrazo(resposta.editavelAte)) { <button class="acao acao--secundaria" type="button" (click)="abrirEdicao(resposta)">Editar</button> }
+                    <button class="acao acao--perigo" type="button" (click)="excluirResposta(resposta)">Excluir</button>
+                  }
                 }
-                <button class="acao acao--perigo" type="button" (click)="excluirResposta(resposta)">Excluir</button>
-              }
-            </div>
-          }
-        }
-
-        @if (respondendoA() === resposta.id) {
-          <form class="formulario" (ngSubmit)="enviarReplica(resposta)">
-            <textarea name="replica" rows="3" maxlength="5000" [(ngModel)]="replica"
-              [placeholder]="'Respondendo a ' + (resposta.nomeAutor ?? 'esta resposta')"></textarea>
-            <app-anexo-imagens [(imagens)]="imagensReplica" [(enviando)]="anexando" />
-            <div class="acoes">
-              <button class="acao" type="submit" [disabled]="enviando() || anexando() || !replica.trim()">Enviar</button>
-              <button class="acao acao--secundaria" type="button" (click)="respondendoA.set(null)">Cancelar</button>
-            </div>
-          </form>
-        }
-
-        @if (filhas().get(resposta.id); as respostasFilhas) {
-          <ng-container [ngTemplateOutlet]="arvore" [ngTemplateOutletContext]="{ $implicit: respostasFilhas }" />
-        }
+              </div>
+            }
+            @if (respondendoA() === resposta.id) {
+              <form class="formulario" (ngSubmit)="enviarReplica(resposta)">
+                <textarea name="replica" aria-label="Responder à resposta" rows="3" maxlength="5000" [(ngModel)]="replica" [placeholder]="'Respondendo a ' + (resposta.nomeAutor ?? 'esta resposta')"></textarea>
+                <details class="ajuda-markdown"><summary>Ajuda e prévia do texto</summary><div class="markdown-forum" [innerHTML]="markdown(replica)"></div></details>
+                <app-anexo-imagens [(imagens)]="imagensReplica" [(enviando)]="anexando" />
+                <div class="acoes"><button class="acao" type="submit" [disabled]="enviando() || anexando() || !replica.trim()">Enviar</button><button class="acao acao--secundaria" type="button" (click)="respondendoA.set(null)">Cancelar</button></div>
+              </form>
+            }
+          </div>
+        </article>
+        @if (filhas().get(resposta.id); as respostasFilhas) { <ng-container [ngTemplateOutlet]="arvore" [ngTemplateOutletContext]="{ $implicit: respostasFilhas }" /> }
       </li>
     }
   </ul>

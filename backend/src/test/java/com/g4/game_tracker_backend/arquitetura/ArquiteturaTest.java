@@ -63,6 +63,19 @@ class ArquiteturaTest {
                 .check(CLASSES);
     }
 
+    /**
+     * No Context Map o catálogo é upstream dos lançamentos (F-12): ele publica eventos (DataJogoAlterada,
+     * JogoDesativado) e quem depende dele reage, nunca o contrário.
+     */
+    @Test
+    void catalogoNaoDependeDosLancamentos() {
+        noClasses().that().resideInAnyPackage("..dominio.catalogo..", "..aplicacao.catalogo..")
+                .should().dependOnClassesThat()
+                .resideInAnyPackage("..lancamentos..")
+                .because("o catálogo é upstream dos lançamentos no Context Map")
+                .check(CLASSES);
+    }
+
     @Test
     void apresentacaoNaoAcessaInfraestrutura() {
         noClasses().that().resideInAPackage("..apresentacao..")

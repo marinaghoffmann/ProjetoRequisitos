@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.g4.game_tracker_backend.aplicacao.forum.ConsultarForum;
+import com.g4.game_tracker_backend.aplicacao.forum.CurtidasForum;
 import com.g4.game_tracker_backend.aplicacao.forum.CriarTopico;
 import com.g4.game_tracker_backend.aplicacao.forum.GerenciarRespostas;
 import com.g4.game_tracker_backend.dominio.catalogo.Jogo;
@@ -39,6 +40,7 @@ public class PassosForum {
     private final CriarTopico criarTopico;
     private final GerenciarRespostas gerenciarRespostas;
     private final ConsultarForum consultarForum;
+    private final CurtidasForum curtidas;
     private final TopicoDeForumRepositorio topicos;
     private final DadosDoCenario dados;
     private final ContextoDoCenario contexto;
@@ -46,14 +48,16 @@ public class PassosForum {
     private final Map<String, UUID> respostasPorAutor = new HashMap<>();
     private TopicoDeForum topicoAtual;
     private UUID minhaResposta;
+    private UUID replicaDeApoio;
     private RespostaForum novaResposta;
     private Pagina<ResumoTopico> paginaConsultada;
 
     public PassosForum(CriarTopico criarTopico, GerenciarRespostas gerenciarRespostas, ConsultarForum consultarForum,
-            TopicoDeForumRepositorio topicos, DadosDoCenario dados, ContextoDoCenario contexto) {
+            CurtidasForum curtidas, TopicoDeForumRepositorio topicos, DadosDoCenario dados, ContextoDoCenario contexto) {
         this.criarTopico = criarTopico;
         this.gerenciarRespostas = gerenciarRespostas;
         this.consultarForum = consultarForum;
+        this.curtidas = curtidas;
         this.topicos = topicos;
         this.dados = dados;
         this.contexto = contexto;
@@ -142,6 +146,24 @@ public class PassosForum {
         }
     }
 
+    @Dado("um tópico geral e outro de jogo na categoria {string}")
+    public void topicosGeraisEDeJogo(String categoria) {
+        Usuario autor = dados.jogador("autor de apoio");
+        Instant agora = Instant.now().minusSeconds(120);
+        topicoAtual = topicos.salvar(TopicoDeForum.criar(autor.id(), null, categoria,
+                "Discussão sem jogo", "Conteúdo geral", agora));
+        topicos.salvar(TopicoDeForum.criar(autor.id(), dados.jogo(JOGO_DO_CENARIO).id(), categoria,
+                "Discussão de jogo", "Conteúdo do jogo", agora.plusSeconds(1)));
+    }
+
+    @Dado("uma réplica de {string} à resposta do jogador")
+    public void replicaARespostaDoJogador(String autor) {
+        topicoAtual = topicoAtual.responder(dados.jogador(autor).id(), minhaResposta,
+                "Réplica de apoio", Instant.now().minus(Duration.ofHours(1)));
+        replicaDeApoio = topicoAtual.ultimaResposta().id();
+        salvar();
+    }
+
     // ---- Ações ----
 
     @Quando("o jogador responde à resposta de {string} com {string}")
@@ -179,6 +201,25 @@ public class PassosForum {
     public void usuarioConsultaPagina(int pagina, String jogo, int tamanho) {
         paginaConsultada = contexto.obter(() -> consultarForum.listar(
                 new FiltroTopicos(dados.jogo(jogo).id(), null), pagina, tamanho));
+    }
+
+    @Quando("o usuário consulta apenas discussões gerais")
+    public void consultarApenasGerais() {
+        paginaConsultada = contexto.obter(() -> consultarForum.listar(new FiltroTopicos(null, null, true), 1, 10));
+    }
+
+    @Quando("o jogador curte o tópico duas vezes")
+    public void jogadorCurteTopicoDuasVezes() {
+        contexto.executar(() -> {
+            curtidas.definir(topicoAtual.id(), null, true);
+            curtidas.definir(topicoAtual.id(), null, true);
+        });
+    }
+
+    @Entao("o tópico deve ter {int} curtida")
+    public void topicoDeveTerCurtidas(int quantidade) {
+        assertEquals(null, contexto.erro(), () -> "A curtida foi recusada: " + contexto.erro().getMessage());
+        assertEquals(quantidade, curtidas.resumo(topicoAtual.id(), dados.jogador("marina").id()).totalTopico());
     }
 
     // ---- Verificações ----
@@ -227,6 +268,27 @@ public class PassosForum {
                     .isAfter(paginaConsultada.itens().get(i - 1).dataUltimaAtividade()),
                     "Os tópicos devem vir do mais recentemente ativo para o menos");
         }
+    }
+
+    @Entao("a consulta deve conter somente o tópico sem jogo")
+    public void apenasTopicoSemJogo() {
+        assertNotNull(paginaConsultada);
+        assertTrue(paginaConsultada.itens().stream().anyMatch(item -> item.id().equals(topicoAtual.id())));
+        assertTrue(paginaConsultada.itens().stream().allMatch(item -> item.jogoId() == null));
+    }
+
+    @Entao("a última atividade deve ser a data da edição da resposta")
+    public void atividadeDaEdicaoDaResposta() {
+        TopicoDeForum salvo = recarregar();
+        assertEquals(salvo.resposta(minhaResposta).editadaEm(), salvo.dataUltimaAtividade());
+    }
+
+    @Entao("a réplica deve continuar vinculada à resposta removida")
+    public void replicaPreservada() {
+        TopicoDeForum salvo = recarregar();
+        assertTrue(salvo.resposta(minhaResposta).removida());
+        assertEquals(minhaResposta, salvo.resposta(replicaDeApoio).respostaPaiId());
+        assertEquals(1, salvo.totalRespostas());
     }
 
     // ---- Apoio ----

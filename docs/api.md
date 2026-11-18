@@ -380,11 +380,43 @@ automática da timeline passa a apontar para o jogo correto.
 Os cenários de aceitação estão em `f11_conclusoes.feature`.
 - Não há visão pública da timeline; o perfil público é da F-06/F-08.
 
+## Lançamentos futuros e alertas (F-12)
+
+Os lançamentos são cadastrados **explicitamente** para jogos ativos do catálogo. Uma data futura
+no cadastro do jogo, por si só, não cria uma inscrição na agenda.
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/lancamentos` | Listar futuros por data, com contagem regressiva, total de interessados e alerta do usuário; `incluirLancados=true` acrescenta os já lançados | qualquer um |
+| `GET` | `/api/lancamentos/{id}` | Consultar lançamento e histórico de datas | qualquer um |
+| `POST` | `/api/lancamentos` | Cadastrar `{ "jogoId": "...", "dataPrevista": "AAAA-MM-DD", "tipoData": "ESTIMADA" }` | admin ou desenvolvedor vinculado ao jogo |
+| `PUT` | `/api/lancamentos/{id}` | Alterar `{ "dataPrevista": "AAAA-MM-DD", "tipoData": "CONFIRMADA" }` | admin ou desenvolvedor vinculado ao jogo |
+| `DELETE` | `/api/lancamentos/{id}` | Remover a agenda e cancelar alertas, mantendo o jogo | admin ou desenvolvedor vinculado ao jogo |
+| `PUT` / `DELETE` | `/api/lancamentos/{id}/interesse` | Ativar/desativar o interesse (operações idempotentes) | autenticado |
+| `GET` | `/api/notificacoes` | Caixa de notificações do próprio usuário | autenticado |
+| `PATCH` | `/api/notificacoes/{id}/leitura` | Marcar como lida | destinatário |
+
+A data é `LocalDate` no fuso `America/Sao_Paulo`. `tipoData` pode ser `ESTIMADA`
+(data possível, ainda sem confirmação) ou `CONFIRMADA`. O formulário inicia em `ESTIMADA`;
+a API mantém `CONFIRMADA` como padrão para clientes anteriores. Uma estimativa é exibida
+publicamente mesmo após passar, sem mudar automaticamente para `LANCADO` nem criar
+alerta. O usuário pode acompanhar o jogo; ao confirmar a data, os alertas dos interessados
+são agendados. O alerta confirmado vence à meia-noite do dia anterior (24 horas antes do
+início do dia oficial). O campo representa a classificação informada por quem cadastra;
+o sistema não verifica a fonte automaticamente. O status `LANCADO` pertence ao
+lançamento; o jogo continua `ATIVO` no catálogo. Edições de data nas rotas do catálogo e
+importações de jogos já inscritos sincronizam o histórico e reagendam os alertas na mesma
+transação. Avisos de data alterada e de lançamento próximo são internos ao aplicativo.
+
+`RotinasDosLancamentos` processa alertas e transições vencidas a cada minuto. Defina
+`APP_LANCAMENTOS_ROTINAS=false` para desativá-la; os testes a desativam e invocam os
+casos de uso com um instante fixo. Frontend: a seção “Em breve” de `/inicio` mostra os três primeiros lançamentos reais e o link “Todos” abre `/lancamentos`; essa página mostra a agenda e, ao final, os já lançados. Os formulários de cadastro/edição e `/notificacoes` continuam disponíveis. Cenários BDD: `f12_lancamentos.feature`.
+
 ## Fórum (F-13)
 
 | Método | Rota | Objetivo | Quem pode |
 |---|---|---|---|
-| `GET` | `/api/forum/topicos` | Tópicos paginados, do mais recentemente ativo para o menos (`jogoId`, `categoria`, `pagina` a partir de 1, `tamanho` até 50) | qualquer um |
+| `GET` | `/api/forum/topicos` | Tópicos paginados (`jogoId`, `categoria`, `apenasGerais=true`, `status`, `ordem=recentes|emAlta`, `pagina` a partir de 1, `tamanho` até 50) | qualquer um |
 | `GET` | `/api/forum/topicos/{id}` | Tópico com todas as respostas (o encadeamento vem em `respostaPaiId`) | qualquer um |
 | `POST` | `/api/forum/topicos` | Criar tópico geral (`jogoId` nulo) ou de um jogo `ATIVO` do catálogo; nasce `ABERTO` | autenticado |
 | `PUT` | `/api/forum/topicos/{id}` | Editar título, mensagem e categoria (até 48 horas após a publicação) | autor |
@@ -393,25 +425,39 @@ Os cenários de aceitação estão em `f11_conclusoes.feature`.
 | `POST` | `/api/forum/topicos/{id}/respostas` | Responder ao tópico, ou a outra resposta com `respostaPaiId` | autenticado |
 | `PUT` | `/api/forum/topicos/{id}/respostas/{respostaId}` | Editar a resposta (até 48 horas após a publicação) | autor |
 | `DELETE` | `/api/forum/topicos/{id}/respostas/{respostaId}` | Excluir a resposta | autor |
+| `PUT` / `DELETE` | `/api/forum/topicos/{id}/curtida` | Curtir / descurtir o tópico, sem duplicar em requisições repetidas | autenticado |
+| `PUT` / `DELETE` | `/api/forum/topicos/{id}/respostas/{respostaId}/curtida` | Curtir / descurtir uma resposta visível | autenticado |
 
 - RN 1: tópico `ENCERRADO` não aceita novas respostas, edições nem exclusões, e não pode ser reaberto pelo autor.
 - RN 2: só o autor edita ou exclui a sua postagem (403 "Apenas o autor pode alterar esta postagem"); a edição vale por 48 horas.
 - RN 3: criar, editar ou excluir uma resposta atualiza o contador do tópico e a data da última atividade. Os dois ficam
-  gravados no próprio tópico (`forum_topicos`), então a listagem não carrega as respostas.
+  gravados no próprio tópico (`forum_topicos`), então a listagem não carrega as respostas. Escritas no mesmo tópico
+  são serializadas por bloqueio da linha raiz dentro da transação.
+- `ordem=recentes` (padrão) usa a última atividade; `ordem=emAlta` usa a soma de respostas ativas e curtidas,
+  com última atividade e ID para desempate. `status` aceita `ABERTO`, `RESOLVIDO` ou `ENCERRADO`. A categoria
+  `Discussão geral` também inclui tópicos antigos salvos como `Geral`. A resposta da API traz `totalCurtidas`
+  e `totalInteracoes` (respostas ativas + curtidas); no detalhe, cada resposta traz sua contagem e o estado
+  da curtida do usuário autenticado. Curtidas de respostas removidas são apagadas.
+- `apenasGerais=true` seleciona tópicos sem jogo vinculado, independentemente da categoria. Pode ser combinado
+  com `categoria`, mas não com `jogoId`; essa combinação retorna erro de regra de negócio.
+- Conteúdo de tópicos e respostas é Markdown com negrito, itálico, listas, código e links. As telas oferecem prévia;
+  HTML bruto e imagens embutidas via Markdown não são renderizados. Imagens continuam no fluxo de anexos.
 - A exclusão de resposta é lógica: ela deixa de contar, volta sem conteúdo (`removida: true`) e continua na árvore
   para as respostas filhas não sumirem. Não é possível responder a uma resposta removida.
 - Toda resposta nova publica um `RespostaPublicada` pelo `ApplicationEventPublisher`, até o barramento da T04 existir.
-- Frontend: `/forum` (lista com filtros e paginação), `/forum/novo`, `/forum/{id}` (tópico com respostas em árvore)
-  e `/forum/{id}/editar`.
+- Frontend: `/forum` é a Comunidade, com editor na própria página, filtros por categoria, status e jogo,
+  abas Recentes/Em alta e paginação de 5 tópicos. `/forum/{id}` traz cartões de autor, curtidas e respostas
+  encadeadas com editor inline. `/forum/novo` e `/forum/{id}/editar` permanecem para compatibilidade.
+  As telas seguem a [referência visual da Comunidade no Figma Make](https://www.figma.com/make/Hbid18iRVvTGOqfX2p4UNW/Game-Tracker-MVP-Development--Copy-?t=zTCKnJrVlLNDiCpq-1).
 - Cenários BDD em `f13_forum.feature`, com steps em `PassosForum`. Jogadores e jogos de apoio ficam em `DadosDoCenario`,
   compartilhado entre as classes de steps; o step `o jogador "<nome>" autenticado` agora fica em `PassosComuns`.
 
-Pendências conhecidas da F-13 (algumas são escopo da F-14):
+Pendências conhecidas da F-13 (escopo da F-14):
 
 - Moderadores e administradores ainda não têm poderes no fórum: encerrar, reabrir, ocultar e remover conteúdo de
   outros usuários fica para a central de moderação (F-14), que pode reaproveitar os campos `removido` e `removida`.
-- A "formatação de texto" é só a preservação de quebras de linha; não há Markdown nem editor rico.
-- A listagem mostra o nome do jogo procurando no catálogo carregado pela tela; não há busca por título do tópico.
+- Denúncias e a ação “Denunciar” não aparecem até a F-14 oferecer uma fila funcional. A listagem mostra
+  o nome do jogo procurando no catálogo carregado pela tela; não há busca por título do tópico.
 
 ## Listas personalizadas (F-04)
 

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject
 import { RouterLink } from '@angular/router';
 
 import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
+import { Lancamento, LancamentosService } from '../../core/api/lancamentos.service';
 import { ErroApi } from '../../core/http/erro-api';
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 
@@ -25,14 +26,6 @@ interface JogoEmAlta {
   steamAppId: number | null;
 }
 
-interface Lancamento {
-  dia: string;
-  mes: string;
-  titulo: string;
-  meta: string;
-  capa: string;
-}
-
 const GRADIENTES = [
   'linear-gradient(160deg, #1b1445, #0f2b4a 55%, #3b1d5c)',
   'linear-gradient(170deg, #5a6a7a, #a45a3a 60%, #3a2418)',
@@ -51,6 +44,7 @@ const GRADIENTES = [
 })
 export class InicioPage implements OnInit, OnDestroy {
   private readonly catalogo = inject(CatalogoService);
+  private readonly lancamentosApi = inject(LancamentosService);
   protected readonly autenticacao = inject(AutenticacaoService);
 
   // ===== Dados vindos da API (mesmo CatalogoService do catálogo) =====
@@ -78,12 +72,11 @@ export class InicioPage implements OnInit, OnDestroy {
   protected readonly destaqueAtual = computed(() => this.destaques()[this.indice()] ?? null);
   private temporizador?: ReturnType<typeof setInterval>;
 
-  // ===== Ainda mockado (não há endpoint para isso) =====
-  protected readonly emBreve: Lancamento[] = [
-    { dia: '15', mes: 'NOV', titulo: 'Starforge', meta: 'RPG · PC, PS5', capa: 'linear-gradient(170deg, #5a8fc0, #d6a23a)' },
-    { dia: '23', mes: 'NOV', titulo: 'Titanfall: Reborn', meta: 'FPS · PC, Xbox', capa: 'linear-gradient(170deg, #1a1d22, #343a44)' },
-    { dia: '09', mes: 'DEZ', titulo: 'The Last Signal', meta: 'Narrativo · PC, PS5', capa: 'linear-gradient(160deg, #1b1445, #3b1d7a 60%, #0f4a5a)' },
-  ];
+  // A prévia usa a mesma agenda da página de lançamentos, ordenada pela API.
+  protected readonly carregandoLancamentos = signal(true);
+  protected readonly erroLancamentos = signal<string | null>(null);
+  private readonly agenda = signal<Lancamento[]>([]);
+  protected readonly emBreve = computed(() => this.agenda().filter(l => l.status === 'FUTURO_LANCAMENTO').slice(0, 3));
   protected readonly miniaturasLista = GRADIENTES.slice(0, 4);
   protected readonly gradienteResenha = GRADIENTES[0];
 
@@ -101,6 +94,11 @@ export class InicioPage implements OnInit, OnDestroy {
       },
     });
 
+    this.lancamentosApi.listar().subscribe({
+      next: lancamentos => { this.agenda.set(lancamentos); this.carregandoLancamentos.set(false); },
+      error: (e: ErroApi) => { this.erroLancamentos.set(e.mensagem); this.carregandoLancamentos.set(false); },
+    });
+
     this.temporizador = setInterval(() => {
       const total = this.destaques().length;
       if (total > 1) this.indice.update((i) => (i + 1) % total);
@@ -109,6 +107,17 @@ export class InicioPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     clearInterval(this.temporizador);
+  }
+
+  protected diaLancamento(data: string): string { return data.slice(8, 10); }
+  protected mesLancamento(data: string): string {
+    const mes = Number(data.slice(5, 7));
+    return new Intl.DateTimeFormat('pt-BR', { month: 'short', timeZone: 'UTC' })
+      .format(new Date(Date.UTC(2026, mes - 1, 1))).replace('.', '').toUpperCase();
+  }
+  protected capaLancamento(l: Lancamento): string {
+    const capa = this.imagemUrl(l.capaUrl);
+    return capa ? `url("${capa}") center / cover no-repeat` : 'var(--surface-3)';
   }
 
   protected ir(i: number): void {

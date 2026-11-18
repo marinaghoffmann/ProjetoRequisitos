@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import com.g4.game_tracker_backend.dominio.compartilhado.AcessoNegadoException;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
+import com.g4.game_tracker_backend.dominio.forum.FiltroTopicos;
 import com.g4.game_tracker_backend.dominio.forum.StatusTopico;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
 
@@ -89,4 +90,41 @@ class TopicoDeForumTest {
                 () -> encerrado.alterarStatus(autor, StatusTopico.ABERTO, AGORA));
         assertThrows(RegraDeNegocioException.class, () -> encerrado.remover(autor));
     }
+
+    @Test
+    void apenasGeraisNaoPodeSerCombinadoComJogo() {
+        assertThrows(RegraDeNegocioException.class,
+                () -> new FiltroTopicos(UUID.randomUUID(), null, true));
+    }
+
+    @Test
+    void edicaoDeRespostaPreservaContadorEAtualizaAtividade() {
+        TopicoDeForum topico = topico().responder(outro, null, "Original", AGORA);
+        UUID respostaId = topico.ultimaResposta().id();
+        Instant edicao = AGORA.plusSeconds(90);
+        TopicoDeForum alterado = topico.editarResposta(respostaId, outro, "Corrigido", edicao);
+        assertEquals(1, alterado.totalRespostas());
+        assertEquals(edicao, alterado.dataUltimaAtividade());
+        assertEquals("Corrigido", alterado.resposta(respostaId).conteudo());
+    }
+
+    @Test
+    void removerRespostaMantemFilhaNaArvore() {
+        TopicoDeForum topico = topico().responder(outro, null, "Original", AGORA);
+        UUID paiId = topico.ultimaResposta().id();
+        topico = topico.responder(autor, paiId, "Réplica", AGORA.plusSeconds(30));
+        UUID filhaId = topico.ultimaResposta().id();
+        TopicoDeForum alterado = topico.excluirResposta(paiId, outro, AGORA.plusSeconds(60));
+        assertEquals(paiId, alterado.resposta(filhaId).respostaPaiId());
+        assertEquals(1, alterado.totalRespostas());
+    }
+
+    @Test
+    void topicoTemJanelaDeEdicaoDe48Horas() {
+        Instant limite = AGORA.plus(Duration.ofHours(48));
+        assertEquals("Editado", topico().editar(autor, "Editado", "Conteúdo", null, limite).titulo());
+        assertThrows(RegraDeNegocioException.class,
+                () -> topico().editar(autor, "Tarde", "Conteúdo", null, limite.plusSeconds(1)));
+    }
+
 }

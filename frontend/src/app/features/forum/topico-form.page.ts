@@ -7,6 +7,7 @@ import { ForumService } from '../../core/api/forum.service';
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
 import { AnexoImagens } from './anexo-imagens.component';
+import { formatarMarkdownForum } from './markdown-forum';
 
 /** Cria um tópico (rota forum/novo) ou edita um existente (rota forum/:id/editar). */
 @Component({
@@ -23,6 +24,7 @@ export class TopicoFormPage {
   protected readonly autenticacao = inject(AutenticacaoService);
   protected readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id');
 
+  protected readonly markdown = formatarMarkdownForum;
   protected readonly jogos = signal<Jogo[]>([]);
   protected readonly carregando = signal(true);
   protected readonly salvando = signal(false);
@@ -33,7 +35,7 @@ export class TopicoFormPage {
 
   protected readonly formulario = this.builder.group({
     jogoId: [''],
-    categoria: ['', Validators.maxLength(60)],
+    categoria: ['Discussão geral', Validators.maxLength(60)],
     titulo: ['', [Validators.required, Validators.maxLength(150)]],
     conteudo: ['', [Validators.required, Validators.maxLength(10000)]],
   });
@@ -65,6 +67,16 @@ export class TopicoFormPage {
         this.carregando.set(false);
       },
     });
+  }
+
+  protected formatar(campo: HTMLTextAreaElement, tipo: 'negrito' | 'italico' | 'codigo' | 'citacao' | 'lista'): void {
+    const controle = this.formulario.controls.conteudo;
+    const valor = controle.value;
+    const selecionado = valor.slice(campo.selectionStart, campo.selectionEnd) || 'texto';
+    const trecho = ({ negrito: `**${selecionado}**`, italico: `*${selecionado}*`,
+      codigo: `\`${selecionado}\``, citacao: `> ${selecionado}`, lista: `- ${selecionado}` })[tipo];
+    controle.setValue(valor.slice(0, campo.selectionStart) + trecho + valor.slice(campo.selectionEnd));
+    campo.focus();
   }
 
   protected salvar(): void {

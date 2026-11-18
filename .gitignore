@@ -75,3 +75,7 @@ backend/uploads/**
 .env
 .env.*
 !.env.example
+
+# Planos locais de trabalho (F-12 e F-13)
+/entregaveis/f12_lancamentos/PLANO_F9.md
+/entregaveis/f13_forum/PLANO_F10.md
