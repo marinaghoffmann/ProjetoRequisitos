@@ -15,4 +15,6 @@ public interface WishlistSpringDataRepository extends JpaRepository<WishlistJpa,
     boolean existsByUsuarioIdAndJogoId(UUID usuarioId, UUID jogoId);
 
     void deleteByUsuarioIdAndJogoId(UUID usuarioId, UUID jogoId);
+
+    long countByJogoId(UUID jogoId);
 }

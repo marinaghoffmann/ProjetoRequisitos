@@ -8,4 +8,5 @@ public interface WishlistRepositorio {
     boolean contem(UUID usuarioId, UUID jogoId);
     void adicionar(UUID usuarioId, UUID jogoId);
     void remover(UUID usuarioId, UUID jogoId);
+    int contarPorJogo(UUID jogoId);
 }

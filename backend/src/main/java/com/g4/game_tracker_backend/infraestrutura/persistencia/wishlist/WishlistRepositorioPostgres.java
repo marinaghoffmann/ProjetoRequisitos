@@ -40,4 +40,9 @@ public class WishlistRepositorioPostgres implements WishlistRepositorio {
     public void remover(UUID usuarioId, UUID jogoId) {
         springData.deleteByUsuarioIdAndJogoId(usuarioId, jogoId);
     }
+
+    @Override
+    public int contarPorJogo(UUID jogoId) {
+        return Math.toIntExact(springData.countByJogoId(jogoId));
+    }
 }

@@ -24,10 +24,10 @@ import com.g4.game_tracker_backend.aplicacao.avaliacao.estatisticas.RecalcularEs
 import com.g4.game_tracker_backend.aplicacao.avaliacao.reviews.GerenciarReview;
 import com.g4.game_tracker_backend.aplicacao.avaliacao.reviews.PublicarReview;
 import com.g4.game_tracker_backend.aplicacao.biblioteca.conclusoes.GerenciarConclusoes;
+import com.g4.game_tracker_backend.aplicacao.wishlist.AdicionarNaWishlist;
 import com.g4.game_tracker_backend.apresentacao.avaliacao.estatisticas.EstatisticaJogoResponse;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.EstatisticaJogo;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.EstatisticaJogoRepositorio;
-import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.MetricasDoJogoAlteradas;
 import com.g4.game_tracker_backend.dominio.avaliacao.reviews.Review;
 import com.g4.game_tracker_backend.dominio.biblioteca.conclusoes.RegistroDeConclusao.Dados;
 import com.g4.game_tracker_backend.dominio.catalogo.Desenvolvedora;
@@ -49,7 +49,7 @@ import io.cucumber.java.pt.Quando;
 
 /**
  * Steps da F-17. Reviews e conclusões publicam métricas pelos casos de uso reais.
- * A wishlist usa uma fonte de apoio até a F-06 disponibilizar a fonte real.
+ * A wishlist também usa o caso de uso real da F-06, cada inclusão com um jogador diferente.
  */
 public class PassosEstatisticas {
 
@@ -59,7 +59,7 @@ public class PassosEstatisticas {
     private final RecalcularEstatisticas recalcular;
     private final ConsultarEstatisticas consultar;
     private final EstatisticaJogoRepositorio estatisticas;
-    private final MetricasDeApoioDosCenarios metricas;
+    private final AdicionarNaWishlist adicionarNaWishlist;
     private final AnuncioMarketplaceRepositorio anuncios;
     private final JogoRepositorio jogos;
     private final DesenvolvedoraRepositorio desenvolvedoras;
@@ -76,7 +76,7 @@ public class PassosEstatisticas {
     private EstatisticaJogoResponse fichaConsultada;
 
     public PassosEstatisticas(RecalcularEstatisticas recalcular, ConsultarEstatisticas consultar,
-            EstatisticaJogoRepositorio estatisticas, MetricasDeApoioDosCenarios metricas,
+            EstatisticaJogoRepositorio estatisticas, AdicionarNaWishlist adicionarNaWishlist,
             AnuncioMarketplaceRepositorio anuncios, JogoRepositorio jogos,
             DesenvolvedoraRepositorio desenvolvedoras, ApplicationEventPublisher eventos,
             PublicarReview publicarReview, GerenciarReview gerenciarReview, GerenciarConclusoes conclusoes,
@@ -84,7 +84,7 @@ public class PassosEstatisticas {
         this.recalcular = recalcular;
         this.consultar = consultar;
         this.estatisticas = estatisticas;
-        this.metricas = metricas;
+        this.adicionarNaWishlist = adicionarNaWishlist;
         this.anuncios = anuncios;
         this.jogos = jogos;
         this.desenvolvedoras = desenvolvedoras;
@@ -126,7 +126,9 @@ public class PassosEstatisticas {
     @Dado("que o jogo {string} está em {int} wishlists")
     public void jogoEstaEmWishlists(String titulo, int quantidade) {
         UUID jogoId = jogo(titulo).id();
-        metricas.somarWishlists(jogoId, quantidade);
+        for (int i = 0; i < quantidade; i++) {
+            adicionarNaWishlist(jogoId);
+        }
         recalcular.executar(jogoId);
     }
 
@@ -165,9 +167,7 @@ public class PassosEstatisticas {
 
     @Quando("um jogador adiciona {string} à wishlist")
     public void jogadorAdicionaAWishlist(String titulo) {
-        UUID jogoId = jogo(titulo).id();
-        metricas.somarWishlists(jogoId, 1);
-        eventos.publishEvent(new MetricasDoJogoAlteradas(jogoId));
+        adicionarNaWishlist(jogo(titulo).id());
     }
 
     @Quando("um pedido de {string} é concluído no marketplace")
@@ -242,6 +242,11 @@ public class PassosEstatisticas {
 
     private EstatisticaJogo gravada(String titulo) {
         return estatisticas.buscarPorJogo(jogo(titulo).id()).orElseThrow();
+    }
+
+    private void adicionarNaWishlist(UUID jogoId) {
+        SessaoDeTeste.autenticarComo(dados.jogador("fã " + UUID.randomUUID()));
+        adicionarNaWishlist.executar(jogoId);
     }
 
     private void registrarConclusao(UUID jogoId) {
