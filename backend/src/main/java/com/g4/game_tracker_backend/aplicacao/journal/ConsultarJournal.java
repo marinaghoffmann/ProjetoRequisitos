@@ -1,7 +1,9 @@
 package com.g4.game_tracker_backend.aplicacao.journal;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -57,7 +59,7 @@ public class ConsultarJournal {
         return transacao.consultar(() -> {
             var entrada = buscar(id);
             entrada.exigirDono(acesso.usuarioAtualId());
-            return exibir(entrada, true, true);
+            return exibir(entrada, true, true, new HashMap<>());
         });
     }
 
@@ -81,7 +83,7 @@ public class ConsultarJournal {
             exigirPerfil(donoId);
             var entrada = buscar(id);
             if (!entrada.donoId().equals(donoId)) throw new RecursoNaoEncontradoException("Entrada não encontrada");
-            return exibir(entrada, revelarSpoiler, false);
+            return exibir(entrada, revelarSpoiler, false, new HashMap<>());
         });
     }
 
@@ -104,15 +106,19 @@ public class ConsultarJournal {
         if (pagina < 1 || tamanho < 1 || tamanho > 50) {
             throw new RegraDeNegocioException("Informe uma página positiva e tamanho entre 1 e 50");
         }
-        return entradas.filtrar(dono, filtro, pagina, tamanho).map(entrada -> exibir(entrada, !publico, !publico));
+        // Cache por consulta: várias entradas da página costumam ser do mesmo jogo.
+        Map<UUID, Optional<Jogo>> jogosDaPagina = new HashMap<>();
+        return entradas.filtrar(dono, filtro, pagina, tamanho)
+                .map(entrada -> exibir(entrada, !publico, !publico, jogosDaPagina));
     }
 
-    private Entrada exibir(EntradaDeJournal entrada, boolean revelar, boolean proprio) {
+    private Entrada exibir(EntradaDeJournal entrada, boolean revelar, boolean proprio,
+            Map<UUID, Optional<Jogo>> jogosConsultados) {
         IConteudoExibivel conteudo = new ConteudoOriginal(entrada.texto());
         if (entrada.contemSpoiler()) conteudo = new SpoilerMascaradoDecorator(conteudo, revelar);
         boolean mascarada = entrada.contemSpoiler() && !revelar;
         var jogo = entrada.jogoId() == null ? Optional.<Jogo>empty()
-                : jogos.buscarPorId(entrada.jogoId());
+                : jogosConsultados.computeIfAbsent(entrada.jogoId(), jogos::buscarPorId);
         return new Entrada(entrada.id(), entrada.jogoId(), jogo.map(Jogo::titulo).orElse(null),
                 jogo.map(Jogo::capaUrl).orElse(null), entrada.dataSessao(),
                 entrada.titulo() == null ? (entrada.automatica() ? entrada.texto() : "Anotação de jogatina") : entrada.titulo(),
