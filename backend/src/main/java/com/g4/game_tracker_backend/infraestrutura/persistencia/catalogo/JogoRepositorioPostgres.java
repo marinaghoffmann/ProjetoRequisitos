@@ -5,12 +5,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.g4.game_tracker_backend.dominio.catalogo.FiltroCatalogo;
 import com.g4.game_tracker_backend.dominio.catalogo.Jogo;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 
 @Repository
+@Transactional(readOnly = true)
 public class JogoRepositorioPostgres implements JogoRepositorio {
 
     private final JogoSpringDataRepository springData;
@@ -20,6 +22,7 @@ public class JogoRepositorioPostgres implements JogoRepositorio {
     }
 
     @Override
+    @Transactional
     public Jogo salvar(Jogo jogo) {
         return springData.save(JogoJpa.deDominio(jogo)).paraDominio();
     }
@@ -49,10 +52,5 @@ public class JogoRepositorioPostgres implements JogoRepositorio {
         String titulo = filtro.titulo() == null ? "" : filtro.titulo();
         return springData.consultar(titulo, filtro.generoId(), filtro.desenvolvedoraId(),
                 filtro.origem(), filtro.status()).stream().map(JogoJpa::paraDominio).toList();
-    }
-
-    @Override
-    public void remover(UUID id) {
-        springData.deleteById(id);
     }
 }

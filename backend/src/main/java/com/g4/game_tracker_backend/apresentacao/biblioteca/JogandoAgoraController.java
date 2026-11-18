@@ -1,7 +1,6 @@
 package com.g4.game_tracker_backend.apresentacao.biblioteca;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 

@@ -1,7 +1,6 @@
 package com.g4.game_tracker_backend.aplicacao.biblioteca;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;

@@ -100,9 +100,4 @@ public class ReviewRepositorioPostgres implements ReviewRepositorio {
     private static long numero(Object valor) {
         return valor == null ? 0 : ((Number) valor).longValue();
     }
-
-    @Override
-    public boolean existeParaJogo(UUID jogoId) {
-        return springData.existsByJogoId(jogoId);
-    }
 }

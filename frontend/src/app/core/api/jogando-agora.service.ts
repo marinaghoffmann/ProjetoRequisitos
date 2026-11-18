@@ -16,14 +16,6 @@ export interface JogoEmAndamento {
   titulo: string;
   capaUrl: string | null;
   progresso: Progresso;
-  dataInicio: string;
-}
-
-export interface JogoEmAndamento {
-  jogoId: string;
-  titulo: string;
-  capaUrl: string | null;
-  progresso: Progresso;
   iniciadoEm: string;
 }
 
