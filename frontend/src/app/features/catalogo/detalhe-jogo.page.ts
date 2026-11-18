@@ -1,4 +1,4 @@
-import { Component, HostListener, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
@@ -8,13 +8,20 @@ import {
 } from '../../core/api/jogando-agora.service';
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
+import { AdicionarAListaComponent } from './adicionar-a-lista.component';
+import { ConclusoesJogoComponent } from './conclusoes-jogo.component';
 import { EstatisticasJogoComponent } from './estatisticas-jogo.component';
+import { ReviewsJogoComponent } from './reviews-jogo.component';
+import { SimilaresJogoComponent } from './similares-jogo.component';
 
 const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
 
 @Component({
   selector: 'app-detalhe-jogo',
-  imports: [RouterLink, DatePipe, EstatisticasJogoComponent],
+  imports: [
+    RouterLink, DatePipe, EstatisticasJogoComponent, ReviewsJogoComponent, AdicionarAListaComponent,
+    SimilaresJogoComponent, ConclusoesJogoComponent,
+  ],
   template: `
     <!-- Fundo do jogo (arte HD da Steam; sem appid cai na capa desfocada) -->
     @if (fundo(); as f) {
@@ -70,8 +77,11 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
               } @else {
                 <a routerLink="/login" class="primario">Entre para marcar</a>
               }
+              @if (autenticacao.usuarioAtual()) { <app-adicionar-a-lista [jogoId]="j.id" /> }
               <button type="button" disabled title="Em breve">Wishlist</button>
-              <button type="button" disabled title="Em breve">Marcar zerado</button>
+              @if (autenticacao.usuarioAtual()) {
+                <button type="button" (click)="conclusoes()?.nova()">Marcar zerado</button>
+              }
               <button type="button" disabled title="Em breve">Favoritar</button>
               @if (autenticacao.temPapel('ADMINISTRADOR', 'DESENVOLVEDOR')) {
                 <a [routerLink]="['/catalogo', j.id, 'editar']">Editar</a>
@@ -95,7 +105,9 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
         </section>
 
         <nav class="abas">
-          <span class="ativa">Visão geral</span><span>Reviews</span><span>Journal</span>
+          <button type="button" [class.ativa]="aba() === 'geral'" (click)="irParaAba('geral')">Visão geral</button>
+          <button type="button" [class.ativa]="aba() === 'reviews'" (click)="irParaAba('reviews')">Reviews</button>
+          <span>Journal</span>
           <span>Listas</span><span>Fórum</span>
         </nav>
 
@@ -122,9 +134,13 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
                 <p class="sobre">{{ j.resumo }}</p>
               </section>
             }
-            <section class="painel vazio">
-              <h2>O que estão dizendo</h2>
-              <p>Reviews em breve.</p>
+            @if (autenticacao.usuarioAtual()) {
+              <section class="painel">
+                <app-conclusoes-jogo [jogoId]="j.id" (alterado)="estatisticas.recarregar()" />
+              </section>
+            }
+            <section class="painel">
+              <app-reviews-jogo [jogoId]="j.id" />
             </section>
           </div>
 
@@ -143,9 +159,11 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
                 }
               </dl>
             </section>
-            <app-estatisticas-jogo [jogoId]="j.id" />
+            <app-estatisticas-jogo #estatisticas [jogoId]="j.id" />
           </div>
         </section>
+
+        <app-similares-jogo [jogoId]="j.id" />
       } @else {
         <p class="carregando">Carregando…</p>
       }
@@ -154,6 +172,7 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
   styleUrls: ['./detalhe-jogo.page.scss'],
 })
 export class DetalheJogoPage {
+  protected readonly conclusoes = viewChild(ConclusoesJogoComponent);
   protected readonly autenticacao = inject(AutenticacaoService);
   private readonly catalogo = inject(CatalogoService);
   private readonly jogando = inject(JogandoAgoraService);
@@ -174,6 +193,8 @@ export class DetalheJogoPage {
   protected readonly erroJogando = signal<string | null>(null);
   protected readonly progressos = Object.keys(ROTULOS_PROGRESSO) as Progresso[];
   protected readonly rotulos = ROTULOS_PROGRESSO;
+  /** Abas que já funcionam: "Reviews" leva à seção de reviews da página (F-02). */
+  protected readonly aba = signal<'geral' | 'reviews'>('geral');
   protected readonly atual = computed(
     () => this.emAndamento().find((e) => e.jogoId === this.jogo()?.id) ?? null,
   );
@@ -274,6 +295,12 @@ export class DetalheJogoPage {
   }
 
   // ===== Jogando agora =====
+
+  protected irParaAba(aba: 'geral' | 'reviews'): void {
+    this.aba.set(aba);
+    const alvo = aba === 'reviews' ? document.getElementById('reviews') : document.querySelector('.topo');
+    alvo?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   private recarregar(): void {
     this.jogando.listar().subscribe({ next: (l) => this.emAndamento.set(l) });

@@ -53,6 +53,52 @@ Consultas (`GET`) são públicas. As demais operações exigem login e o papel c
 | Enviar imagem de capa | `ADMINISTRADOR` ou `DESENVOLVEDOR` |
 | Alterar papel e vincular desenvolvedor (`PATCH /api/usuarios/{id}/...`) | `ADMINISTRADOR` |
 
+## Jogos similares e feedback de relevância (F-10)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/descoberta/jogos/{jogoId}/similares?notaMinima=&limite=` | Similares do jogo, do maior para o menor grau (`limite` de 1 a 50, padrão 10), com origem, totais `UTIL` e `NAO_RELEVANTE` e `meuFeedback` de quem está logado | qualquer um |
+| `POST` | `/api/descoberta/similaridades/{id}/feedback` | Registrar `{ "tipo": "UTIL" }` ou `NAO_RELEVANTE` | autenticado |
+| `PUT` | `/api/descoberta/similaridades/{id}/feedback` | Trocar o próprio feedback | autor do feedback |
+| `DELETE` | `/api/descoberta/similaridades/{id}/feedback` | Remover o próprio feedback | autor do feedback |
+| `POST` | `/api/descoberta/similaridades` | Conexão manual `{ "jogoAId", "jogoBId", "grau" }` (grau de 0 a 1) | `ADMINISTRADOR` |
+| `DELETE` | `/api/descoberta/similaridades/{id}` | Remover a conexão (fica bloqueada para o recálculo) | `ADMINISTRADOR` |
+| `POST` | `/api/descoberta/jogos/{jogoId}/similares/recalcular` | Recalcular os similares do jogo | `ADMINISTRADOR` |
+
+- Padrão Strategy (GoF): `SimilaridadeStrategy` com `SimilaridadePorGeneroStrategy` e `SimilaridadePorTagStrategy` (índice
+  de Jaccard) e `SimilaridadePorEstudioStrategy` (1 para a mesma desenvolvedora, 0 se não). `CalculoSimilaridade` combina
+  as estratégias com pesos 0,5 / 0,3 / 0,2 e devolve o grau de 0 a 1 com duas casas.
+- Tags: o `Jogo` do catálogo não tem campo de tags, então a `PerfilJogoGateway` (ACL, `PerfilJogoDoCatalogo`) usa os
+  descritores que o cadastro e a edição já gravam no `metadadosJson`: `tags` (se uma importação ou carga informar),
+  `subgeneros`, `temas`, `modosJogo` e `generoPrincipal`. Gêneros são os gêneros cadastrados e o estúdio é a
+  desenvolvedora. O catálogo não foi alterado.
+- Quando calcula: o jogo é comparado com os demais jogos `ATIVO` e só os pares com grau acima de 0,20 são guardados.
+  Roda pelo endpoint de administrador ou sob demanda, na primeira consulta de um jogo sem similares calculados, sem
+  ligação com o cadastro da F-01.
+- RN 1: um jogo nunca é similar a ele mesmo ("Um jogo não pode ser similar a ele mesmo"). Cada par é uma linha só em
+  `similaridades_jogos` (menor UUID em `jogo_a_id`, restrição única no par) e é consultado pelos dois lados, então o
+  grau de (A, B) é o de (B, A).
+- RN 2: um feedback por usuário e sugestão ("Você já avaliou esta sugestão"; restrição única `(usuario_id,
+  similaridade_id)`), que o autor pode trocar ou remover. Os totais são recontados a cada mudança. O `grauBase` nunca
+  muda pelo feedback: com mais de 15 `NAO_RELEVANTE` (a partir do 16º), a sugestão automática fica `rebaixada` e o
+  grau efetivo cai pela metade; com 15 ou menos, nada muda. Editar ou remover feedbacks desfaz o rebaixamento.
+- RN 3: só `ADMINISTRADOR` cria, remove ou recalcula ("Apenas administradores podem ajustar similaridades"). A conexão
+  manual substitui a automática do mesmo par e o recálculo nunca a altera; a removida fica `REMOVIDA` e não volta.
+- Filtro `notaMinima`: usa a média geral da ficha de estatísticas (F-17) do jogo sugerido, e só jogos elegíveis (3 ou
+  mais reviews) passam.
+- Frontend: bloco "Jogos similares" em `/catalogo/{id}` (cards com capa, título e grau, filtro pela avaliação, "Útil" e
+  "Não relevante" para quem está logado; para administradores, conexão manual, remoção e recálculo).
+- Cenários BDD em `f10_similaridade.feature`, com steps em `PassosSimilaridade`.
+
+Pendências conhecidas da F-10:
+
+- O rebaixamento vale só para sugestões automáticas: a conexão manual é a palavra final do administrador, que pode
+  removê-la.
+- Um jogo sem nenhum par acima de 0,20 é recalculado a cada consulta (não há marca de "já calculado sem resultados").
+- Jogos novos só entram nas sugestões de jogos já calculados quando eles são recalculados (endpoint de administrador).
+- A importação da Steam ainda não grava tags no `metadadosJson`; jogos importados são comparados só por gênero e estúdio.
+- Remover uma conexão mantém os feedbacks já dados a ela (deixam de aparecer junto com a sugestão).
+
 ## Marketplace: contrato do anúncio (T07)
 
 Status, campos e evento de mudança de status do anúncio estão em
@@ -208,6 +254,46 @@ Pendências conhecidas da F-21:
 - Não há como editar nem excluir uma avaliação (as histórias não pedem).
 - O perfil lista todas as avaliações de uma vez, sem paginação.
 
+## Reviews e avaliações categoriais (F-02)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/avaliacao/jogos/{jogoId}/reviews` | Reviews do jogo, da mais recente para a mais antiga (`pagina` a partir de 1, `tamanho` até 50), com `totalReviews`, `mediaGeral` e `mediasPorCategoria` de todas as reviews | qualquer um |
+| `GET` | `/api/avaliacao/jogos/{jogoId}/reviews/minha` | A review do usuário para o jogo (200) ou nenhuma (204) | autenticado |
+| `GET` | `/api/avaliacao/reviews/minhas` | Reviews do usuário, com título e capa de cada jogo | autenticado |
+| `POST` | `/api/avaliacao/reviews` | Publicar `{ "jogoId", "notaGeral", "notasPorCategoria": [{ "categoria", "nota" }], "texto" }` | autenticado |
+| `PUT` | `/api/avaliacao/reviews/{id}` | Editar as notas e o texto (mesmo corpo; `jogoId` é ignorado) | autor |
+| `DELETE` | `/api/avaliacao/reviews/{id}` | Excluir de vez a review e as notas por categoria | autor |
+
+- Categorias: `GRAFICOS`, `SOM`, `JOGABILIDADE`, `DIVERSAO` e `INOVACAO`. São opcionais e aparecem no máximo uma vez
+  ("Cada categoria só pode receber uma nota"). Toda nota vai de 1 a 5 ("A nota deve estar entre 1 e 5"); o texto é
+  opcional, com até 5000 caracteres. O jogo precisa existir (404) e estar `ATIVO` ("O jogo precisa estar ativo no catálogo").
+- RN 1: uma review por usuário e jogo. Quem tenta publicar de novo recebe 409 com
+  `{ "detail": "Você já publicou uma review deste jogo", "reviewExistenteId": "..." }`, e a tela abre a edição da
+  review existente. A restrição única `(autor_id, jogo_id)` em `reviews` cobre requisições simultâneas.
+- RN 2: o autor é sempre o usuário autenticado; editar ou excluir a review de outra pessoa dá 403 "Apenas o autor pode
+  alterar a review" (checado no agregado `Review`).
+- RN 3: a exclusão é física. As notas (`reviews_notas_categoria`) saem junto, pelo JPA (`cascade = ALL` e
+  `orphanRemoval`) e pelo banco (FK com `ON DELETE CASCADE`).
+- As médias (geral e por categoria) usam todas as reviews do jogo, com duas casas e `HALF_UP`; categoria sem nota vem `null`.
+- F-16 ligada: `PublicarReview` publica `ReviewPublicada` e `GerenciarReview.excluir` publica `ReviewExcluida`, dentro
+  da transação. Os steps da F-16 usam o caso de uso real, inclusive no cenário de falha, que roda a publicação numa
+  transação que quebra logo depois (`AcoesDeApoioDaTimeline.executarEFalharDepois`).
+- F-17 ligada: criar, editar e excluir publicam `MetricasDoJogoAlteradas`, e `ReviewsParaEstatisticas` implementa
+  `FonteDeReviews`. A porta saiu de `MetricasDeApoioDosCenarios`, e `PassosEstatisticas` publica reviews de verdade.
+- Frontend: `/catalogo/{id}` mostra as médias, as reviews paginadas e o botão "Escrever review" (ou "Editar minha
+  review"), que abre o modal com a nota geral, as 5 categorias e o texto; o autor vê Editar e Excluir (com
+  confirmação), e a aba Reviews leva à seção. Em `/perfil`, a aba Reviews lista as reviews do usuário.
+- Cenários BDD em `f02_reviews.feature`, com steps em `PassosReviews`.
+
+Pendências conhecidas da F-02:
+
+- Editar a review não atualiza o texto da entrada automática da timeline (pendência já registrada na F-16).
+- Duas publicações exatamente simultâneas do mesmo usuário para o mesmo jogo: a segunda esbarra na restrição única e
+  volta como erro genérico, e não como o 409 da RN 1.
+- A ficha de estatísticas da página do jogo só mostra as novas médias ao recarregar a página.
+- Não há curtidas, comentários nem moderação de reviews (fora do escopo da F-02).
+
 ## Estatísticas dos jogos (F-17)
 
 | Método | Rota | Objetivo | Quem pode |
@@ -222,7 +308,7 @@ Pendências conhecidas da F-21:
 - Frontend: `/catalogo/{id}` (página do jogo com a ficha), acessada pelo título do jogo no catálogo.
 - Cenários BDD em `f17_estatisticas.feature`, com steps em `PassosEstatisticas`.
 
-Como ligar as funcionalidades que ainda não existem:
+Fontes de dados da ficha:
 
 | Funcionalidade | Implementar (bean Spring) | Publicar ao criar, editar ou excluir |
 |---|---|---|
@@ -230,15 +316,13 @@ Como ligar as funcionalidades que ainda não existem:
 | F-11 Conclusões | `FonteDeConclusoes` | `MetricasDoJogoAlteradas(jogoId)` |
 | F-06 Wishlist | `FonteDeWishlists` | `MetricasDoJogoAlteradas(jogoId)` |
 
-Ao ligar uma fonte real, remova a porta correspondente de `MetricasDeApoioDosCenarios` (test) e faça os steps usarem a
-funcionalidade de verdade: as duas implementações juntas falham na subida dos testes. O marketplace já está ligado: o
-volume de negociações conta os anúncios `VENDIDO` e é recalculado pelo `AnuncioStatusAlterado`, que a F-20 publica.
+Reviews e conclusões já usam fontes reais. Ao ligar a wishlist, remova a fonte correspondente de
+`MetricasDeApoioDosCenarios` (test). O volume de negociações conta os anúncios `VENDIDO` e é recalculado pelo
+`AnuncioStatusAlterado`, que a F-20 publica.
 
 Pendências conhecidas da F-17:
 
-- Até F-02, F-06 e F-11 chegarem, nenhum jogo atinge 3 reviews em produção, então a página sempre mostra o aviso de
-  estatísticas indisponíveis.
-- Os cenários de review, conclusão e wishlist usam dados de apoio (`MetricasDeApoioDosCenarios`), não as funcionalidades reais.
+- A wishlist ainda usa dados de apoio nos cenários BDD. Em produção, o total é zero até a fonte real ser ligada.
 - Se o recálculo falhar depois do commit, o erro só vai para o log e a ficha fica desatualizada até o próximo evento.
 
 ## Timeline automática do journal (F-16)
@@ -258,8 +342,8 @@ Pendências conhecidas da F-17:
 - Frontend: `/timeline` ("Minha timeline" no menu, para quem está logado).
 - Cenários BDD em `f16_timeline_automatica.feature`, com steps em `PassosTimelineAutomatica`.
 
-Como ligar as funcionalidades que ainda não existem (publicar com o `ApplicationEventPublisher`, **dentro** do método
-`@Transactional` do caso de uso, depois de gravar):
+Eventos publicados com o `ApplicationEventPublisher`, **dentro** do método
+`@Transactional` do caso de uso, depois de gravar:
 
 | Funcionalidade | Ao criar | Ao excluir |
 |---|---|---|
@@ -276,8 +360,31 @@ antes de liberar.
 
 Pendências conhecidas da F-16:
 
-- Até F-02 e F-11 chegarem, só as compras concluídas no marketplace (F-20) geram entradas automáticas em produção.
-- Editar uma review não atualiza o texto da entrada, que só cita o jogo.
+- A entrada automática guarda a data do evento original. Editar a conclusão não altera a data da entrada no journal.
+
+## Registros de conclusão (F-11)
+
+Na página do jogo, o jogador autenticado pode usar **Marcar zerado** para registrar uma conclusão e **Minhas conclusões**
+para consultar, editar ou excluir seus registros. O histórico mostra o total pessoal e ordena pela data da conclusão,
+da mais recente à mais antiga.
+Em **Minha biblioteca → Zerados**, cada jogo aparece com o registro mais recente. O filtro por jogo revela todos os
+registros daquele jogo. A tela permite registrar, editar e excluir diretamente.
+
+| Método | Rota | Objetivo |
+|---|---|---|
+| `GET` | `/api/biblioteca/zerados` | Listar os jogos zerados pelo jogador autenticado |
+| `GET` | `/api/biblioteca/zerados/registros` | Listar os registros próprios com título e capa do jogo |
+| `GET` | `/api/biblioteca/jogos/{jogoId}/conclusoes` | Consultar o histórico do jogador autenticado |
+| `POST` | `/api/biblioteca/jogos/{jogoId}/conclusoes` | Registrar uma conclusão |
+| `PUT` | `/api/biblioteca/conclusoes/{id}` | Editar uma conclusão própria |
+| `DELETE` | `/api/biblioteca/conclusoes/{id}` | Excluir uma conclusão própria |
+
+A API recebe `dataConclusao` (AAAA-MM-DD), `plataforma`, `horasJogadas`, `concluido` e `platina`.
+A data é obrigatória e não pode ser futura. Horas são opcionais e, se informadas, devem ser positivas.
+Platina exige conclusão principal. As estatísticas contam os registros de todos os jogadores para o jogo.
+Na edição, `jogoId` é opcional. Ao trocar o jogo, as duas fichas de estatísticas são recalculadas e a entrada
+automática da timeline passa a apontar para o jogo correto.
+Os cenários de aceitação estão em `f11_conclusoes.feature`.
 - Não há visão pública da timeline; o perfil público é da F-06/F-08.
 
 ## Lançamentos futuros e alertas (F-12)
@@ -358,6 +465,41 @@ Pendências conhecidas da F-13 (escopo da F-14):
   outros usuários fica para a central de moderação (F-14), que pode reaproveitar os campos `removido` e `removida`.
 - Denúncias e a ação “Denunciar” não aparecem até a F-14 oferecer uma fila funcional. A listagem mostra
   o nome do jogo procurando no catálogo carregado pela tela; não há busca por título do tópico.
+
+## Listas personalizadas (F-04)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/biblioteca/listas` | Minhas listas, da atualizada mais recentemente para a mais antiga, com `totalJogos` e os itens | autenticado |
+| `POST` | `/api/biblioteca/listas` | Criar `{ "titulo", "descricao" }` | autenticado |
+| `GET` | `/api/biblioteca/listas/{id}` | Uma lista com os itens (título e capa do jogo, nota explicativa, data de inclusão) | qualquer um |
+| `PUT` | `/api/biblioteca/listas/{id}` | Renomear: título e descrição | dono |
+| `DELETE` | `/api/biblioteca/listas/{id}` | Excluir a lista e os itens (exclusão física) | dono |
+| `POST` | `/api/biblioteca/listas/{id}/itens` | Adicionar `{ "jogoId", "notaExplicativa" }` (nota opcional) | dono |
+| `PATCH` | `/api/biblioteca/listas/{id}/itens/{jogoId}` | Editar a nota explicativa `{ "notaExplicativa" }` | dono |
+| `DELETE` | `/api/biblioteca/listas/{id}/itens/{jogoId}` | Remover o jogo da lista | dono |
+| `GET` | `/api/biblioteca/usuarios/{usuarioId}/listas` | Listas públicas de um usuário | qualquer um |
+
+- Título obrigatório, com até 80 caracteres e sem os espaços das pontas; descrição e nota explicativa com até 500.
+  O jogo precisa existir (404) e estar `ATIVO` ("O jogo precisa estar ativo no catálogo"). Quem não é o dono recebe
+  403 "Apenas o dono pode alterar esta lista"; o dono é sempre o usuário autenticado.
+- RN 1: título único por usuário, sem diferenciar maiúsculas e minúsculas e também ao renomear ("Você já possui uma
+  lista com este título"). Outro usuário pode usar o mesmo título. No banco, `titulo_chave` (minúsculas, sem os espaços
+  das pontas) tem restrição única com `dono_id`.
+- RN 2: um jogo uma vez por lista ("Este jogo já está na lista"), com restrição única `(lista_id, jogo_id)` em `listas_itens`.
+- RN 3: até 100 jogos por lista, no agregado `ListaPersonalizada` ("A lista atingiu o limite de 100 jogos"). A lista tem
+  versão (bloqueio otimista), para duas adições simultâneas não passarem do limite.
+- Excluir a lista remove os itens pelo JPA (`cascade = ALL` e `orphanRemoval`) e pelo banco (FK com `ON DELETE CASCADE`).
+- Frontend: `/biblioteca/listas` ("Minhas listas", com `papelGuard`: criar, renomear, excluir e o total de cada lista),
+  `/biblioteca/listas/{id}` (itens com capa e nota editável, remover item e o contador "N/100"; quem não é dono só
+  vê), o botão "Adicionar à lista" na página do jogo, o item "Listas" do menu e a aba Listas do perfil.
+- Cenários BDD em `f04_listas_personalizadas.feature`, com steps em `PassosListasPersonalizadas`.
+
+Pendências conhecidas da F-04:
+
+- Não há como reordenar os itens: a lista segue a ordem de inclusão.
+- A exclusão lógica de um jogo do catálogo (F-01) não mexe nas listas: o item continua, com o status do jogo na resposta.
+- Ainda não existe perfil público para ver as listas de outra pessoa; a API já oferece a rota pública.
 
 ## Entregáveis
 

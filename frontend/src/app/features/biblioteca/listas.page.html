@@ -1,0 +1,97 @@
+<main class="pagina-listagem">
+  <header class="cabecalho">
+    <div>
+      <h1>Minhas listas</h1>
+      <p>{{ listas().length }} {{ listas().length === 1 ? 'lista' : 'listas' }} · até {{ limiteJogos }} jogos em cada</p>
+    </div>
+  </header>
+
+  <form class="nova" (submit)="$event.preventDefault(); criar()">
+    <h2>Nova lista</h2>
+    <div class="duas-colunas">
+      <label>
+        Título *
+        <input
+          type="text"
+          [maxLength]="limiteTitulo"
+          [value]="titulo()"
+          (input)="titulo.set($any($event.target).value)"
+          placeholder="Ex.: Melhores RPGs"
+        />
+      </label>
+      <label>
+        Descrição
+        <input
+          type="text"
+          [maxLength]="limiteDescricao"
+          [value]="descricao()"
+          (input)="descricao.set($any($event.target).value)"
+          placeholder="Opcional"
+        />
+      </label>
+    </div>
+    @if (erroCriacao(); as mensagem) {
+      <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+    }
+    <button type="submit" [disabled]="salvando() || !titulo().trim()">Criar lista</button>
+  </form>
+
+  @if (erro(); as mensagem) {
+    <p class="erro" role="alert">{{ mensagem }}</p>
+  }
+
+  @if (carregando()) {
+    <p class="estado">Carregando…</p>
+  } @else {
+    <section class="grade">
+      @for (l of listas(); track l.id) {
+        <article class="card">
+          <a class="capas" [routerLink]="['/biblioteca/listas', l.id]" [attr.aria-label]="'Abrir ' + l.titulo">
+            @for (capa of capas(l); track $index) {
+              <img [src]="capa" alt="" loading="lazy" />
+            } @empty {
+              <span class="card__sem-capa">{{ l.titulo.slice(0, 1) }}</span>
+            }
+          </a>
+          <div class="card__conteudo">
+            @if (editandoId() === l.id) {
+              <label>
+                Título
+                <input type="text" [maxLength]="limiteTitulo" [value]="novoTitulo()" (input)="novoTitulo.set($any($event.target).value)" />
+              </label>
+              <label>
+                Descrição
+                <input type="text" [maxLength]="limiteDescricao" [value]="novaDescricao()" (input)="novaDescricao.set($any($event.target).value)" />
+              </label>
+              @if (erroEdicao(); as mensagem) {
+                <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+              }
+              <div class="acoes">
+                <button type="button" class="acao" (click)="salvarEdicao(l.id)">Salvar</button>
+                <button type="button" class="acao" (click)="editandoId.set(null)">Cancelar</button>
+              </div>
+            } @else {
+              <h2><a class="card__titulo" [routerLink]="['/biblioteca/listas', l.id]">{{ l.titulo }}</a></h2>
+              @if (l.descricao) { <p class="resumo">{{ l.descricao }}</p> }
+              <p class="detalhe">{{ l.totalJogos }} {{ l.totalJogos === 1 ? 'jogo' : 'jogos' }} · {{ l.totalJogos }}/{{ l.limiteDeJogos }}</p>
+              @if (confirmandoExclusao() === l.id) {
+                <p class="detalhe">Excluir "{{ l.titulo }}" e todos os seus itens?</p>
+                <div class="acoes">
+                  <button type="button" class="acao acao--perigo" (click)="excluir(l.id)">Excluir</button>
+                  <button type="button" class="acao" (click)="confirmandoExclusao.set(null)">Cancelar</button>
+                </div>
+              } @else {
+                <div class="acoes">
+                  <button type="button" class="acao" (click)="iniciarEdicao(l)">Renomear</button>
+                  <button type="button" class="acao acao--perigo" (click)="confirmandoExclusao.set(l.id)">Excluir</button>
+                </div>
+              }
+            }
+          </div>
+        </article>
+      } @empty {
+        <p class="estado">Você ainda não tem listas. Crie a primeira acima e adicione jogos pela página de cada jogo.</p>
+      }
+    </section>
+  }
+</main>

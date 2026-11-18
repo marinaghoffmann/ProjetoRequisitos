@@ -1,0 +1,149 @@
+<section class="reviews" id="reviews" aria-labelledby="titulo-reviews">
+  <header class="reviews__cab">
+    <div>
+      <h2 id="titulo-reviews">O que estão dizendo</h2>
+      @if (dados(); as d) {
+        <p>{{ d.totalReviews }} {{ d.totalReviews === 1 ? 'review' : 'reviews' }}</p>
+      }
+    </div>
+    @if (autenticacao.usuarioAtual()) {
+      <button type="button" (click)="abrir()">{{ minha() ? 'Editar minha review' : 'Escrever review' }}</button>
+    } @else {
+      <a class="botao botao--secundario" routerLink="/login">Entre para avaliar</a>
+    }
+  </header>
+
+  @if (erro(); as mensagem) {
+    <p class="erro" role="alert">{{ mensagem }}</p>
+  }
+
+  @if (dados(); as d) {
+    @if (d.totalReviews) {
+      <div class="medias">
+        <div class="medias__geral">
+          <strong>{{ media(d.mediaGeral) }}</strong>
+          <span>média geral</span>
+        </div>
+        <dl class="medias__categorias">
+          @for (m of d.mediasPorCategoria; track m.categoria) {
+            <div>
+              <dt>{{ rotulos()[m.categoria] }}</dt>
+              <dd>{{ media(m.media) }}</dd>
+            </div>
+          }
+        </dl>
+      </div>
+    }
+
+    @for (r of d.reviews.itens; track r.id) {
+      <article class="review" [class.review--minha]="ehMinha(r)">
+        <header class="review__cab">
+          <strong>{{ r.nomeAutor ?? 'Jogador' }}</strong>
+          <span class="review__estrelas" [attr.aria-label]="'Nota ' + r.notaGeral + ' de 5'">{{ estrelasDe(r.notaGeral) }}</span>
+          <time [attr.datetime]="r.criadaEm">{{ r.criadaEm | date: 'dd/MM/yyyy' }}</time>
+          @if (r.editada) { <small>(editada)</small> }
+        </header>
+        @if (r.notasPorCategoria.length) {
+          <ul class="etiquetas">
+            @for (n of r.notasPorCategoria; track n.categoria) {
+              <li class="etiqueta">{{ rotulos()[n.categoria] }} {{ n.nota }}</li>
+            }
+          </ul>
+        }
+        @if (r.texto) { <p class="review__texto">{{ r.texto }}</p> }
+
+        @if (ehMinha(r)) {
+          @if (confirmandoExclusao() === r.id) {
+            <div class="review__confirmacao" role="alert">
+              <span>Excluir a sua review de vez? As notas por categoria também serão apagadas.</span>
+              <button type="button" class="acao acao--perigo" (click)="excluir(r)">Excluir</button>
+              <button type="button" class="acao" (click)="confirmandoExclusao.set(null)">Cancelar</button>
+            </div>
+          } @else {
+            <div class="review__acoes">
+              <button type="button" class="acao" (click)="editar(r)">Editar</button>
+              <button type="button" class="acao acao--perigo" (click)="confirmandoExclusao.set(r.id)">Excluir</button>
+            </div>
+          }
+        }
+      </article>
+    } @empty {
+      <p class="vazio">Nenhuma review ainda. Seja o primeiro a avaliar este jogo.</p>
+    }
+
+    @if (d.reviews.totalPaginas > 1) {
+      <nav class="paginacao" aria-label="Páginas de reviews">
+        <button type="button" class="acao" [disabled]="pagina() <= 1" (click)="irParaPagina(pagina() - 1)">Anteriores</button>
+        <span>{{ pagina() }} de {{ d.reviews.totalPaginas }}</span>
+        <button type="button" class="acao" [disabled]="pagina() >= d.reviews.totalPaginas" (click)="irParaPagina(pagina() + 1)">Próximas</button>
+      </nav>
+    }
+  } @else if (!erro()) {
+    <p class="vazio">Carregando reviews…</p>
+  }
+</section>
+
+@if (modalAberto()) {
+  <div class="fundo" (click)="fechar()"></div>
+  <div class="dialogo" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-review">
+    <header>
+      <h2 id="titulo-modal-review">{{ editandoId() ? 'Editar review' : 'Escrever review' }}</h2>
+      <button type="button" class="fechar" aria-label="Fechar" (click)="fechar()">×</button>
+    </header>
+
+    @if (avisoModal(); as aviso) {
+      <p class="aviso">{{ aviso }}</p>
+    }
+
+    <form (submit)="$event.preventDefault(); salvar()">
+      <fieldset>
+        <legend>Nota geral *</legend>
+        <div class="estrelas" role="radiogroup" aria-label="Nota geral">
+          @for (n of estrelas; track n) {
+            <button
+              type="button"
+              role="radio"
+              [attr.aria-checked]="notaGeral() === n"
+              [attr.aria-label]="n + ' de 5'"
+              [class.marcada]="(notaGeral() ?? 0) >= n"
+              (click)="escolherNotaGeral(n)"
+            >★</button>
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="categorias">
+        <legend>Notas por categoria (opcionais)</legend>
+        @for (c of categorias; track c.chave) {
+          <label>
+            {{ c.rotulo }}
+            <select [value]="notas()[c.chave] ?? ''" (change)="escolherNota(c.chave, $any($event.target).value)">
+              <option value="">–</option>
+              @for (n of estrelas; track n) {
+                <option [value]="n" [selected]="notas()[c.chave] === n">{{ n }}</option>
+              }
+            </select>
+          </label>
+        }
+      </fieldset>
+
+      <label>
+        Sua opinião
+        <textarea
+          rows="6"
+          [maxLength]="limiteTexto"
+          [value]="texto()"
+          (input)="texto.set($any($event.target).value)"
+          placeholder="O que achou do jogo?"
+        ></textarea>
+        <small>{{ texto().length }}/{{ limiteTexto }}</small>
+      </label>
+
+      @if (erroModal(); as mensagem) {
+        <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+      }
+
+      <button type="submit" [disabled]="salvando()">{{ editandoId() ? 'Salvar alterações' : 'Publicar review' }}</button>
+    </form>
+  </div>
+}

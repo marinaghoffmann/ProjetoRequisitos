@@ -1,5 +1,4 @@
 # language: pt
-@pendente
 Funcionalidade: F-04 Gerenciamento completo de listas personalizadas e seus itens
   Como jogador, quero criar listas temáticas e gerenciar os jogos dentro delas, com notas
   explicativas, para organizar e compartilhar minha biblioteca.

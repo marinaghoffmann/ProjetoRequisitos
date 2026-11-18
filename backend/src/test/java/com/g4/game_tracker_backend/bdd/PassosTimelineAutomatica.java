@@ -1,18 +1,22 @@
 package com.g4.game_tracker_backend.bdd;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
+import com.g4.game_tracker_backend.aplicacao.avaliacao.reviews.PublicarReview;
+import com.g4.game_tracker_backend.aplicacao.biblioteca.conclusoes.GerenciarConclusoes;
 import com.g4.game_tracker_backend.aplicacao.journal.ConsultarTimeline;
+import com.g4.game_tracker_backend.dominio.avaliacao.reviews.ReviewRepositorio;
+import com.g4.game_tracker_backend.dominio.biblioteca.conclusoes.RegistroDeConclusao.Dados;
 import com.g4.game_tracker_backend.dominio.journal.EntradaDeJournal;
 import com.g4.game_tracker_backend.dominio.journal.EntradaDeJournalRepositorio;
 import com.g4.game_tracker_backend.dominio.journal.TipoEventoPlataforma;
@@ -23,12 +27,15 @@ import io.cucumber.java.pt.Entao;
 import io.cucumber.java.pt.Quando;
 
 /**
- * Steps da F-16. Review, conclusão e pedido vêm de AcoesDeApoioDaTimeline, que publica os eventos de
- * plataforma dentro de uma transação, no lugar de F-02, F-11 e F-20. O journal e a timeline são reais.
+ * Steps da F-16. Reviews e conclusões usam seus casos de uso reais. O recebimento de pedidos
+ * é simulado por AcoesDeApoioDaTimeline.
  */
 public class PassosTimelineAutomatica {
 
     private final AcoesDeApoioDaTimeline acoes;
+    private final PublicarReview publicarReview;
+    private final GerenciarConclusoes conclusoes;
+    private final ReviewRepositorio reviews;
     private final ConsultarTimeline consultarTimeline;
     private final EntradaDeJournalRepositorio entradas;
     private final DadosDoCenario dados;
@@ -36,13 +43,18 @@ public class PassosTimelineAutomatica {
 
     private boolean gravacaoDaReviewVaiFalhar;
     private String reviewPublicada;
-    private String conclusaoRegistrada;
+    private UUID conclusaoRegistrada;
     private EntradaDeJournal entradaAutomatica;
     private List<EntradaDeJournal> timelineConsultada;
 
-    public PassosTimelineAutomatica(AcoesDeApoioDaTimeline acoes, ConsultarTimeline consultarTimeline,
-            EntradaDeJournalRepositorio entradas, DadosDoCenario dados, ContextoDoCenario contexto) {
+    public PassosTimelineAutomatica(AcoesDeApoioDaTimeline acoes, PublicarReview publicarReview,
+            GerenciarConclusoes conclusoes, ReviewRepositorio reviews, ConsultarTimeline consultarTimeline,
+            EntradaDeJournalRepositorio entradas,
+            DadosDoCenario dados, ContextoDoCenario contexto) {
         this.acoes = acoes;
+        this.publicarReview = publicarReview;
+        this.conclusoes = conclusoes;
+        this.reviews = reviews;
         this.consultarTimeline = consultarTimeline;
         this.entradas = entradas;
         this.dados = dados;
@@ -58,19 +70,18 @@ public class PassosTimelineAutomatica {
 
     @Quando("o jogador publica uma review de {string}")
     public void jogadorPublicaReview(String titulo) {
-        reviewPublicada = "review-" + UUID.randomUUID();
         UUID jogoId = dados.jogo(titulo).id();
         if (gravacaoDaReviewVaiFalhar) {
             assertThrows(AcoesDeApoioDaTimeline.FalhaSimulada.class,
-                    () -> acoes.publicarReview(reviewPublicada, jogador(), jogoId, Instant.now(), true));
+                    () -> acoes.executarEFalharDepois(() -> reviewPublicada = publicarReview(jogoId)));
         } else {
-            acoes.publicarReview(reviewPublicada, jogador(), jogoId, Instant.now(), false);
+            reviewPublicada = publicarReview(jogoId);
         }
     }
 
     @Quando("o jogador registra uma conclusão de {string}")
     public void jogadorRegistraConclusao(String titulo) {
-        conclusaoRegistrada = acoes.registrarConclusao(jogador(), dados.jogo(titulo).id(), Instant.now());
+        conclusaoRegistrada = registrarConclusao(dados.jogo(titulo).id(), LocalDate.now());
     }
 
     @Quando("o jogador confirma o recebimento de um pedido de {string}")
@@ -86,7 +97,7 @@ public class PassosTimelineAutomatica {
 
     @Quando("o jogador exclui o registro de conclusão de {string}")
     public void jogadorExcluiConclusao(String titulo) {
-        acoes.excluirConclusao(conclusaoRegistrada);
+        conclusoes.excluir(conclusaoRegistrada);
     }
 
     // ---- Edição (RN 3) ----
@@ -95,8 +106,8 @@ public class PassosTimelineAutomatica {
     public void jogadorPossuiEntradaAutomatica(String tipo) {
         UUID jogoId = dados.jogo("Hades").id();
         String origemId = switch (TipoEventoPlataforma.valueOf(tipo)) {
-            case REVIEW_PUBLICADA -> acoes.publicarReview(jogador(), jogoId, Instant.now());
-            case JOGO_ZERADO -> acoes.registrarConclusao(jogador(), jogoId, Instant.now());
+            case REVIEW_PUBLICADA -> publicarReview(jogoId);
+            case JOGO_ZERADO -> registrarConclusao(jogoId, LocalDate.now()).toString();
             case COMPRA_CONCLUIDA -> acoes.confirmarRecebimento(jogador(), jogoId, Instant.now());
         };
         entradaAutomatica = entradas.buscarPorOrigem(TipoEventoPlataforma.valueOf(tipo), origemId).orElseThrow();
@@ -120,8 +131,8 @@ public class PassosTimelineAutomatica {
                     agora));
         }
         for (int i = 0; i < automaticas; i++) {
-            Instant ocorrido = agora.minus(Duration.ofDays(2L * i + 1));
-            acoes.registrarConclusao(jogador(), dados.jogo("Jogo " + (i + 1)).id(), ocorrido);
+            LocalDate ocorrido = LocalDate.now().minusDays(2L * i + 1);
+            registrarConclusao(dados.jogo("Jogo " + (i + 1)).id(), ocorrido);
         }
     }
 
@@ -139,7 +150,9 @@ public class PassosTimelineAutomatica {
 
     @Entao("a review não deve ser registrada")
     public void reviewNaoDeveSerRegistrada() {
-        assertFalse(acoes.gravada(reviewPublicada), "A review foi gravada apesar da falha");
+        assertNotNull(reviewPublicada, "O caso de uso da review não chegou a rodar");
+        assertTrue(reviews.buscarPorId(UUID.fromString(reviewPublicada)).isEmpty(),
+                "A review foi gravada apesar da falha");
         assertTrue(entradas.buscarPorOrigem(TipoEventoPlataforma.REVIEW_PUBLICADA, reviewPublicada).isEmpty(),
                 "A entrada automática da review sobreviveu ao rollback");
     }
@@ -155,6 +168,15 @@ public class PassosTimelineAutomatica {
     }
 
     // ---- Apoio ----
+
+    /** Publica pelo caso de uso da F-02, que publica o ReviewPublicada dentro da sua transação. */
+    private String publicarReview(UUID jogoId) {
+        return publicarReview.executar(jogoId, 5, List.of(), "Review da timeline").id().toString();
+    }
+
+    private UUID registrarConclusao(UUID jogoId, LocalDate quando) {
+        return conclusoes.registrar(jogoId, new Dados(quando, null, null, true, false)).id();
+    }
 
     /** Lê pela consulta real da timeline do jogador autenticado. */
     private List<EntradaDeJournal> automaticas(String tipo) {
