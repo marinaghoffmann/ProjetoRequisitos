@@ -1,40 +1,60 @@
 package com.g4.game_tracker_backend.infraestrutura.persistencia.wishlist;
 
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import com.g4.game_tracker_backend.dominio.wishlist.ItemWishlist;
+import com.g4.game_tracker_backend.dominio.wishlist.Wishlist;
+
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+/** RN 1: a chave primária é o dono, então o banco garante uma wishlist por usuário. */
 @Entity
-@Table(name = "wishlist", uniqueConstraints = @UniqueConstraint(
-        name = "uk_wishlist_usuario_jogo", columnNames = { "usuario_id", "jogo_id" }))
+@Table(name = "wishlists")
 public class WishlistJpa {
 
     @Id
-    private UUID id;
+    @Column(name = "dono_id")
+    private UUID donoId;
 
-    @Column(name = "usuario_id", nullable = false)
-    private UUID usuarioId;
+    @Column(name = "criada_em", nullable = false)
+    private Instant criadaEm;
 
-    @Column(name = "jogo_id", nullable = false)
-    private UUID jogoId;
-
-    @Column(name = "adicionado_em", nullable = false)
-    private Instant adicionadoEm;
+    @ElementCollection
+    @CollectionTable(name = "itens_wishlist",
+            joinColumns = @JoinColumn(name = "dono_id"),
+            uniqueConstraints = @UniqueConstraint(name = "uk_itens_wishlist_dono_jogo",
+                    columnNames = { "dono_id", "jogo_id" }))
+    private Set<ItemWishlistJpa> itens = new LinkedHashSet<>();
 
     protected WishlistJpa() {
     }
 
-    WishlistJpa(UUID usuarioId, UUID jogoId) {
-        this.id = UUID.randomUUID();
-        this.usuarioId = usuarioId;
-        this.jogoId = jogoId;
-        this.adicionadoEm = Instant.now();
+    WishlistJpa(UUID donoId, Instant criadaEm) {
+        this.donoId = donoId;
+        this.criadaEm = criadaEm;
     }
 
-    UUID jogoId() { return jogoId; }
+    /** Aplica só a diferença, para o Hibernate não apagar e reinserir a lista inteira. */
+    void sincronizar(java.util.List<ItemWishlist> itensDoDominio) {
+        Set<ItemWishlistJpa> novos = itensDoDominio.stream().map(ItemWishlistJpa::deDominio)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        itens.retainAll(novos);
+        itens.addAll(novos);
+    }
+
+    Wishlist paraDominio() {
+        return Wishlist.reconstituir(donoId, criadaEm,
+                itens.stream().map(ItemWishlistJpa::paraDominio).toList());
+    }
 }

@@ -12,15 +12,16 @@ import com.g4.game_tracker_backend.dominio.wishlist.WishlistRepositorio;
 public class RemoverDaWishlist {
 
     private final IdentidadeAutenticada identidade;
-    private final WishlistRepositorio wishlist;
+    private final WishlistRepositorio wishlists;
 
-    public RemoverDaWishlist(IdentidadeAutenticada identidade, WishlistRepositorio wishlist) {
+    public RemoverDaWishlist(IdentidadeAutenticada identidade, WishlistRepositorio wishlists) {
         this.identidade = identidade;
-        this.wishlist = wishlist;
+        this.wishlists = wishlists;
     }
 
     @Transactional
     public void executar(UUID jogoId) {
-        wishlist.remover(identidade.usuarioId(), jogoId);
+        wishlists.buscarPorDono(identidade.usuarioId())
+                .ifPresent(atual -> wishlists.salvar(atual.remover(jogoId)));
     }
 }
