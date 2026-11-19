@@ -10,6 +10,7 @@ import com.g4.game_tracker_backend.aplicacao.identidade.IdentidadeAutenticada;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.MetricasDoJogoAlteradas;
 import com.g4.game_tracker_backend.dominio.wishlist.WishlistRepositorio;
 
+/** Remove o jogo da wishlist e, se ele estava lá, avisa a F-17 para recalcular a ficha. */
 @Service
 public class RemoverDaWishlist {
 

@@ -40,4 +40,9 @@ public class WishlistRepositorioPostgres implements WishlistRepositorio {
             throw new RegraDeNegocioException("Este jogo já está na sua wishlist");
         }
     }
+
+    @Override
+    public int contarWishlistsComJogo(UUID jogoId) {
+        return Math.toIntExact(springData.contarComOJogo(jogoId));
+    }
 }
