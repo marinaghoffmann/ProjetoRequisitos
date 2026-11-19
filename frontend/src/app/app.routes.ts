@@ -53,6 +53,11 @@ export const routes: Routes = [
     canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
     loadComponent: () => import('./features/journal/timeline.page').then((m) => m.TimelinePage),
   },
+  {
+    path: 'journal',
+    canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
+    loadComponent: () => import('./features/journal/journal.page').then((m) => m.JournalPage),
+  },
   // F-04: "Minhas listas" exige login; a página de uma lista é pública (só o dono vê os botões de edição)
   {
     path: 'biblioteca/listas',

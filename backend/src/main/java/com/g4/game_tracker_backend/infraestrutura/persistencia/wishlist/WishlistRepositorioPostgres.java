@@ -1,14 +1,18 @@
 package com.g4.game_tracker_backend.infraestrutura.persistencia.wishlist;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
+import com.g4.game_tracker_backend.dominio.wishlist.Wishlist;
 import com.g4.game_tracker_backend.dominio.wishlist.WishlistRepositorio;
 
 @Repository
+@Transactional(readOnly = true)
 public class WishlistRepositorioPostgres implements WishlistRepositorio {
 
     private final WishlistSpringDataRepository springData;
@@ -18,31 +22,27 @@ public class WishlistRepositorioPostgres implements WishlistRepositorio {
     }
 
     @Override
-    public List<UUID> jogoIdsDoUsuario(UUID usuarioId) {
-        return springData.jogoIdsDoUsuario(usuarioId);
-    }
-
-    @Override
-    public boolean contem(UUID usuarioId, UUID jogoId) {
-        return springData.existsByUsuarioIdAndJogoId(usuarioId, jogoId);
+    public Optional<Wishlist> buscarPorDono(UUID donoId) {
+        return springData.findById(donoId).map(WishlistJpa::paraDominio);
     }
 
     @Override
     @Transactional
-    public void adicionar(UUID usuarioId, UUID jogoId) {
-        if (!contem(usuarioId, jogoId)) {
-            springData.save(new WishlistJpa(usuarioId, jogoId));
+    public Wishlist salvar(Wishlist wishlist) {
+        WishlistJpa jpa = springData.findById(wishlist.donoId())
+                .orElseGet(() -> new WishlistJpa(wishlist.donoId(), wishlist.criadaEm()));
+        jpa.sincronizar(wishlist.itens());
+        try {
+            // saveAndFlush força o INSERT aqui dentro, para a violação de unicidade cair neste catch
+            return springData.saveAndFlush(jpa).paraDominio();
+        } catch (DataIntegrityViolationException e) {
+            // dois cliques rápidos: o domínio não viu o duplicado, mas o banco barrou (RN 2)
+            throw new RegraDeNegocioException("Este jogo já está na sua wishlist");
         }
     }
 
     @Override
-    @Transactional
-    public void remover(UUID usuarioId, UUID jogoId) {
-        springData.deleteByUsuarioIdAndJogoId(usuarioId, jogoId);
-    }
-
-    @Override
-    public int contarPorJogo(UUID jogoId) {
-        return Math.toIntExact(springData.countByJogoId(jogoId));
+    public int contarWishlistsComJogo(UUID jogoId) {
+        return Math.toIntExact(springData.contarComOJogo(jogoId));
     }
 }

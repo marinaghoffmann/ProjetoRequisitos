@@ -20,8 +20,10 @@ import com.g4.game_tracker_backend.dominio.avaliacao.reviews.SomaDeNotas;
 import com.g4.game_tracker_backend.dominio.compartilhado.Pagina;
 
 /**
- * As notas por categoria são carregadas sob demanda; cada método roda numa transação (ou entra na do caso
- * de uso) para a review sair daqui já convertida, com as notas, mesmo quando chamada fora de um caso de uso.
+ * As notas por categoria são carregadas sob demanda; cada método roda numa
+ * transação (ou entra na do caso
+ * de uso) para a review sair daqui já convertida, com as notas, mesmo quando
+ * chamada fora de um caso de uso.
  */
 @Repository
 @Transactional(readOnly = true)
@@ -35,7 +37,10 @@ public class ReviewRepositorioPostgres implements ReviewRepositorio {
         this.springData = springData;
     }
 
-    /** A review existente é alterada no lugar, para as notas por categoria manterem a identidade. */
+    /**
+     * A review existente é alterada no lugar, para as notas por categoria manterem
+     * a identidade.
+     */
     @Override
     @Transactional
     public Review salvar(Review review) {

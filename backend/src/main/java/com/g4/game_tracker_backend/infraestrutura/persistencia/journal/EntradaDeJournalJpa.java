@@ -1,6 +1,8 @@
 package com.g4.game_tracker_backend.infraestrutura.persistencia.journal;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import com.g4.game_tracker_backend.dominio.journal.EntradaDeJournal;
@@ -8,6 +10,12 @@ import com.g4.game_tracker_backend.dominio.journal.TipoEventoPlataforma;
 import com.g4.game_tracker_backend.dominio.journal.TipoOrigem;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -63,10 +71,26 @@ public class EntradaDeJournalJpa {
     @Column(name = "atualizada_em", nullable = false)
     private Instant atualizadaEm;
 
+    @Column(length = 120)
+    private String titulo;
+
+    @ElementCollection
+    @CollectionTable(name = "journal_tags", joinColumns = @JoinColumn(name = "entrada_id"))
+    @OrderColumn(name = "posicao")
+    @Column(name = "tag", nullable = false, length = 40)
+    private List<String> tags = new ArrayList<>();
+
+    @OneToMany(mappedBy = "entrada", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AnexoJournalJpa> anexos = new ArrayList<>();
+
     protected EntradaDeJournalJpa() {
     }
 
     private EntradaDeJournalJpa(EntradaDeJournal entrada) {
+        atualizar(entrada);
+    }
+
+    void atualizar(EntradaDeJournal entrada) {
         this.id = entrada.id();
         this.donoId = entrada.donoId();
         this.jogoId = entrada.jogoId();
@@ -78,6 +102,9 @@ public class EntradaDeJournalJpa {
         this.origemId = entrada.origemId();
         this.criadaEm = entrada.criadaEm();
         this.atualizadaEm = entrada.atualizadaEm();
+        this.titulo = entrada.titulo();
+        this.tags.clear();
+        this.tags.addAll(entrada.tags());
     }
 
     static EntradaDeJournalJpa deDominio(EntradaDeJournal entrada) {
@@ -86,6 +113,11 @@ public class EntradaDeJournalJpa {
 
     EntradaDeJournal paraDominio() {
         return EntradaDeJournal.reconstituir(id, donoId, jogoId, dataSessao, texto, contemSpoiler, tipoOrigem,
-                tipoEvento, origemId, criadaEm, atualizadaEm);
+                tipoEvento, origemId, criadaEm, atualizadaEm, titulo, tags,
+                anexos.stream().map(AnexoJournalJpa::paraDominio).toList());
     }
+
+    List<AnexoJournalJpa> anexos() { return anexos; }
+    void adicionarAnexo(AnexoJournalJpa anexo) { anexos.add(anexo); }
+    void removerAnexo(UUID id) { anexos.removeIf(anexo -> anexo.id().equals(id)); }
 }

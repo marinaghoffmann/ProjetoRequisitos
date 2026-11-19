@@ -47,7 +47,13 @@ public class SegurancaConfig {
                         .requestMatchers(HttpMethod.GET, "/api/status").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/catalogo/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/perfis/*").permitAll()
-                        // F-04: uma lista e as listas de um usuário são públicas ("Minhas listas" exige login)
+                        .requestMatchers(HttpMethod.GET, "/api/perfis/*/jogando-agora").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/perfis/me/wishlist").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/perfis/*/wishlist").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/perfis/*/journal", "/api/perfis/*/journal/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/journal/entradas/*/anexos/*").permitAll()
+                        // F-04: uma lista e as listas de um usuário são públicas ("Minhas listas" exige
+                        // login)
                         .requestMatchers(HttpMethod.GET, "/api/biblioteca/listas/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/biblioteca/usuarios/*/listas").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/marketplace/anuncios/meus").authenticated()
@@ -55,14 +61,16 @@ public class SegurancaConfig {
                         .requestMatchers(HttpMethod.GET, "/api/marketplace/usuarios/*/reputacao").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/forum/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/lancamentos/**").permitAll()
-                        // F-02: reviews de um jogo (a review do próprio usuário, ".../reviews/minha", exige login)
+                        // F-02: reviews de um jogo (a review do próprio usuário, ".../reviews/minha",
+                        // exige login)
                         .requestMatchers(HttpMethod.GET, "/api/avaliacao/jogos/*/reviews").permitAll()
                         // F-10: similares de um jogo (o feedback e os ajustes exigem login)
                         .requestMatchers(HttpMethod.GET, "/api/descoberta/jogos/*/similares").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/catalogo/**", "/uploads/marketplace/**",
-                                "/uploads/forum/**", "/uploads/perfil/**").permitAll()
+                                "/uploads/forum/**", "/uploads/perfil/**")
+                        .permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(recurso -> recurso
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(conversorDeJwt))
@@ -71,7 +79,10 @@ public class SegurancaConfig {
         return http.build();
     }
 
-    /** 401 no mesmo formato Problem Details dos demais erros, para o frontend exibir o "detail". */
+    /**
+     * 401 no mesmo formato Problem Details dos demais erros, para o frontend exibir
+     * o "detail".
+     */
     private void naoAutenticado(HttpServletRequest requisicao, HttpServletResponse resposta,
             AuthenticationException erro) throws IOException {
         resposta.setStatus(HttpStatus.UNAUTHORIZED.value());

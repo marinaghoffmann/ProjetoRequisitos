@@ -48,8 +48,7 @@ import io.cucumber.java.pt.Entao;
 import io.cucumber.java.pt.Quando;
 
 /**
- * Steps da F-17. Reviews e conclusões publicam métricas pelos casos de uso reais.
- * A wishlist também usa o caso de uso real da F-06, cada inclusão com um jogador diferente.
+ * Steps da F-17. Reviews, conclusões e wishlist publicam métricas pelos casos de uso reais.
  */
 public class PassosEstatisticas {
 
@@ -127,7 +126,7 @@ public class PassosEstatisticas {
     public void jogoEstaEmWishlists(String titulo, int quantidade) {
         UUID jogoId = jogo(titulo).id();
         for (int i = 0; i < quantidade; i++) {
-            adicionarNaWishlist(jogoId);
+            adicionarAWishlist(jogoId);
         }
         recalcular.executar(jogoId);
     }
@@ -167,7 +166,7 @@ public class PassosEstatisticas {
 
     @Quando("um jogador adiciona {string} à wishlist")
     public void jogadorAdicionaAWishlist(String titulo) {
-        adicionarNaWishlist(jogo(titulo).id());
+        adicionarAWishlist(jogo(titulo).id());
     }
 
     @Quando("um pedido de {string} é concluído no marketplace")
@@ -240,13 +239,14 @@ public class PassosEstatisticas {
         reviewsDoCenario.add(publicarReview.executar(jogoId, nota, List.of(), null));
     }
 
-    private EstatisticaJogo gravada(String titulo) {
-        return estatisticas.buscarPorJogo(jogo(titulo).id()).orElseThrow();
+    /** Cada wishlist é de um jogador novo (F-06 RN 1: uma wishlist por jogador). */
+    private void adicionarAWishlist(UUID jogoId) {
+        SessaoDeTeste.autenticarComo(dados.jogador("jogador da wishlist " + UUID.randomUUID()));
+        adicionarNaWishlist.executar(jogoId, null);
     }
 
-    private void adicionarNaWishlist(UUID jogoId) {
-        SessaoDeTeste.autenticarComo(dados.jogador("fã " + UUID.randomUUID()));
-        adicionarNaWishlist.executar(jogoId);
+    private EstatisticaJogo gravada(String titulo) {
+        return estatisticas.buscarPorJogo(jogo(titulo).id()).orElseThrow();
     }
 
     private void registrarConclusao(UUID jogoId) {

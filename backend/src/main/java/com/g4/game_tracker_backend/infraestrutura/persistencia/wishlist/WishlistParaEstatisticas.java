@@ -19,6 +19,6 @@ class WishlistParaEstatisticas implements FonteDeWishlists {
 
     @Override
     public int contarPresencaEmWishlists(UUID jogoId) {
-        return wishlist.contarPorJogo(jogoId);
+        return wishlist.contarWishlistsComJogo(jogoId);
     }
 }

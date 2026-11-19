@@ -15,16 +15,14 @@ public interface JogoSpringDataRepository extends JpaRepository<JogoJpa, UUID> {
 
     Optional<JogoJpa> findByIdentificadorExterno(String identificadorExterno);
 
-    boolean existsByTituloIgnoreCaseAndDesenvolvedora_Id(String titulo, UUID desenvolvedoraId);
-    boolean existsByTituloIgnoreCaseAndDesenvolvedora_IdAndIdNot(String titulo, UUID desenvolvedoraId, UUID id);
+    boolean existsByTituloIgnoreCaseAndDesenvolvedoraId(String titulo, UUID desenvolvedoraId);
+    boolean existsByTituloIgnoreCaseAndDesenvolvedoraIdAndIdNot(String titulo, UUID desenvolvedoraId, UUID id);
 
     @Query("""
-            select distinct j from JogoJpa j
-            join j.desenvolvedora d
-            left join j.generos g
+            select j from JogoJpa j
             where lower(j.titulo) like lower(concat('%', :titulo, '%'))
-              and (:generoId is null or g.id = :generoId)
-              and (:desenvolvedoraId is null or d.id = :desenvolvedoraId)
+              and (:generoId is null or :generoId member of j.generosIds)
+              and (:desenvolvedoraId is null or j.desenvolvedoraId = :desenvolvedoraId)
               and (:origem is null or j.origem = :origem)
               and (:status is null or j.status = :status)
             order by j.titulo

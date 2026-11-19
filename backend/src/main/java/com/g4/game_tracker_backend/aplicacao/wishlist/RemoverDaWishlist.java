@@ -15,23 +15,24 @@ import com.g4.game_tracker_backend.dominio.wishlist.WishlistRepositorio;
 public class RemoverDaWishlist {
 
     private final IdentidadeAutenticada identidade;
-    private final WishlistRepositorio wishlist;
+    private final WishlistRepositorio wishlists;
     private final ApplicationEventPublisher eventos;
 
-    public RemoverDaWishlist(IdentidadeAutenticada identidade, WishlistRepositorio wishlist,
+    public RemoverDaWishlist(IdentidadeAutenticada identidade, WishlistRepositorio wishlists,
             ApplicationEventPublisher eventos) {
         this.identidade = identidade;
-        this.wishlist = wishlist;
+        this.wishlists = wishlists;
         this.eventos = eventos;
     }
 
     @Transactional
     public void executar(UUID jogoId) {
-        UUID usuarioId = identidade.usuarioId();
-        if (!wishlist.contem(usuarioId, jogoId)) {
-            return;
-        }
-        wishlist.remover(usuarioId, jogoId);
-        eventos.publishEvent(new MetricasDoJogoAlteradas(jogoId));
+        wishlists.buscarPorDono(identidade.usuarioId())
+                .filter(atual -> atual.contem(jogoId))
+                .ifPresent(atual -> {
+                    wishlists.salvar(atual.remover(jogoId));
+                    // F-17 RN 1: só recalcula se o jogo de fato saiu da wishlist.
+                    eventos.publishEvent(new MetricasDoJogoAlteradas(jogoId));
+                });
     }
 }

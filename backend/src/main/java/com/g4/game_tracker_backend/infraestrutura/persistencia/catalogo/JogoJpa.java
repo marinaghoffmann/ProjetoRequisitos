@@ -4,22 +4,19 @@ import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import com.g4.game_tracker_backend.dominio.catalogo.Jogo;
 import com.g4.game_tracker_backend.dominio.catalogo.OrigemJogo;
 import com.g4.game_tracker_backend.dominio.catalogo.StatusCatalogo;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
@@ -57,15 +54,15 @@ public class JogoJpa {
     @Column(nullable = false, length = 24)
     private StatusCatalogo status;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "desenvolvedora_id", nullable = false)
-    private DesenvolvedoraJpa desenvolvedora;
+    /** Referência por ID: Desenvolvedora é outro agregado. */
+    @Column(name = "desenvolvedora_id", nullable = false)
+    private UUID desenvolvedoraId;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "jogos_generos",
-            joinColumns = @JoinColumn(name = "jogo_id"),
-            inverseJoinColumns = @JoinColumn(name = "genero_id"))
-    private Set<GeneroJpa> generos = new LinkedHashSet<>();
+    /** Referência por ID: Gênero é outro agregado. Mesma tabela jogos_generos de antes. */
+    @ElementCollection
+    @CollectionTable(name = "jogos_generos", joinColumns = @JoinColumn(name = "jogo_id"))
+    @Column(name = "genero_id", nullable = false)
+    private Set<UUID> generosIds = new LinkedHashSet<>();
 
     @Column(name = "data_lancamento")
     private LocalDate dataLancamento;
@@ -82,7 +79,7 @@ public class JogoJpa {
     protected JogoJpa() {
     }
 
-    private JogoJpa(Jogo jogo, DesenvolvedoraJpa desenvolvedora, Set<GeneroJpa> generos) {
+    private JogoJpa(Jogo jogo) {
         this.id = jogo.id();
         this.titulo = jogo.titulo();
         this.tituloOriginal = jogo.tituloOriginal();
@@ -91,22 +88,21 @@ public class JogoJpa {
         this.identificadorExterno = vazioParaNulo(jogo.identificadorExterno());
         this.origem = jogo.origem();
         this.status = jogo.status();
-        this.desenvolvedora = desenvolvedora;
-        this.generos = new LinkedHashSet<>(generos);
+        this.desenvolvedoraId = jogo.desenvolvedoraId();
+        this.generosIds = new LinkedHashSet<>(jogo.generosIds());
         this.dataLancamento = jogo.dataLancamento();
         this.capaUrl = vazioParaNulo(jogo.capaUrl());
         this.trailerUrl = vazioParaNulo(jogo.trailerUrl());
         this.metadadosJson = vazioParaNulo(jogo.metadadosJson());
     }
 
-    static JogoJpa deDominio(Jogo jogo, DesenvolvedoraJpa desenvolvedora, Set<GeneroJpa> generos) {
-        return new JogoJpa(jogo, desenvolvedora, generos);
+    static JogoJpa deDominio(Jogo jogo) {
+        return new JogoJpa(jogo);
     }
 
     Jogo paraDominio() {
         return Jogo.reconstituir(id, titulo, tituloOriginal, slug, resumo, identificadorExterno,
-                origem, status, desenvolvedora.getId(), generos.stream().map(GeneroJpa::id)
-                        .collect(Collectors.toCollection(LinkedHashSet::new)),
+                origem, status, desenvolvedoraId, new LinkedHashSet<>(generosIds),
                 dataLancamento, capaUrl, trailerUrl).comMetadados(metadadosJson);
     }
 

@@ -52,7 +52,7 @@ numeração interna de 1 a 18, mostrada na coluna "Nº grupo".
 | ContextoPerfilJogador | `biblioteca.perfil` e `identidade` | F-08 Favoritos e perfil público | 6 | Bruno | ✅ |
 | ContextoConclusoes | `biblioteca.conclusoes` | F-11 Registros de "zerado" | 8 | Bruno | ✅ |
 | ContextoSimilaridade | `descoberta.similaridade` | F-10 Similares e feedback | 7 | Lavínia | ✅ |
-| ContextoDiarioJogatina | `journal` | F-15 Journal manual | 12 | Bruno | 🟡 só domínio |
+| ContextoDiarioJogatina | `journal` | F-15 Journal manual | 12 | Bruno | ✅ |
 | ContextoDiarioJogatina | `journal` | F-16 Timeline automática | 13 | Davi | ✅ |
 | ContextoForum | `forum` | F-13 Fórum | 10 | Henrique | ✅ |
 | ContextoModeracao | — | F-14 Moderação e denúncias | 11 | Henrique | ❌ |
@@ -174,11 +174,11 @@ forma consistente em todos os agregados.
 | **Observer** | Gerar a timeline do journal e recalcular estatísticas quando outras funcionalidades agem, sem que elas conheçam quem reage | [`ObservadorEventosPlataforma`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/journal/ObservadorEventosPlataforma.java), [`ObservadorEstatisticaJogo`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/avaliacao/estatisticas/ObservadorEstatisticaJogo.java) e a porta [`PublicadorDeEventos`](backend/src/main/java/com/g4/game_tracker_backend/dominio/compartilhado/PublicadorDeEventos.java) | F-16, F-17 | Davi |
 | **Proxy** (de proteção) | Garantir em um só lugar que a conversa só chega ao comprador e ao vendedor (RN 3), sem repetir a checagem em cada caso de uso | [`ConversasDoParticipante`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/marketplace/negociacao/ConversasDoParticipante.java), com a mesma interface de `ConversaChatRepositorio` | F-19 | Marina |
 | **Template Method** | Três rotinas de prazo repetiam o mesmo laço (buscar os vencidos, uma transação por item, registrar a falha sem parar as outras) | [`RotinaDePrazo`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/compartilhado/RotinaDePrazo.java), com as subclasses `ExpirarReservasVencidas`, `CancelarPedidosSemEnvio` e `LiberarCustodiaPorTolerancia` | F-19, F-20 | Marina |
-| **Decorator** | `TODO(grupo)`. O CML prevê `IConteudoExibivel` (máscara de spoiler e texto removido pela moderação) | — | F-15 / F-14 | `TODO(grupo)` |
+| **Decorator** | Oculta o conteúdo do Journal até o clique explícito do leitor | `IConteudoExibivel`, `ConteudoOriginal`, `SpoilerMascaradoDecorator` | F-15 (F12 do grupo); moderação ainda prevista | Bruno |
 | **Iterator** | `TODO(grupo)`. O CML prevê a paginação de tópicos e a navegação da timeline | — | F-13 / F-16 | `TODO(grupo)` |
 
 Testes dos padrões: `SimilaridadeTest`, os cenários de pagamento da F-20, `ConversasDoParticipanteTest`,
-`RotinaDePrazoTest` e os cenários da F-16 e da F-17.
+`RotinaDePrazoTest`, `JournalRegrasTest` e os cenários da F-15, da F-16 e da F-17.
 
 ## Testes e BDD
 
