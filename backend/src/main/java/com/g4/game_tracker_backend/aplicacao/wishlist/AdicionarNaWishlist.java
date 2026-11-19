@@ -18,6 +18,10 @@ import com.g4.game_tracker_backend.dominio.wishlist.PrioridadeWishlist;
 import com.g4.game_tracker_backend.dominio.wishlist.Wishlist;
 import com.g4.game_tracker_backend.dominio.wishlist.WishlistRepositorio;
 
+/**
+ * Adiciona o jogo à wishlist do usuário, criando-a na primeira adição (RN 1), e avisa a F-17 para
+ * recalcular a ficha do jogo.
+ */
 @Service
 public class AdicionarNaWishlist {
 
