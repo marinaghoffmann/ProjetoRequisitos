@@ -1,18 +1,9 @@
-<main class="zerados">
-  <header class="cabecalho">
-    <div>
-      <h1>Registros de zerado</h1>
-      @if (registros(); as historico) {
-        <p>
-          {{ historico.length }} {{ historico.length === 1 ? 'conclusão' : 'conclusões' }}
-          em {{ porJogo().size }} {{ porJogo().size === 1 ? 'jogo' : 'jogos' }}
-        </p>
-      }
-    </div>
-    <button type="button" class="botao primario" (click)="abrir()" [disabled]="operando()">
+<main class="pagina pagina--estreita zerados">
+  <gt-cabecalho-pagina titulo="Registros de zerado" [subtitulo]="subtitulo()">
+    <button acao type="button" (click)="abrir()" [disabled]="operando()">
       <span aria-hidden="true">＋</span> Novo registro
     </button>
-  </header>
+  </gt-cabecalho-pagina>
 
   @if (jogosZerados().length) {
     <select #filtroJogo class="filtro" aria-label="Filtrar registros por jogo"
@@ -38,7 +29,8 @@
       <ul class="registros">
         @for (registro of visiveis(); track registro.id) {
           <li class="registro">
-            <a class="capa" [routerLink]="['/catalogo', registro.jogoId]" [attr.aria-label]="'Abrir ' + registro.titulo">
+            <a class="capa" [routerLink]="['/catalogo', registro.jogoId]" [attr.aria-label]="'Abrir ' + registro.titulo"
+              [style.background]="gradiente(registro.jogoId)">
               <span aria-hidden="true">{{ registro.titulo.slice(0, 1) }}</span>
               @if (registro.capaUrl) {
                 <img #capa [src]="registro.capaUrl" alt="" loading="lazy" (error)="capa.hidden = true" />
@@ -51,13 +43,13 @@
                 @if (registro.plataforma) { · {{ registro.plataforma }} }
                 @if (registro.horasJogadas !== null) { · {{ registro.horasJogadas | number: '1.0-6' }}h }
               </p>
-              <span class="total">{{ porJogo().get(registro.jogoId)?.length }}x zerado</span>
-              @if (registro.platina) { <span class="total">100% / Platina</span> }
+              <span class="chip-cinza">{{ porJogo().get(registro.jogoId)?.length }}x zerado</span>
+              @if (registro.platina) { <span class="chip-cinza chip-cinza--acento">100% / Platina</span> }
             </div>
             <div class="acoes">
-              <button type="button" class="botao secundario" (click)="abrir(registro)" [disabled]="operando()"
+              <button type="button" class="botao-texto" (click)="abrir(registro)" [disabled]="operando()"
                 [attr.aria-label]="'Editar registro de ' + registro.titulo">Editar</button>
-              <button type="button" class="botao perigo" (click)="excluir(registro)" [disabled]="operando()"
+              <button type="button" class="botao-excluir" (click)="excluir(registro)" [disabled]="operando()"
                 [attr.aria-label]="'Excluir registro de ' + registro.titulo">Excluir</button>
             </div>
           </li>

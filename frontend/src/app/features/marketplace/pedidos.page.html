@@ -1,33 +1,24 @@
-<main class="pagina-pedidos">
-  <header class="cabecalho">
-    <div>
-      <a class="voltar" routerLink="/marketplace">← Anúncios</a>
-      <h1>Meus pedidos</h1>
-      <p>Compras e vendas do marketplace, com a entrega e o pagamento.</p>
-    </div>
-    @if (saldo() !== null) {
-      <div class="carteira">
-        <span>Saldo da carteira</span>
-        <strong>{{ saldo() | currency: 'BRL' }}</strong>
-      </div>
-    }
-  </header>
+<main class="pagina pagina--estreita pagina-pedidos">
+  <gt-cabecalho-pagina titulo="Meus pedidos" [subtitulo]="subtitulo()" />
 
   @if (erro(); as mensagem) {
     <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
   } @else if (pedidos()) {
-    <nav class="abas" role="tablist" aria-label="Tipos de pedido">
-      <button role="tab" type="button" [class.ativa]="aba() === 'COMPRAS'" [attr.aria-selected]="aba() === 'COMPRAS'"
-        (click)="aba.set('COMPRAS')">Compras ({{ porAba().COMPRAS.length }})</button>
-      <button role="tab" type="button" [class.ativa]="aba() === 'VENDAS'" [attr.aria-selected]="aba() === 'VENDAS'"
-        (click)="aba.set('VENDAS')">Vendas ({{ porAba().VENDAS.length }})</button>
-      <button role="tab" type="button" [class.ativa]="aba() === 'CONCLUIDOS'"
-        [attr.aria-selected]="aba() === 'CONCLUIDOS'" (click)="aba.set('CONCLUIDOS')">
-        Concluídos ({{ porAba().CONCLUIDOS.length }})
-      </button>
-    </nav>
+    <gt-abas class="abas-pedidos" [abas]="abas()" [ativa]="aba()" (ativaChange)="abrirAba($event!)" rotulo="Tipos de pedido" />
 
-    @if (!porAba()[aba()].length) {
+    @if (aba() === 'REPUTACAO') {
+      <section class="reputacao">
+        @if (minhaReputacao(); as r) {
+          <strong class="reputacao__nota">{{ r.notaMedia !== null ? '★ ' + (r.notaMedia | number: '1.1-1') : 'Sem avaliações' }}</strong>
+          <p>{{ r.totalAvaliacoes }} {{ r.totalAvaliacoes === 1 ? 'avaliação' : 'avaliações' }} · {{ r.negociacoesBemSucedidas }} negociações bem-sucedidas</p>
+          <a class="botao-contorno" [routerLink]="['/marketplace/vendedores', r.usuarioId]">Ver avaliações recebidas</a>
+        } @else {
+          <gt-carregando tipo="linhas" [quantidade]="1" />
+        }
+      </section>
+    }
+
+    @if (aba() !== 'REPUTACAO' && !listaDaAba().length) {
       <p class="estado">
         @switch (aba()) {
           @case ('COMPRAS') { Nenhuma compra em andamento. }
@@ -38,8 +29,12 @@
     }
 
     <ul class="pedidos">
-      @for (p of porAba()[aba()]; track p.id) {
+      @for (p of listaDaAba(); track p.id) {
         <li class="pedido" [class.pedido--destaque]="p.id === destaque">
+          <p class="pedido__eyebrow">
+            <span>{{ statusPedido[p.status] }}</span>
+            <span>Pedido #{{ p.id.slice(0, 8) }} · {{ p.papel === 'COMPRA' ? 'compra de' : 'venda para' }} &#64;{{ p.nomeOutraParte ?? 'usuário removido' }}</span>
+          </p>
           <div class="pedido__topo">
             <div>
               <a class="pedido__titulo" [routerLink]="['/marketplace', p.anuncioId]">{{ p.tituloAnuncio }}</a>
@@ -62,6 +57,14 @@
               <span class="etiqueta">Troca por {{ p.jogoOferecidoEmTroca }}</span>
             }
           </p>
+
+          @if (p.status !== 'CANCELADO') {
+            <ol class="stepper" aria-label="Andamento do pedido">
+              @for (rotulo of ['Pagamento protegido', 'Envio', 'Entrega e conclusão']; track rotulo; let i = $index) {
+                <li [class.feita]="etapa(p) > i" [class.atual]="etapa(p) === i + 1"><span class="stepper__ponto"></span>{{ rotulo }}</li>
+              }
+            </ol>
+          }
 
           @if (p.codigoRastreio) {
             <p class="detalhe">Rastreio: <strong class="rastreio">{{ p.codigoRastreio }}</strong></p>
@@ -168,6 +171,6 @@
       }
     </ul>
   } @else {
-    <p class="estado">Carregando pedidos…</p>
+    <gt-carregando tipo="linhas" [quantidade]="3" />
   }
 </main>

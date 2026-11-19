@@ -3,15 +3,14 @@ package com.g4.game_tracker_backend.aplicacao.journal;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.dominio.catalogo.Jogo;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.journal.EntradaDeJournal;
 import com.g4.game_tracker_backend.dominio.journal.EntradaDeJournalRepositorio;
 import com.g4.game_tracker_backend.dominio.journal.TipoEventoPlataforma;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional.Propagacao;
 
 /**
  * F-16: gera e remove as entradas automáticas do journal.
@@ -20,7 +19,7 @@ import com.g4.game_tracker_backend.dominio.journal.TipoEventoPlataforma;
  * sofre rollback junto; se alguém publicar o evento fora de uma transação, a falha aparece na hora.
  * RN 2: excluir a ação de origem remove a entrada gerada por ela.
  */
-@Service
+@CasoDeUso
 public class GerarEntradaAutomatica {
 
     private final EntradaDeJournalRepositorio entradas;
@@ -32,7 +31,7 @@ public class GerarEntradaAutomatica {
     }
 
     /** Idempotente: o mesmo evento entregue duas vezes não duplica a entrada. */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transacional(propagacao = Propagacao.EXIGIR_EXISTENTE)
     public EntradaDeJournal gerar(UUID donoId, UUID jogoId, TipoEventoPlataforma evento, String origemId,
             Instant ocorridoEm) {
         return entradas.buscarPorOrigem(evento, origemId).orElseGet(() -> entradas.salvar(
@@ -40,7 +39,7 @@ public class GerarEntradaAutomatica {
                         ocorridoEm, Instant.now())));
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transacional(propagacao = Propagacao.EXIGIR_EXISTENTE)
     public void sincronizarExclusao(TipoEventoPlataforma evento, String origemId) {
         entradas.buscarPorOrigem(evento, origemId).ifPresent(entrada -> entradas.remover(entrada.id()));
     }

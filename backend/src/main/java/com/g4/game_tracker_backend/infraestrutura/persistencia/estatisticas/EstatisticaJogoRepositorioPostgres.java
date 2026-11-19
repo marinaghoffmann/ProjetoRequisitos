@@ -1,5 +1,6 @@
 package com.g4.game_tracker_backend.infraestrutura.persistencia.estatisticas;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,5 +27,10 @@ public class EstatisticaJogoRepositorioPostgres implements EstatisticaJogoReposi
     @Override
     public Optional<EstatisticaJogo> buscarPorJogo(UUID jogoId) {
         return springData.findById(jogoId).map(EstatisticaJogoJpa::paraDominio);
+    }
+
+    @Override
+    public List<EstatisticaJogo> listarTodas() {
+        return springData.findAll().stream().map(EstatisticaJogoJpa::paraDominio).toList();
     }
 }

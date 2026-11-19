@@ -5,18 +5,17 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplace;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplaceRepositorio;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.EstadoConservacao;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.MidiaJogo;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.TipoNegociacao;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /** F-18 RN 2 e RN 3: só o proprietário edita o anúncio, e o preço continua precisando ser positivo. */
-@Service
+@CasoDeUso
 public class EditarAnuncio {
 
     private final AnuncioMarketplaceRepositorio anuncios;
@@ -27,7 +26,7 @@ public class EditarAnuncio {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
+    @Transacional
     public AnuncioMarketplace executar(UUID id, String titulo, EstadoConservacao estado, BigDecimal preco,
             TipoNegociacao tipoNegociacao, MidiaJogo midia, String localidade, List<String> fotos) {
         AnuncioMarketplace atual = AcessoAoAnuncio.doProprietario(anuncios, verificadorDeAcesso, id);
@@ -36,7 +35,7 @@ public class EditarAnuncio {
     }
 
     /** Atalho para alterar apenas o preço, mantendo os demais dados. */
-    @Transactional
+    @Transacional
     public AnuncioMarketplace alterarPreco(UUID id, BigDecimal preco) {
         AnuncioMarketplace atual = AcessoAoAnuncio.doProprietario(anuncios, verificadorDeAcesso, id);
         return anuncios.salvar(atual.editar(atual.titulo(), atual.estado(), preco, atual.tipoNegociacao(),

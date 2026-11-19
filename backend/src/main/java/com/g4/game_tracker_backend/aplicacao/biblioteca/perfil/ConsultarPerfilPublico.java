@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.dominio.biblioteca.perfil.PerfilFavoritosRepositorio;
 import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
 import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
@@ -14,8 +11,10 @@ import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.identidade.Usuario;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
-@Service
+@CasoDeUso
 public class ConsultarPerfilPublico {
     public record Favorito(int slot, UUID jogoId, String titulo, String capaUrl) {
     }
@@ -37,7 +36,7 @@ public class ConsultarPerfilPublico {
         this.moderacao = moderacao;
     }
 
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public PerfilPublico consultar(UUID usuarioId) {
         var usuario = usuarios.buscarPorId(usuarioId).filter(Usuario::ativo)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Perfil não encontrado"));

@@ -1,14 +1,13 @@
 package com.g4.game_tracker_backend.aplicacao.status;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
 
 import java.time.Instant;
-
-import org.springframework.stereotype.Service;
 
 /**
  * Caso de uso mínimo que serve de exemplo do fluxo apresentação → aplicação e de alvo
  * para o cenário BDD de verificação da infraestrutura (f00_infraestrutura.feature).
  */
-@Service
+@CasoDeUso
 public class ConsultarStatusDoSistema {
 
     public StatusDoSistema executar() {

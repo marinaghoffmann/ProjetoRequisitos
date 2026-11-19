@@ -173,6 +173,14 @@ public final class TopicoDeForum {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Resposta não encontrada neste tópico"));
     }
 
+    /**
+     * As respostas na ordem da conversa (pai antes das filhas, irmãs por publicação), com o nível de recuo.
+     * Cada chamada a {@code iterator()} começa um percurso novo (padrão Iterator).
+     */
+    public Iterable<IteradorDeRespostas.RespostaNaArvore> arvoreDeRespostas() {
+        return () -> new IteradorDeRespostas(respostas);
+    }
+
     /** A resposta publicada por último; útil logo depois de responder(...). */
     public RespostaForum ultimaResposta() {
         return respostas.getLast();

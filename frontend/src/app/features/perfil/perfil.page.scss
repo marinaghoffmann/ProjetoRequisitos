@@ -27,36 +27,6 @@ svg { flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; strok
 }
 
 // ===== Topo =====
-.pf-topo {
-  position: sticky; top: 0; z-index: 20;
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  height: 70px; padding: 0 38px;
-  border-bottom: 1px solid var(--line-soft);
-  background: rgb(9 11 15 / 88%);
-  backdrop-filter: blur(14px);
-}
-.pf-busca {
-  display: flex; flex-direction: row; align-items: center; gap: 12px;
-  width: min(500px, 100%); height: 40px; padding: 0 14px;
-  border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--muted);
-  svg { width: 17px; height: 17px; }
-  input { flex: 1; min-width: 0; min-height: 0; padding: 0; border: 0; background: none; font-size: 12px; &:focus { outline: none; } }
-  kbd { padding: 3px 7px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); color: var(--faint); font: 600 9px var(--font-body); }
-  &:focus-within { border-color: var(--accent); }
-}
-.pf-topo__acoes { display: flex; align-items: center; gap: 12px; }
-.pf-sino {
-  position: relative; display: grid; place-items: center; width: 38px; height: 38px;
-  border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); cursor: pointer;
-  svg { width: 17px; height: 17px; }
-}
-.pf-sino__ponto { position: absolute; top: 6px; right: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
-.pf-registrar {
-  display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px;
-  border-radius: 9px; background: var(--accent); color: #0a0d10; font: 800 12px var(--font-body); cursor: pointer;
-  svg { width: 15px; height: 15px; stroke-width: 2.2; }
-  &:hover { filter: brightness(1.08); }
-}
 
 // ===== Banner =====
 .pf-publico {
@@ -243,7 +213,6 @@ svg { flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; strok
 // ===== Responsivo =====
 @media (max-width: 1100px) { .pf-duas { grid-template-columns: 1fr; } }
 @media (max-width: 900px) {
-  .pf-topo { padding: 0 20px; }
   .pf-miolo { width: calc(100% - 40px); }
   .pf-cabecalho { flex-wrap: wrap; }
   .pf-acoes { width: 100%; padding-top: 0; }

@@ -1,42 +1,37 @@
 <div class="shell">
-  <aside class="sidebar">
-    <a class="marca" routerLink="/inicio">
+  <aside class="sidebar" aria-label="Menu">
+    <a class="marca" routerLink="/inicio" aria-label="GameTrack, início">
       <span class="marca__icone">G</span>
       <span class="marca__nome">GAME<em>TRACK</em></span>
     </a>
 
     <nav class="menu" aria-label="Navegação principal">
-      @for (item of principal(); track item.rotulo) {
-        @if (item.rota) {
-          <a [routerLink]="item.rota" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: item.exato ?? true }">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="item.icone" /></svg>
-            <span class="menu__texto">{{ item.rotulo }}</span>
-            @if (item.contador) { <span class="menu__contador menu__contador--destaque">{{ item.contador }}</span> }
-          </a>
-        } @else {
-          <span class="menu__item menu__item--breve" title="Em breve">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="item.icone" /></svg>
-            <span class="menu__texto">{{ item.rotulo }}</span>
-            @if (item.contador) { <span class="menu__contador menu__contador--destaque">{{ item.contador }}</span> }
-          </span>
-        }
+      @for (item of principal(); track item.rota) {
+        <a [routerLink]="item.rota" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: item.exato ?? true }"
+          [attr.title]="item.rotulo">
+          <gt-icone [nome]="item.icone" />
+          <span class="menu__texto">{{ item.rotulo }}</span>
+          @if (item.contador) { <span class="menu__contador menu__contador--destaque">{{ item.contador }}</span> }
+        </a>
       }
 
       <p class="menu__rotulo">Minha biblioteca</p>
-      @for (item of biblioteca; track item.rotulo) {
-        @if (item.rota) {
-          <a [routerLink]="item.rota" routerLinkActive="ativo">
-            @if (item.icone) { <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="item.icone" /></svg> }
-            @else { <i class="menu__ponto"></i> }
+      @for (item of minhaBiblioteca(); track item.rota) {
+        <a [routerLink]="item.rota" routerLinkActive="ativo" [attr.title]="item.rotulo">
+          @if (item.ponto) { <i class="menu__ponto" aria-hidden="true"></i> } @else { <gt-icone [nome]="item.icone" /> }
+          <span class="menu__texto">{{ item.rotulo }}</span>
+          @if (item.contador !== undefined && item.contador !== null) { <span class="menu__contador">{{ item.contador }}</span> }
+        </a>
+      }
+
+      @if (porPapel().length) {
+        <p class="menu__rotulo">Gestão</p>
+        @for (item of porPapel(); track item.rota) {
+          <a [routerLink]="item.rota" [queryParams]="item.queryParams" routerLinkActive="ativo"
+            [routerLinkActiveOptions]="{ exact: false }" [attr.title]="item.rotulo">
+            <gt-icone [nome]="item.icone" />
             <span class="menu__texto">{{ item.rotulo }}</span>
-            @if (item.contador) { <span class="menu__contador">{{ item.contador }}</span> }
           </a>
-        } @else {
-          <span class="menu__item menu__item--breve" title="Em breve">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="item.icone" /></svg>
-            <span class="menu__texto">{{ item.rotulo }}</span>
-            @if (item.contador) { <span class="menu__contador">{{ item.contador }}</span> }
-          </span>
         }
       }
     </nav>
@@ -44,19 +39,18 @@
     <div class="conta">
       @if (autenticacao.usuarioAtual(); as usuario) {
         <a class="conta__perfil" routerLink="/perfil" aria-label="Abrir meu perfil">
-          <img class="hm-avatar" [src]="imagemUrl(usuario.avatarUrl)" [alt]="'Avatar de ' + usuario.nome" loading="lazy" />
+          @if (imagemUrl(usuario.avatarUrl)) {
+            <img class="conta__avatar" [src]="imagemUrl(usuario.avatarUrl)" [alt]="'Avatar de ' + usuario.nome" loading="lazy" />
+          } @else {
+            <span class="conta__avatar conta__avatar--inicial" aria-hidden="true">{{ usuario.nome.charAt(0) }}</span>
+          }
           <div class="conta__dados">
             <strong>{{ usuario.nome }}</strong>
             <span>{{ usuario.papel }}</span>
           </div>
         </a>
-        <button
-          type="button"
-          class="conta__mais"
-          aria-label="Opções da conta"
-          [attr.aria-expanded]="menuConta()"
-          (click)="menuConta.set(!menuConta())"
-        >
+        <button type="button" class="conta__mais" aria-label="Opções da conta" [attr.aria-expanded]="menuConta()"
+          (click)="menuConta.set(!menuConta())">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
         </button>
 
@@ -64,23 +58,55 @@
           <div class="conta__fundo" (click)="menuConta.set(false)"></div>
           <div class="conta__menu" role="menu" (click)="menuConta.set(false)">
             <a role="menuitem" routerLink="/perfil">Meu perfil</a>
-            @if (autenticacao.temPapel('DESENVOLVEDOR', 'ADMINISTRADOR')) {
-              <a role="menuitem" routerLink="/catalogo/novo">Cadastrar jogo</a>
-            }
             <a role="menuitem" routerLink="/marketplace/meus">Meus anúncios</a>
             <a role="menuitem" routerLink="/marketplace/novo">Anunciar jogo</a>
             <a role="menuitem" routerLink="/marketplace/pedidos">Meus pedidos</a>
-            <button role="menuitem" type="button" class="conta__sair" (click)="autenticacao.sair()">Sair</button>
+            <button role="menuitem" type="button" class="conta__sair" (click)="sair()">Sair</button>
           </div>
         }
-      } @else {
-        <a class="botao" routerLink="/login">Entrar</a>
-        <a class="botao botao--secundario" routerLink="/cadastro">Criar conta</a>
       }
     </div>
   </aside>
 
   <div class="principal">
+    <header class="topo">
+      <form class="topo__busca" role="search" (submit)="$event.preventDefault(); buscar(campoBusca.value)">
+        <gt-icone nome="busca" [tamanho]="16" />
+        <input #campoBusca type="search" placeholder="Buscar jogos, pessoas e listas..." aria-label="Buscar no GameTrack" />
+        <kbd aria-hidden="true">⌘ K</kbd>
+      </form>
+
+      <div class="topo__acoes">
+        @if (autenticacao.usuarioAtual()) {
+          <a class="topo__sino" routerLink="/notificacoes"
+            [attr.aria-label]="notificacoesNaoLidas() ? 'Notificações, ' + notificacoesNaoLidas() + ' não lidas' : 'Notificações'">
+            <gt-icone nome="sino" />
+            @if (notificacoesNaoLidas()) { <i class="topo__ponto" aria-hidden="true"></i> }
+          </a>
+          <button type="button" class="topo__registrar" (click)="registrar()">
+            <gt-icone nome="mais" [tamanho]="16" /> Registrar
+          </button>
+        } @else {
+          <a class="botao botao--secundario" routerLink="/login">Entrar</a>
+          <a class="botao" routerLink="/cadastro">Criar conta</a>
+        }
+      </div>
+    </header>
+
     <router-outlet />
   </div>
+
+  <nav class="inferior" aria-label="Navegação">
+    @for (item of navegacaoInferior; track item.rota) {
+      <a [routerLink]="item.rota" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: false }">
+        <gt-icone [nome]="item.icone" [tamanho]="20" />
+        <span>{{ item.rotulo }}</span>
+      </a>
+    }
+  </nav>
 </div>
+
+@if (autenticacao.usuarioAtual()) {
+  <app-journal-editor (salvo)="entradaSalva()" />
+}
+<gt-avisos />

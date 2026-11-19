@@ -2,17 +2,16 @@ package com.g4.game_tracker_backend.aplicacao.identidade;
 
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.dominio.catalogo.DesenvolvedoraRepositorio;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.identidade.Papel;
 import com.g4.game_tracker_backend.dominio.identidade.Usuario;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
-@Service
+@CasoDeUso
 public class VincularDesenvolvedora {
 
     private final UsuarioRepositorio usuarios;
@@ -26,7 +25,7 @@ public class VincularDesenvolvedora {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
+    @Transacional
     public Usuario executar(UUID usuarioId, UUID desenvolvedoraId) {
         verificadorDeAcesso.exigirPapel(Papel.ADMINISTRADOR);
         Usuario usuario = usuarios.buscarPorId(usuarioId)

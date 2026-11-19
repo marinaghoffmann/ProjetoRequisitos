@@ -1,20 +1,4 @@
-// Estilos compartilhados ficam em src/styles.scss (tema do protótipo).
-
-.card { position: relative; }
-
-.link-card {
-  color: inherit;
-  text-decoration: none;
-
-  &::after { content: ''; position: absolute; inset: 0; }
-}
-
-.card .acoes { position: relative; z-index: 1; }
-
-.card__titulo {
-  color: var(--text);
-
-  &:hover {
-    color: var(--accent);
-  }
-}
+.generos { display: block; margin-bottom: 16px; }
+.gestao { display: flex; gap: 4px; margin-top: 2px; }
+.gestao .botao-texto { min-height: 26px; padding: 0 4px; font-size: 11px; font-weight: 700; }
+.gestao .gestao__remover:hover { color: var(--danger); }

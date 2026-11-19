@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
+import com.g4.game_tracker_backend.dominio.compartilhado.Pagina;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -63,7 +66,7 @@ public class ModeracaoController {
     @GetMapping("/api/moderacao/denuncias")
     public Page<Denuncia> fila(@RequestParam(defaultValue = "1") int pagina,
             @RequestParam(defaultValue = "10") int tamanho) {
-        return moderacao.fila(pagina, tamanho);
+        return paraPage(moderacao.fila(pagina, tamanho));
     }
 
     @PostMapping("/api/moderacao/denuncias/{id}/arquivar")
@@ -80,7 +83,7 @@ public class ModeracaoController {
     @GetMapping("/api/moderacao/logs")
     public Page<Log> logs(@RequestParam(defaultValue = "1") int pagina,
             @RequestParam(defaultValue = "10") int tamanho) {
-        return moderacao.historico(pagina, tamanho);
+        return paraPage(moderacao.historico(pagina, tamanho));
     }
 
     @GetMapping("/api/moderacao/conteudos/{tipo}/{id}/previa")
@@ -101,5 +104,11 @@ public class ModeracaoController {
     @GetMapping("/api/moderacao/usuarios/{id}/advertencias/total")
     public Map<String, Long> totalAdvertencias(@PathVariable UUID id) {
         return Map.of("total", moderacao.totalAdvertencias(id));
+    }
+
+    /** A API da central mantém o formato de página do Spring; a aplicação devolve a Pagina do domínio. */
+    private static <T> Page<T> paraPage(Pagina<T> pagina) {
+        return new PageImpl<>(pagina.itens(), PageRequest.of(pagina.pagina() - 1, pagina.tamanho()),
+                pagina.totalItens());
     }
 }

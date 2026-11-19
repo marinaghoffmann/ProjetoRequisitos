@@ -4,9 +4,6 @@ import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.catalogo.DesenvolvedoraRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.GeneroRepositorio;
@@ -17,9 +14,11 @@ import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoExc
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.identidade.Papel;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /** F-01 RN 1 e RN 2: cadastro manual feito por um desenvolvedor vinculado a uma desenvolvedora ativa. */
-@Service
+@CasoDeUso
 public class CadastrarJogoManual {
 
     private final JogoRepositorio jogos;
@@ -37,7 +36,7 @@ public class CadastrarJogoManual {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
+    @Transacional
     public Jogo executar(String titulo, String tituloOriginal, String resumo, Set<UUID> generosIds,
             LocalDate dataLancamento, String capaUrl, String trailerUrl, String metadadosJson) {
         if (!verificadorDeAcesso.usuarioAtualTemAlgumPapel(Papel.DESENVOLVEDOR)) {

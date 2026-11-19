@@ -32,77 +32,6 @@ svg {
 $pad: 64px;
 
 // ===== Topo =====
-.hm-topo {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  height: 70px;
-  padding: 0 38px;
-  border-bottom: 1px solid var(--line-soft);
-  background: rgb(9 11 15 / 88%);
-  backdrop-filter: blur(14px);
-}
-.hm-busca {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  width: min(500px, 100%);
-  height: 40px;
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--muted);
-  svg { width: 17px; height: 17px; }
-  input {
-    flex: 1;
-    min-width: 0;
-    min-height: 0;
-    padding: 0;
-    border: 0;
-    background: none;
-    font-size: 12px;
-    &:focus { outline: none; }
-  }
-  kbd {
-    padding: 3px 7px;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    background: var(--surface-2);
-    color: var(--faint);
-    font: 600 9px var(--font-body);
-  }
-  &:focus-within { border-color: var(--accent); }
-}
-.hm-topo__acoes { display: flex; align-items: center; gap: 12px; }
-.hm-sino {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--text);
-  cursor: pointer;
-  svg { width: 17px; height: 17px; }
-  &:hover { border-color: #46505e; }
-}
-.hm-sino__ponto {
-  position: absolute;
-  top: 6px;
-  right: 7px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-}
 .hm-registrar {
   display: inline-flex;
   align-items: center;
@@ -373,40 +302,9 @@ $pad: 64px;
   svg { width: 16px; height: 16px; fill: currentColor; stroke: none; }
   &:hover { color: var(--text); }
 }
-.hm-resenha {
-  display: flex;
-  gap: 14px;
-  margin-top: 14px;
-  border-radius: 10px;
-  overflow: hidden;
-  background: var(--surface-2);
-}
-.hm-resenha__capa { flex: 0 0 88px; min-height: 106px; background-size: cover; }
-.hm-resenha__corpo { display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 12px 14px 12px 0; }
-.hm-resenha__nota {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 800;
-  svg { width: 14px; height: 14px; color: var(--accent); }
-}
-.hm-resenha__texto { font-size: 11px; line-height: 1.5; }
-.hm-resenha__stats { display: flex; gap: 14px; color: var(--muted); font-size: 9px; }
-.hm-miniaturas {
-  display: flex;
-  gap: 4px;
-  margin: 14px 0 0 49px;
-  li { width: 40px; height: 58px; border-radius: 3px; background-size: cover; }
-}
 
 .hm-lateral { display: grid; gap: 14px; padding-top: 0; }
 .hm-painel,
-.hm-desafio {
-  border: 1px solid var(--line-soft);
-  border-radius: 14px;
-  background: var(--surface);
-}
 .hm-painel { padding: 18px 18px 6px; }
 .hm-painel__cab {
   display: flex;
@@ -440,39 +338,6 @@ $pad: 64px;
 }
 .hm-breve__capa { flex: 0 0 48px; height: 48px; border-radius: 6px; background-size: cover; }
 
-.hm-desafio {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px;
-  background: linear-gradient(125deg, #171c19, var(--surface));
-  div:first-child { display: flex; flex-direction: column; gap: 4px; }
-  strong { font-size: 13px; font-weight: 800; }
-  span { color: var(--muted); font-size: 9px; }
-}
-.hm-desafio__rotulo { color: var(--accent); font-size: 8px; font-weight: 800; letter-spacing: 1px; }
-.hm-anel {
-  display: grid;
-  place-items: center;
-  flex: 0 0 54px;
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--surface-3) 0);
-  > span {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    width: 42px;
-    height: 42px;
-    padding-top: 12px;
-    border-radius: 50%;
-    background: #131814;
-    color: var(--text);
-  }
-  b { font: 700 14px var(--font-title); }
-  i { color: var(--muted); font-size: 7px; font-style: normal; }
-}
 
 // ===== Responsivo =====
 @media (max-width: 1280px) {
@@ -483,7 +348,6 @@ $pad: 64px;
 }
 @media (max-width: 900px) {
   $pad-m: 20px;
-  .hm-topo { padding: 0 $pad-m; }
   .hm-hero { min-height: 460px; padding: 0 $pad-m; }
   .hm-hero__paginacao { right: $pad-m; bottom: 24px; }
   .hm-secao { padding: 0 $pad-m; }
@@ -502,3 +366,5 @@ $pad: 64px;
 .hm-jogo__capa { background-position: center; }
 .hm-jogo__rodape .hm-jogo__genero:empty { display: none; }
 .hm-jogo__nota { margin-left: auto; }
+.hm-post__rodape { display: flex; flex-wrap: wrap; gap: 14px; margin: 10px 0 0; color: var(--muted); font-size: 11px;
+  a { margin-left: auto; color: var(--accent); font-weight: 700; } }

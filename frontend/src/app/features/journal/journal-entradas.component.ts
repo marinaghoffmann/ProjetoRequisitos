@@ -1,9 +1,9 @@
 import { DatePipe } from '@angular/common';
-import { Component, DestroyRef, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { finalize, Subscription } from 'rxjs';
+import { debounceTime, finalize, Subscription } from 'rxjs';
 
 import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
 import { Pagina } from '../../core/api/forum.service';
@@ -11,10 +11,15 @@ import { EntradaJournal, JournalService } from '../../core/api/journal.service';
 import { ErroApi } from '../../core/http/erro-api';
 import { ConteudoModeravelComponent } from '../moderacao/conteudo-moderavel.component';
 import { JournalEditorComponent } from './journal-editor.component';
+import { gradientePara, imagemSegura } from '../../shared/apresentacao-jogo';
+import { AvisosService } from '../../shared/ui/avisos.service';
+import { CabecalhoPaginaComponent } from '../../shared/ui/cabecalho-pagina.component';
+import { CarregandoComponent, EstadoVazioComponent } from '../../shared/ui/estados.component';
 
 @Component({
   selector: 'app-journal-entradas',
-  imports: [DatePipe, ReactiveFormsModule, RouterLink, JournalEditorComponent, ConteudoModeravelComponent],
+  imports: [DatePipe, ReactiveFormsModule, RouterLink, JournalEditorComponent, ConteudoModeravelComponent,
+    CabecalhoPaginaComponent, CarregandoComponent, EstadoVazioComponent],
   templateUrl: './journal-entradas.component.html',
   styleUrl: './journal-entradas.component.scss',
 })
@@ -23,6 +28,7 @@ export class JournalEntradasComponent {
   private readonly catalogo = inject(CatalogoService);
   private readonly builder = inject(FormBuilder).nonNullable;
   private readonly destroyRef = inject(DestroyRef);
+  private readonly avisos = inject(AvisosService);
   private consulta?: Subscription;
   readonly publico = input(false);
   readonly donoId = input<string | null>(null);
@@ -34,7 +40,6 @@ export class JournalEntradasComponent {
   protected readonly erro = signal<string | null>(null);
   protected readonly erroCatalogo = signal<string | null>(null);
   protected readonly erroTags = signal<string | null>(null);
-  protected readonly mensagem = signal('');
   protected readonly ocupada = signal<string | null>(null);
   protected readonly reveladas = signal(new Map<string, EntradaJournal>());
   protected readonly filtros = this.builder.group({ jogoId: [''], tag: [''], inicio: [''], fim: [''], origem: [''] });
@@ -45,6 +50,30 @@ export class JournalEntradasComponent {
       untracked(() => { this.carregar(1); this.carregarTags(); });
     });
     this.carregarJogos();
+    // Filtros aplicados na hora, sem botão "Filtrar".
+    this.filtros.valueChanges.pipe(debounceTime(250), takeUntilDestroyed()).subscribe(() => this.carregar(1));
+  }
+
+  /** Linha do tempo: entradas agrupadas pela data da sessão, na ordem que a API devolve. */
+  protected readonly grupos = computed(() => {
+    const grupos: { data: string; entradas: EntradaJournal[] }[] = [];
+    for (const entrada of this.pagina()?.itens ?? []) {
+      const data = entrada.dataSessao.slice(0, 10);
+      const ultimo = grupos.at(-1);
+      if (ultimo?.data === data) ultimo.entradas.push(entrada); else grupos.push({ data, entradas: [entrada] });
+    }
+    return grupos;
+  });
+
+  /** A capa do jogo ou, sem jogo, a primeira imagem da sessão (exceto spoiler mascarado). */
+  protected capaDe(entrada: EntradaJournal): string | null {
+    const capa = imagemSegura(entrada.jogoCapaUrl);
+    if (capa) return capa;
+    return entrada.anexos.length && !entrada.mascarada ? this.imagem(entrada, entrada.anexos[0].id) : null;
+  }
+
+  protected gradiente(entrada: EntradaJournal): string {
+    return gradientePara(entrada.jogoId ?? entrada.id);
   }
 
   protected carregar(numero: number): void {
@@ -84,17 +113,18 @@ export class JournalEntradasComponent {
     });
   }
 
-  protected limpar(): void { this.filtros.reset(); this.carregar(1); }
-
   protected salvo(): void {
-    this.mensagem.set('Entrada salva com sucesso.'); this.carregar(1); this.carregarTags();
+    this.avisos.sucesso('Entrada salva com sucesso'); this.carregar(1); this.carregarTags();
   }
 
-  protected excluir(entrada: EntradaJournal): void {
+  protected async excluir(entrada: EntradaJournal): Promise<void> {
     if (this.publico() || !entrada.editavel || this.ocupada()) return;
-    this.ocupada.set(entrada.id); this.erro.set(null); this.mensagem.set('');
+    const confirmado = await this.avisos.confirmar({ titulo: 'Excluir entrada',
+      mensagem: `Excluir "${entrada.titulo}" e as imagens anexadas? Isso não pode ser desfeito.`, confirmar: 'Excluir', perigo: true });
+    if (!confirmado) return;
+    this.ocupada.set(entrada.id); this.erro.set(null);
     this.api.excluir(entrada.id).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.ocupada.set(null))).subscribe({
-      next: () => { this.mensagem.set('Entrada excluída.'); this.carregar(this.pagina()?.pagina ?? 1); this.carregarTags(); },
+      next: () => { this.avisos.sucesso('Entrada excluída'); this.carregar(this.pagina()?.pagina ?? 1); this.carregarTags(); },
       error: (erro: ErroApi) => this.erro.set(erro.mensagem),
     });
   }

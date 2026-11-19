@@ -4,11 +4,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.EstatisticaJogo;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.EstatisticaJogoRepositorio;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.FonteDeConclusoes;
@@ -17,24 +12,27 @@ import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.FonteDeWishlis
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.NotasDoJogo;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplaceRepositorio;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.StatusAnuncio;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional.Propagacao;
 
 /**
- * F-17 RN 1: refaz a ficha do jogo a partir das fontes. As fontes de F-02, F-06 e F-11 são opcionais
- * porque essas funcionalidades ainda não existem; o marketplace já está disponível.
+ * F-17 RN 1: refaz a ficha do jogo a partir das fontes de F-02 (reviews), F-06 (wishlist), F-11 (conclusões)
+ * e F-18 (anúncios vendidos).
  *
  * Usa transação própria porque o observador roda depois do commit da ação que gerou o evento.
  */
-@Service
+@CasoDeUso
 public class RecalcularEstatisticas {
 
-    private final ObjectProvider<FonteDeReviews> reviews;
-    private final ObjectProvider<FonteDeConclusoes> conclusoes;
-    private final ObjectProvider<FonteDeWishlists> wishlists;
+    private final FonteDeReviews reviews;
+    private final FonteDeConclusoes conclusoes;
+    private final FonteDeWishlists wishlists;
     private final AnuncioMarketplaceRepositorio anuncios;
     private final EstatisticaJogoRepositorio estatisticas;
 
-    public RecalcularEstatisticas(ObjectProvider<FonteDeReviews> reviews,
-            ObjectProvider<FonteDeConclusoes> conclusoes, ObjectProvider<FonteDeWishlists> wishlists,
+    public RecalcularEstatisticas(FonteDeReviews reviews,
+            FonteDeConclusoes conclusoes, FonteDeWishlists wishlists,
             AnuncioMarketplaceRepositorio anuncios, EstatisticaJogoRepositorio estatisticas) {
         this.reviews = reviews;
         this.conclusoes = conclusoes;
@@ -43,15 +41,11 @@ public class RecalcularEstatisticas {
         this.estatisticas = estatisticas;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transacional(propagacao = Propagacao.NOVA)
     public EstatisticaJogo executar(UUID jogoId) {
-        FonteDeReviews fonteDeReviews = reviews.getIfAvailable();
-        FonteDeConclusoes fonteDeConclusoes = conclusoes.getIfAvailable();
-        FonteDeWishlists fonteDeWishlists = wishlists.getIfAvailable();
-
-        NotasDoJogo notas = fonteDeReviews == null ? NotasDoJogo.vazias() : fonteDeReviews.notasDoJogo(jogoId);
-        int totalConclusoes = fonteDeConclusoes == null ? 0 : fonteDeConclusoes.contarConclusoes(jogoId);
-        int totalEmWishlists = fonteDeWishlists == null ? 0 : fonteDeWishlists.contarPresencaEmWishlists(jogoId);
+        NotasDoJogo notas = reviews.notasDoJogo(jogoId);
+        int totalConclusoes = conclusoes.contarConclusoes(jogoId);
+        int totalEmWishlists = wishlists.contarPresencaEmWishlists(jogoId);
         int totalNegociacoes = anuncios.contarPorJogoEStatus(jogoId, StatusAnuncio.VENDIDO);
 
         return estatisticas.salvar(EstatisticaJogo.consolidar(jogoId, notas, totalConclusoes, totalEmWishlists,

@@ -2,7 +2,7 @@ Funcionalidade 1
 Título
 Importação, cadastramento manual e gerenciamento do catálogo de jogos e desenvolvedoras
 Descrição
-Permite integrar o catálogo de jogos por duas origens: via busca/importação automatizada de uma API externa (ex: IGDB ou RAWG) e via cadastramento manual feito por perfis com permissão de Desenvolvedor/Criador de Jogos. Permite também criar e gerenciar o perfil institucional da desenvolvedora (biografia, site, redes, país) e que administradores realizem a edição de metadados ou remoção de jogos do catálogo local.
+Permite integrar o catálogo de jogos por duas origens: via busca/importação automatizada de uma API externa (a loja Steam) e via cadastramento manual feito por perfis com permissão de Desenvolvedor/Criador de Jogos. Permite também criar e gerenciar o perfil institucional da desenvolvedora (biografia, site, redes, país) e que administradores realizem a edição de metadados ou remoção de jogos do catálogo local.
 Entidades envolvidas
 Jogo, Desenvolvedora, Genero, Usuario (com papel de Desenvolvedor ou Administrador)
 RN 1
@@ -19,7 +19,7 @@ RN 3
 Título
 exclusão lógica e manutenção da integridade de vínculos
 Descrição
-A remoção de um jogo ou de um perfil de desenvolvedora realizada por um Administrador deve ser obrigatoriamente do tipo lógica (soft delete) caso existam dados vinculados (reviews, histórico no journal ou presenças em listas), preservando a integridade referencial do banco de dados relacional.
+A remoção de um jogo realizada por um Administrador deve ser obrigatoriamente do tipo lógica (soft delete) caso existam dados vinculados (reviews, histórico no journal ou presenças em listas), preservando a integridade referencial do banco de dados relacional; sem dados vinculados, a exclusão do jogo é definitiva. A remoção de um perfil de desenvolvedora é sempre lógica: o perfil fica inativo, deixa de aceitar novos cadastros manuais (RN 2) e os seus jogos continuam no catálogo.
 Consultas
 consultar jogos do catálogo local filtrando por título, gênero, desenvolvedora, origem (API vs. Criador) ou status de ativação
 
@@ -250,7 +250,7 @@ Funcionalidade 13
 Título
 Gerenciamento completo do fórum de discussões (CRUD de Tópicos e Respostas Encadeadas)
 Descrição
-Permite que usuários criem, editem e excluam seus próprios tópicos de discussão (gerais ou atrelados a jogos) e publiquem, editem ou removam respostas dentro das threads. Inclui suporte a formatação de texto, status de tópico (Aberto, Resolvido, Encerrado) e contagem de interações.
+Permite que usuários criem, editem e excluam seus próprios tópicos de discussão (gerais ou atrelados a jogos) e publiquem, editem ou removam respostas dentro das threads. Inclui suporte a formatação de texto, imagens anexadas a tópicos e respostas (PNG, JPG ou WEBP de até 5 MB cada), status de tópico (Aberto, Resolvido, Encerrado) e contagem de interações.
 Entidades envolvidas
 Usuário, TopicoDeForum, RespostaForum, Jogo
 RN 1
@@ -365,7 +365,7 @@ RN 2
 Título
 precisão e arredondamento numérico
 Descrição
-Todas as médias aritméticas e percentuais calculados pela engine devem ser gravados no banco relacional com precisão fixa de duas casas decimais.
+Todas as médias aritméticas calculadas pela engine devem ser gravadas no banco relacional com precisão fixa de duas casas decimais. Os demais indicadores (conclusões, presença em wishlists e negociações) são totais.
 RN 3
 Título
 regra de elegibilidade para amostragem pública

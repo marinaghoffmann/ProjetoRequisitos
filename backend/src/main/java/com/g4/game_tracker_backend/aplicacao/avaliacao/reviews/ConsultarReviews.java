@@ -8,9 +8,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.avaliacao.reviews.ResumoReviewsJogo;
 import com.g4.game_tracker_backend.dominio.avaliacao.reviews.Review;
@@ -20,12 +17,14 @@ import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
 import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
 import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /**
  * Consultas da F-02: as reviews de um jogo, paginadas e com as médias geral e por categoria de todas
  * elas (pública), e as reviews do usuário autenticado.
  */
-@Service
+@CasoDeUso
 public class ConsultarReviews {
 
     public static final int TAMANHO_MAXIMO_DA_PAGINA = 50;
@@ -49,7 +48,7 @@ public class ConsultarReviews {
         this.moderacao = moderacao;
     }
 
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public ResumoReviewsJogo porJogo(UUID jogoId, int pagina, int tamanho) {
         if (pagina < 1) {
             throw new RegraDeNegocioException("A página deve ser maior ou igual a 1");
@@ -62,19 +61,19 @@ public class ConsultarReviews {
                 tamanho));
     }
 
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public List<Review> doUsuarioAtual() {
         return reviews.listarPorAutor(verificadorDeAcesso.usuarioAtualId());
     }
 
     /** A review do usuário autenticado para o jogo, se houver: a tela abre o modal já em modo de edição. */
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public Optional<Review> doUsuarioAtualParaOJogo(UUID jogoId) {
         return reviews.buscarPorAutorEJogo(verificadorDeAcesso.usuarioAtualId(), jogoId);
     }
 
     /** Nome de exibição de cada autor, para as telas não mostrarem apenas identificadores. */
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public Map<UUID, String> nomesDosAutores(Collection<UUID> autorIds) {
         Map<UUID, String> nomes = new HashMap<>();
         for (UUID autorId : new HashSet<>(autorIds)) {
@@ -84,7 +83,7 @@ public class ConsultarReviews {
         return nomes;
     }
 
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public Map<UUID, JogoAvaliado> jogosAvaliados(Collection<UUID> jogoIds) {
         Map<UUID, JogoAvaliado> resultado = new HashMap<>();
         for (UUID jogoId : new HashSet<>(jogoIds)) {

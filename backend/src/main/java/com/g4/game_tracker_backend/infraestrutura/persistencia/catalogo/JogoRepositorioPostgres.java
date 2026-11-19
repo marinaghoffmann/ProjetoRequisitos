@@ -53,4 +53,10 @@ public class JogoRepositorioPostgres implements JogoRepositorio {
         return springData.consultar(titulo, filtro.generoId(), filtro.desenvolvedoraId(),
                 filtro.origem(), filtro.status()).stream().map(JogoJpa::paraDominio).toList();
     }
+
+    @Override
+    @Transactional
+    public void excluir(UUID id) {
+        springData.deleteById(id);
+    }
 }

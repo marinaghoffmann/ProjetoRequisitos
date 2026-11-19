@@ -46,17 +46,14 @@ class ArquiteturaTest {
     }
 
     /**
-     * Meta da arquitetura limpa: casos de uso em Java puro, com transação e eventos atrás de portas
-     * ({@code ExecutorDeTransacao}, {@code PublicadorDeEventos}) e wiring em {@code infraestrutura.configuracao}.
-     * Os contextos abaixo já foram migrados. Ao migrar outro contexto, inclua o pacote dele na lista; quando
-     * todos estiverem aqui, troque a lista por "..aplicacao..".
+     * Arquitetura limpa: casos de uso em Java puro. A transação e os eventos ficam atrás de portas
+     * ({@code ExecutorDeTransacao}, {@code PublicadorDeEventos}) ou das anotações do projeto
+     * ({@code @CasoDeUso}, {@code @Transacional}), e o Spring entra só pela infraestrutura
+     * ({@code infraestrutura.configuracao}, {@code infraestrutura.transacao}, {@code infraestrutura.eventos}).
      */
     @Test
-    void aplicacaoMigradaNaoDependeDoSpring() {
-        noClasses().that().resideInAnyPackage(
-                        "..aplicacao.compartilhado..",
-                        "..aplicacao.marketplace.negociacao..",
-                        "..aplicacao.marketplace.pedidos..")
+    void aplicacaoNaoDependeDoSpring() {
+        noClasses().that().resideInAPackage("..aplicacao..")
                 .should().dependOnClassesThat()
                 .resideInAnyPackage("org.springframework..")
                 .because("os casos de uso não dependem de framework; o Spring entra só pela infraestrutura")
@@ -73,6 +70,20 @@ class ArquiteturaTest {
                 .should().dependOnClassesThat()
                 .resideInAnyPackage("..lancamentos..")
                 .because("o catálogo é upstream dos lançamentos no Context Map")
+                .check(CLASSES);
+    }
+
+    /**
+     * F-01 RN 3: o catálogo decide entre exclusão lógica e definitiva sem conhecer quem guarda o Id do jogo.
+     * Os vínculos chegam pela porta {@code VinculosDoJogo}, implementada na infraestrutura.
+     */
+    @Test
+    void catalogoNaoDependeDosContextosQueOReferenciam() {
+        noClasses().that().resideInAnyPackage("..dominio.catalogo..", "..aplicacao.catalogo..")
+                .should().dependOnClassesThat()
+                .resideInAnyPackage("..avaliacao..", "..biblioteca..", "..wishlist..", "..journal..", "..forum..",
+                        "..marketplace..", "..descoberta..", "..moderacao..", "..lancamentos..")
+                .because("o catálogo é upstream no Context Map; os vínculos chegam pela porta VinculosDoJogo")
                 .check(CLASSES);
     }
 

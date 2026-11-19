@@ -11,4 +11,6 @@ public interface JogoRepositorio {
     boolean existePorTituloEDesenvolvedora(String titulo, UUID desenvolvedoraId);
     boolean existePorTituloEDesenvolvedoraEIdDiferente(String titulo, UUID desenvolvedoraId, UUID jogoId);
     List<Jogo> consultar(FiltroCatalogo filtro);
+    /** Exclusão definitiva (F-01 RN 3), só para jogos sem vínculos. */
+    void excluir(UUID id);
 }

@@ -3,17 +3,16 @@ package com.g4.game_tracker_backend.aplicacao.biblioteca;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.biblioteca.JogandoAgora;
 import com.g4.game_tracker_backend.dominio.biblioteca.JogandoAgoraRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
-@Service
+@CasoDeUso
 public class MarcarJogandoAgora {
 
     private final JogandoAgoraRepositorio registros;
@@ -26,7 +25,7 @@ public class MarcarJogandoAgora {
         this.acesso = acesso;
     }
 
-    @Transactional
+    @Transacional
     public void executar(UUID jogoId, UUID substituirJogoId) {
         UUID usuarioId = acesso.usuarioAtualId();
         if (jogos.buscarPorId(jogoId).isEmpty()) {
@@ -38,8 +37,7 @@ public class MarcarJogandoAgora {
         // RN 1 e RN 2: no limite, exige escolher qual jogo substituir antes de gravar.
         if (registros.contarAtivos(usuarioId) >= JogandoAgora.LIMITE) {
             if (substituirJogoId == null) {
-                throw new RegraDeNegocioException("Você já tem " + JogandoAgora.LIMITE
-                        + " jogos em andamento. Escolha um para substituir ou remova um antes de continuar");
+                throw new RegraDeNegocioException("Remova ou substitua um jogo para continuar");
             }
             JogandoAgora substituido = registros.buscarAtivo(usuarioId, substituirJogoId).orElseThrow(
                     () -> new RegraDeNegocioException("O jogo a substituir não está entre os seus jogos em andamento"));

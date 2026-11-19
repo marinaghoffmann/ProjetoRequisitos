@@ -23,7 +23,10 @@ Imagens de capa podem ser enviadas por `POST /api/catalogo/imagens` como multipa
 Os formatos aceitos são PNG, JPG e WEBP, com limite de 5 MB; os arquivos são salvos em
 `backend/uploads/catalogo/` e servidos em `/uploads/catalogo/...`.
 O catálogo também oferece CRUD de jogos: `GET /api/catalogo/jogos/{id}`, `PUT /api/catalogo/jogos/{id}`
-e `DELETE /api/catalogo/jogos/{id}`. A exclusão desativa o jogo, preservando seus dados.
+e `DELETE /api/catalogo/jogos/{id}`. RN 3: sem vínculos em outros contextos (reviews, journal, listas, wishlist,
+conclusões, anúncios, pedidos, fórum, lançamentos, favoritos, jogos em andamento, similaridades) a exclusão é
+**definitiva**; com vínculos, é **lógica** (status `INATIVO`) e preserva os dados. A resposta traz
+`{ "id", "titulo", "exclusao": "DEFINITIVA" | "LOGICA" }`. Os vínculos chegam pela porta `VinculosDoJogo`.
 Desenvolvedores podem ser vinculados a uma desenvolvedora por `PATCH /api/usuarios/{id}/desenvolvedora`
 com `{ "desenvolvedoraId": "..." }`; o cadastro manual usa automaticamente esse vínculo.
 Para importar da Steam Store, não é necessária chave de API. Envie o título ou termo de busca em
@@ -469,7 +472,7 @@ casos de uso com um instante fixo. Frontend: a seção “Em breve” de `/inici
 | Método | Rota | Objetivo | Quem pode |
 |---|---|---|---|
 | `GET` | `/api/forum/topicos` | Tópicos paginados (`jogoId`, `categoria`, `apenasGerais=true`, `status`, `ordem=recentes|emAlta`, `pagina` a partir de 1, `tamanho` até 50) | qualquer um |
-| `GET` | `/api/forum/topicos/{id}` | Tópico com todas as respostas (o encadeamento vem em `respostaPaiId`) | qualquer um |
+| `GET` | `/api/forum/topicos/{id}` | Tópico com todas as respostas na ordem da conversa (padrão Iterator: cada resposta antes das filhas, irmãs por publicação), com `respostaPaiId` e o `nivel` de recuo | qualquer um |
 | `POST` | `/api/forum/topicos` | Criar tópico geral (`jogoId` nulo) ou de um jogo `ATIVO` do catálogo; nasce `ABERTO` | autenticado |
 | `PUT` | `/api/forum/topicos/{id}` | Editar título, mensagem e categoria (até 48 horas após a publicação) | autor |
 | `PATCH` | `/api/forum/topicos/{id}/status` | Marcar como `RESOLVIDO`, reabrir (`ABERTO`) ou encerrar (`ENCERRADO`) com `{ "status": "..." }` | autor |
@@ -489,14 +492,16 @@ casos de uso com um instante fixo. Frontend: a seção “Em breve” de `/inici
   com última atividade e ID para desempate. `status` aceita `ABERTO`, `RESOLVIDO` ou `ENCERRADO`. A categoria
   `Discussão geral` também inclui tópicos antigos salvos como `Geral`. A resposta da API traz `totalCurtidas`
   e `totalInteracoes` (respostas ativas + curtidas); no detalhe, cada resposta traz sua contagem e o estado
-  da curtida do usuário autenticado. Curtidas de respostas removidas são apagadas.
+  da curtida do usuário autenticado. Curtidas de respostas removidas pelo autor são apagadas; curtidas de conteúdo moderado saem dos totais públicos e voltam com a reversão.
 - `apenasGerais=true` seleciona tópicos sem jogo vinculado, independentemente da categoria. Pode ser combinado
   com `categoria`, mas não com `jogoId`; essa combinação retorna erro de regra de negócio.
+- O upload em `/api/forum/imagens` aceita PNG, JPG ou WEBP de até 5 MB. A assinatura e o tamanho são
+  validados por `ImagensDoForum` no domínio; `ArmazenarImagemForum` autentica e grava o arquivo.
 - Conteúdo de tópicos e respostas é Markdown com negrito, itálico, listas, código e links. As telas oferecem prévia;
   HTML bruto e imagens embutidas via Markdown não são renderizados. Imagens continuam no fluxo de anexos.
 - A exclusão de resposta é lógica: ela deixa de contar, volta sem conteúdo (`removida: true`) e continua na árvore
   para as respostas filhas não sumirem. Não é possível responder a uma resposta removida.
-- Toda resposta nova publica um `RespostaPublicada` pelo `ApplicationEventPublisher`, até o barramento da T04 existir.
+- Toda resposta nova publica um `RespostaPublicada` pela porta `PublicadorDeEventos`.
 - Frontend: `/forum` é a Comunidade, com editor na própria página, filtros por categoria, status e jogo,
   abas Recentes/Em alta e paginação de 5 tópicos. `/forum/{id}` traz cartões de autor, curtidas e respostas
   encadeadas com editor inline. `/forum/novo` e `/forum/{id}/editar` permanecem para compatibilidade.
@@ -504,11 +509,8 @@ casos de uso com um instante fixo. Frontend: a seção “Em breve” de `/inici
 - Cenários BDD em `f13_forum.feature`, com steps em `PassosForum`. Jogadores e jogos de apoio ficam em `DadosDoCenario`,
   compartilhado entre as classes de steps; o step `o jogador "<nome>" autenticado` agora fica em `PassosComuns`.
 
-Pendências conhecidas da F-13:
-
-- Ocultar, remover, encerrar, mover e denunciar tópicos e respostas ficam na central de moderação (F-14), descrita
-  no README. A listagem mostra o nome do jogo procurando no catálogo carregado pela tela; não há busca por
-  título do tópico.
+A moderação do fórum, as denúncias e os avisos 18+ são descritos na F-14 abaixo. A listagem ainda mostra
+  o nome do jogo procurando no catálogo carregado pela tela; não há busca por título do tópico.
 
 ## Listas personalizadas (F-04)
 
@@ -544,3 +546,86 @@ Pendências conhecidas da F-04:
 - Não há como reordenar os itens: a lista segue a ordem de inclusão.
 - A exclusão lógica de um jogo do catálogo (F-01) não mexe nas listas: o item continua, com o status do jogo na resposta.
 - Ainda não existe perfil público para ver as listas de outra pessoa; a API já oferece a rota pública.
+
+## Moderação da plataforma (F-14)
+
+A moderação cobre `TOPICO`, `RESPOSTA`, `REVIEW`, `LISTA`, `AVALIACAO_MARKETPLACE`, `ANUNCIO`, `PERFIL` e `JOURNAL`.
+Jogos do catálogo e lançamentos futuros seguem os fluxos de gestão próprios. Denúncias **não** ocultam conteúdo:
+a postagem permanece pública até um moderador decidir.
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `POST` | `/api/denuncias` | Denunciar com `{ "tipoConteudo", "conteudoId", "motivo" }`; repetir enquanto pendente devolve a mesma denúncia | autenticado |
+| `GET` | `/api/moderacao/denuncias?pagina=1&tamanho=10` | Fila pendente por data, paginada (até 50 por página) | `MODERADOR` ou `ADMINISTRADOR` |
+| `POST` | `/api/moderacao/denuncias/{id}/arquivar` | Marcar uma denúncia improcedente, com `{ "justificativa" }`, e registrar log | `MODERADOR` ou `ADMINISTRADOR` |
+| `POST` | `/api/moderacao/acoes` | Aplicar `{ "acao", "tipoConteudo", "conteudoId", "justificativa" }`; edição do fórum também usa `novoTitulo` e `novoConteudo`; movimentação de tópico usa `novaCategoria` e movimentação de resposta usa `novaRespostaPaiId` (nulo para a raiz) | `MODERADOR` ou `ADMINISTRADOR` |
+| `GET` | `/api/moderacao/logs?pagina=1&tamanho=10` | Histórico imutável e paginado das ações | `MODERADOR` ou `ADMINISTRADOR` |
+| `GET` | `/api/moderacao/conteudos/{tipo}/{id}/previa` | Prévia privada e ID do autor | `MODERADOR` ou `ADMINISTRADOR` |
+| `GET` | `/api/moderacao/conteudos/{tipo}/{id}/estado` | Estado do aviso 18+ e moderação para a interface | qualquer um |
+| `POST` | `/api/moderacao/advertencias` | Registrar `{ "usuarioId", "motivo" }` sem suspender a conta | `MODERADOR` ou `ADMINISTRADOR` |
+| `GET` | `/api/moderacao/usuarios/{id}/advertencias` e `/total` | Advertências e contagem do usuário | `MODERADOR` ou `ADMINISTRADOR` |
+
+Ações aceitas: `OCULTAR`, `EXCLUIR`, `MARCAR_18`, `RETIRAR_18`, `REVERTER_OCULTACAO` e
+`REVERTER_EXCLUSAO` para todos os tipos; `EDITAR` para tópicos e respostas; `MOVER` e
+`ENCERRAR_TOPICO` só para tópicos; `MOVER` reorganiza a categoria de um tópico ou o pai de uma resposta no mesmo tópico. `OCULTAR` e `EXCLUIR` exigem justificativa. Uma ação procedente
+resolve todas as denúncias pendentes do alvo. Cada decisão gera um registro novo em `moderacao_logs` e
+notificação interna ao autor; a reversão acrescenta outro registro. A advertência também notifica o usuário.
+O `FluxoAcaoModerativa` implementa Template Method: validar permissão e justificativa, aplicar a ação,
+registrar o log e notificar o autor, sempre na transação do caso de uso.
+
+A remoção moderativa do tópico mantém seu endereço e as respostas, mostra uma mensagem de sistema e encerra
+a conversa. Respostas removidas mantêm as filhas. Conteúdo oculto ou removido não aparece nas consultas
+públicas nem em seus agregados; URLs de mídias anexadas são bloqueadas, inclusive as antigas após edição
+do autor. Anúncios moderados não aceitam novas conversas, propostas ou compras diretas. Pedidos existentes
+continuam registrados. O estado de moderação é separado dos dados editáveis pelo autor.
+
+`MARCAR_18` aplica um aviso visual e desfoque ao texto e às imagens. Qualquer visitante pode revelar o
+item na sessão atual, sem verificação de idade e sem restrição de acesso à API. Na interface, “Denunciar”
+aparece nas áreas públicas cobertas e `/moderacao` oferece fila, prévia, decisão, histórico e contagem de
+advertências somente para moderadores e administradores. Os cenários BDD estão em
+`f14_moderacao.feature`, os testes de integração em `ModeracaoIntegracaoTest` e os das regras dos agregados em
+`ModeracaoDominioTest`.
+
+Entradas do journal (F-15) oculta ou removida saem do journal público do autor (inclusive da paginação) e
+deixam de aceitar edição e de servir imagens. O dono continua vendo a entrada, marcada como moderada; a removida
+mostra a mensagem de sistema pelo `ConteudoRemovidoDecorator`.
+
+Organização em camadas: os agregados `DenunciaConteudo` e `EstadoConteudo`, o `LogDeModeracao`, a `Advertencia`
+e as portas dos repositórios ficam em `dominio.moderacao`, sem framework. O caso de uso `GerenciarModeracao`
+(aplicação) aplica as regras pelos agregados e acessa o conteúdo dos outros contextos pela porta
+`ConteudosModeraveis`, implementada em SQL por `ConteudosModeraveisJdbc` (infraestrutura).
+
+## Wishlist (F-06)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/perfis/me/wishlist` | Wishlist do usuário, ordenada por prioridade (ALTA, MEDIA, BAIXA) e, na mesma prioridade, da mais recente | autenticado |
+| `GET` | `/api/perfis/{id}/wishlist` | Wishlist de outro jogador, na mesma ordem | qualquer um |
+| `POST` | `/api/perfis/me/wishlist` | Adicionar `{ "jogoId", "prioridade" }`; sem prioridade, vale `MEDIA` (RN 3) | autenticado |
+| `PATCH` | `/api/perfis/me/wishlist/{jogoId}` | Alterar a prioridade | autenticado |
+| `DELETE` | `/api/perfis/me/wishlist/{jogoId}` | Remover (idempotente) | autenticado |
+
+- RN 1: a wishlist nasce na primeira adição; o banco garante uma por usuário (a chave é o dono).
+- RN 2: jogo repetido é recusado com "Este jogo já está na sua wishlist".
+- Adicionar e remover publicam `MetricasDoJogoAlteradas`, e a ficha da F-17 recalcula a presença em wishlists.
+- Cenários BDD em `f06_wishlist.feature`, com steps em `PassosWishlist`.
+
+## Currently Playing (F-07)
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/biblioteca/jogando-agora` | Jogos em andamento do usuário, com progresso e `iniciadoEm` (data e hora, RN 3) | autenticado |
+| `GET` | `/api/perfis/{id}/jogando-agora` | Jogos em andamento de outro jogador, para o perfil público | qualquer um |
+| `POST` | `/api/biblioteca/jogando-agora` | Marcar `{ "jogoId", "substituirJogoId" }`; no 6º jogo sem `substituirJogoId`, recusa com "Remova ou substitua um jogo para continuar" (RN 1 e 2) | autenticado |
+| `PATCH` | `/api/biblioteca/jogando-agora/{jogoId}` | Alterar o progresso (`NO_INICIO`, `NA_METADE`, `PERTO_DO_FIM`) | autenticado |
+| `DELETE` | `/api/biblioteca/jogando-agora/{jogoId}` | Remover do destaque | autenticado |
+
+Cenários BDD em `f07_currently_playing.feature`, com steps em `PassosCurrentlyPlaying`.
+
+## Consultas das telas
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/estatisticas?visibilidade=TODOS\|PUBLICAS\|OCULTAS` | Fichas da F-17 de todos os jogos ativos (tela "Estatísticas da comunidade"). Nas ocultas, só seguem `totalReviewsAtivas` e `minimoDeReviews` (RN 3) | qualquer um |
+| `GET` | `/api/busca?termo=` | Busca global: até 12 jogos ativos e 8 listas pelo título. Termo com menos de 2 letras devolve listas vazias. Listas ocultas pela moderação ficam de fora; não há busca de pessoas | qualquer um |
+| `GET` | `/api/perfis/me/resumo` | Totais do menu: `emAndamento`, `naWishlist` e `jogosZerados` | autenticado |

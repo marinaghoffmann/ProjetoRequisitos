@@ -1,7 +1,15 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { DatePipe } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
+import { catchError, of } from 'rxjs';
 
-import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
+import { CatalogoService, Genero, Jogo } from '../../core/api/catalogo.service';
+import { EstatisticaComunidade, EstatisticasService } from '../../core/api/estatisticas.service';
+import { ForumService, ResumoTopico } from '../../core/api/forum.service';
+import { WishlistService } from '../../core/api/wishlist.service';
+import { VitrineService } from '../../core/catalogo/vitrine.service';
+import { formatarNota, juntarMeta, plataformasDe } from '../../shared/apresentacao-jogo';
+import { AvisosService } from '../../shared/ui/avisos.service';
 import { Lancamento, LancamentosService } from '../../core/api/lancamentos.service';
 import { ErroApi } from '../../core/http/erro-api';
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
@@ -37,7 +45,7 @@ const GRADIENTES = [
 
 @Component({
   selector: 'app-inicio-page',
-  imports: [RouterLink],
+  imports: [DatePipe, RouterLink],
   templateUrl: './inicio.page.html',
   styleUrl: './inicio.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,6 +54,19 @@ export class InicioPage implements OnInit, OnDestroy {
   private readonly catalogo = inject(CatalogoService);
   private readonly lancamentosApi = inject(LancamentosService);
   protected readonly autenticacao = inject(AutenticacaoService);
+  private readonly estatisticas = inject(EstatisticasService);
+  private readonly forum = inject(ForumService);
+  private readonly wishlist = inject(WishlistService);
+  private readonly vitrine = inject(VitrineService);
+  private readonly avisos = inject(AvisosService);
+  private readonly router = inject(Router);
+
+  /** Nota pública da F-17 (null abaixo de 3 avaliações) e jogos na wishlist do usuário. */
+  private readonly notas = signal<Map<string, number | null>>(new Map());
+  private readonly desejados = signal<Set<string>>(new Set());
+  private readonly generos = signal<Genero[]>([]);
+  /** "Da sua comunidade": os tópicos mais recentes do fórum (F-13). */
+  protected readonly atividades = signal<ResumoTopico[]>([]);
 
   // ===== Dados vindos da API (mesmo CatalogoService do catálogo) =====
   protected readonly carregando = signal(true);
@@ -77,8 +98,6 @@ export class InicioPage implements OnInit, OnDestroy {
   protected readonly erroLancamentos = signal<string | null>(null);
   private readonly agenda = signal<Lancamento[]>([]);
   protected readonly emBreve = computed(() => this.agenda().filter(l => l.status === 'FUTURO_LANCAMENTO').slice(0, 3));
-  protected readonly miniaturasLista = GRADIENTES.slice(0, 4);
-  protected readonly gradienteResenha = GRADIENTES[0];
 
   ngOnInit(): void {
     this.catalogo.listarJogos().subscribe({
@@ -93,6 +112,16 @@ export class InicioPage implements OnInit, OnDestroy {
         this.carregando.set(false);
       },
     });
+
+    this.estatisticas.comunidade('TODOS').pipe(catchError(() => of([] as EstatisticaComunidade[])))
+      .subscribe((fichas) => this.notas.set(new Map(fichas.map((f) => [f.jogoId, f.publica ? f.mediaGeral : null]))));
+    this.catalogo.listarGeneros().pipe(catchError(() => of([] as Genero[]))).subscribe((g) => this.generos.set(g));
+    this.forum.listar({ ordem: 'recentes', pagina: 1, tamanho: 3 }).pipe(catchError(() => of(null)))
+      .subscribe((pagina) => this.atividades.set(pagina?.itens ?? []));
+    if (this.autenticacao.usuarioAtual()) {
+      this.wishlist.listar().pipe(catchError(() => of([])))
+        .subscribe((itens) => this.desejados.set(new Set(itens.map((i) => i.jogoId))));
+    }
 
     this.lancamentosApi.listar().subscribe({
       next: lancamentos => { this.agenda.set(lancamentos); this.carregandoLancamentos.set(false); },
@@ -118,6 +147,49 @@ export class InicioPage implements OnInit, OnDestroy {
   protected capaLancamento(l: Lancamento): string {
     const capa = this.imagemUrl(l.capaUrl);
     return capa ? `url("${capa}") center / cover no-repeat` : 'var(--surface-3)';
+  }
+
+  protected nota(jogoId: string): string {
+    return formatarNota(this.notas().get(jogoId));
+  }
+
+  protected naWishlist(jogoId: string): boolean {
+    return this.desejados().has(jogoId);
+  }
+
+  protected alternarWishlist(jogoId: string, titulo: string): void {
+    if (!this.autenticacao.usuarioAtual()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.vitrine.alternarWishlist(jogoId, this.naWishlist(jogoId)).subscribe({
+      next: (agora) => {
+        this.desejados.update((atual) => {
+          const novo = new Set(atual);
+          if (agora) novo.add(jogoId); else novo.delete(jogoId);
+          return novo;
+        });
+        this.avisos.sucesso(agora ? `${titulo} entrou na sua wishlist` : `${titulo} saiu da sua wishlist`);
+      },
+      error: (e: ErroApi) => this.avisos.erro(e.mensagem),
+    });
+  }
+
+  protected tituloDoJogo(jogoId: string | null): string | null {
+    return jogoId ? (this.jogos().find((j) => j.id === jogoId)?.titulo ?? null) : null;
+  }
+
+  protected iniciais(nome: string | null): string {
+    return (nome ?? '?').split(/\s+/).slice(0, 2).map((p) => p.charAt(0)).join('').toUpperCase();
+  }
+
+  /** "Gênero · plataformas" do jogo do lançamento; sem cadastro, a data e o tipo. */
+  protected metaLancamento(l: Lancamento): string {
+    const jogo = this.jogos().find((j) => j.id === l.jogoId);
+    const nomes = new Map(this.generos().map((g) => [g.id, g.nome]));
+    const genero = jogo?.generosIds.map((id) => nomes.get(id)).find(Boolean);
+    const plataformas = jogo ? plataformasDe(jogo).join(', ') : '';
+    return juntarMeta(genero, plataformas) || (l.tipoData === 'ESTIMADA' ? 'Data estimada' : 'Data confirmada');
   }
 
   protected ir(i: number): void {

@@ -2,15 +2,14 @@ package com.g4.game_tracker_backend.aplicacao.wishlist;
 
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.IdentidadeAutenticada;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.wishlist.PrioridadeWishlist;
 import com.g4.game_tracker_backend.dominio.wishlist.WishlistRepositorio;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
-@Service
+@CasoDeUso
 public class AlterarPrioridadeNaWishlist {
 
     private final IdentidadeAutenticada identidade;
@@ -21,7 +20,7 @@ public class AlterarPrioridadeNaWishlist {
         this.wishlists = wishlists;
     }
 
-    @Transactional
+    @Transacional
     public void executar(UUID jogoId, PrioridadeWishlist prioridade) {
         var atual = wishlists.buscarPorDono(identidade.usuarioId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Este jogo não está na sua wishlist"));

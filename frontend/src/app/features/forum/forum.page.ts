@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
 import { ForumService, Pagina, ResumoTopico, STATUS_TOPICO, StatusTopico } from '../../core/api/forum.service';
@@ -36,7 +36,8 @@ export class ForumPage {
   protected readonly imagens = signal<string[]>([]);
   protected readonly anexando = signal(false);
   protected readonly tamanho = 5;
-  protected filtro = { jogoId: '', categoria: 'Todas', status: '' as StatusTopico | '', ordem: 'recentes' as 'recentes' | 'emAlta' };
+  /** ?jogo=<id> vem da aba "Fórum" do detalhe do jogo. */
+  protected filtro = { jogoId: inject(ActivatedRoute).snapshot.queryParamMap.get('jogo') ?? '', categoria: 'Todas', status: '' as StatusTopico | '', ordem: 'recentes' as 'recentes' | 'emAlta' };
   protected rascunho = { jogoId: '', categoria: 'Discussão geral', titulo: '', conteudo: '' };
   private readonly valorGerais = '__GERAIS__';
 
@@ -124,11 +125,5 @@ export class ForumPage {
   protected paginas(total: number, atual: number): number[] {
     const inicio = Math.max(1, Math.min(atual - 2, total - 4));
     return Array.from({ length: Math.min(total, 5) }, (_, indice) => inicio + indice);
-  }
-  protected inicioDaPagina(resultado: Pagina<ResumoTopico>): number {
-    return resultado.totalItens ? (resultado.pagina - 1) * resultado.tamanho + 1 : 0;
-  }
-  protected fimDaPagina(resultado: Pagina<ResumoTopico>): number {
-    return Math.min(resultado.pagina * resultado.tamanho, resultado.totalItens);
   }
 }

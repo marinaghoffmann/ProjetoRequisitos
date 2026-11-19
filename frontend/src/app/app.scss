@@ -1,4 +1,5 @@
 $largura-menu: 236px;
+$largura-trilho: 76px;
 
 .sidebar {
   position: fixed;
@@ -30,6 +31,7 @@ $largura-menu: 236px;
 }
 .marca__icone {
   display: grid;
+  flex: 0 0 auto;
   place-items: center;
   width: 30px;
   height: 30px;
@@ -41,8 +43,7 @@ $largura-menu: 236px;
 }
 
 .menu { display: flex; flex-direction: column; gap: 2px; }
-.menu a,
-.menu__item {
+.menu a {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -55,40 +56,18 @@ $largura-menu: 236px;
   &:hover { background: var(--surface); color: #fff; text-decoration: none; }
   &.ativo { background: var(--surface-2); color: #fff; box-shadow: inset 3px 0 var(--accent); }
 }
-.menu svg { flex: 0 0 auto; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-
 .menu__texto { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .menu__contador { color: var(--faint); font-size: 10px; font-weight: 700; }
 .menu__contador--destaque { display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--accent); color: #0a0d10; font-size: 10px; font-weight: 800; }
 .menu__ponto { flex: 0 0 auto; width: 8px; height: 8px; margin: 0 5px; border-radius: 50%; background: var(--success); }
-.menu__item, .menu a { color: #9aa4b2; }
-// Itens sem rota ainda: mais escuros e sem efeito de hover
-.menu .menu__item--breve {
-  color: #4a5361;
-  cursor: default;
-  &:hover { background: transparent; color: #4a5361; }
-  .menu__contador { color: #3a424e; }
-  .menu__contador--destaque { background: #3a4120; color: #7d8760; }
-}
-
 .menu__rotulo { margin: 18px 0 6px; padding: 0 12px; color: #4e5866; font-size: 9px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; }
 
-.conta { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line-soft); }
-.conta .botao { flex: 1 1 100%; }
-.conta__avatar { display: grid; flex: 0 0 auto; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(140deg, #6375ff, #ee5bc2); color: #fff; font-size: 11px; font-weight: 800; }
+// ===== Chip do usuário =====
+.conta { position: relative; display: flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line-soft); }
+.conta .conta__perfil { display: flex; flex: 1; align-items: center; gap: 10px; min-width: 0; padding: 4px; color: inherit; border-radius: 8px; &:hover { text-decoration: none; background: var(--surface); } }
+.conta__avatar { flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+.conta__avatar--inicial { display: grid; place-items: center; background: linear-gradient(140deg, #6375ff, #ee5bc2); color: #fff; font-size: 13px; font-weight: 800; text-transform: uppercase; }
 .conta__dados { display: flex; flex: 1; flex-direction: column; min-width: 0; font-size: 12px; strong, span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } span { color: var(--muted); font-size: 10px; } }
-.conta button { min-height: 2rem; padding: 0 0.7rem; background: transparent; color: var(--muted); border: 1px solid var(--line); }
-
-@media (max-width: 900px) {
-  .sidebar { position: static; width: auto; padding: 14px 16px; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; border-right: 0; border-bottom: 1px solid var(--line-soft); }
-  .marca { padding: 0; }
-  .menu { flex-direction: row; flex-wrap: wrap; order: 3; width: 100%; a { height: 36px; } }
-  .menu__rotulo { display: none; }
-  .conta { margin: 0 0 0 auto; padding: 0; border: 0; .botao { flex: 0 0 auto; } }
-  .principal { margin-left: 0; min-height: 0; }
-}
-
-// ===== Menu da conta (⋯) =====
 .conta .conta__mais { display: grid; place-items: center; flex: 0 0 auto; width: 30px; min-height: 30px; height: 30px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--muted); &:hover { background: var(--surface-2); color: var(--text); transform: none; filter: none; } svg { width: 18px; height: 18px; fill: currentColor; } }
 .conta__fundo { position: fixed; inset: 0; z-index: 40; }
 .conta__menu {
@@ -99,6 +78,7 @@ $largura-menu: 236px;
   z-index: 41;
   display: flex;
   flex-direction: column;
+  min-width: 190px;
   padding: 6px;
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -108,4 +88,74 @@ $largura-menu: 236px;
   .conta__sair { justify-content: flex-start; margin-top: 4px; border-top: 1px solid var(--line-soft); border-radius: 0 0 8px 8px; color: var(--danger); }
 }
 
-.conta .conta__perfil { display: flex; flex: 1; align-items: center; gap: 10px; min-width: 0; color: inherit; border-radius: 8px; &:hover { text-decoration: none; background: var(--surface); } }
+// ===== Barra superior fixa =====
+.topo {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 68px;
+  padding: 0 48px;
+  border-bottom: 1px solid var(--line-soft);
+  background: rgb(9 11 15 / 88%);
+  backdrop-filter: blur(12px);
+}
+.topo__busca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(420px, 100%);
+  height: 40px;
+  margin: 0;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--faint);
+  &:focus-within { border-color: var(--accent); }
+  input { min-height: 0; height: 100%; padding: 0; border: 0; background: transparent; font-size: 13px; &:focus { outline: none; } }
+  kbd { padding: 2px 6px; border: 1px solid var(--line); border-radius: 5px; color: var(--faint); font: 700 10px var(--font-body); white-space: nowrap; }
+}
+.topo__acoes { display: flex; flex: 0 0 auto; align-items: center; gap: 10px; }
+.topo__sino { position: relative; display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); &:hover { color: var(--text); text-decoration: none; } }
+.topo__ponto { position: absolute; top: 9px; right: 10px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--bg); }
+.topo__registrar { min-height: 40px; }
+
+// ===== Navegação inferior (celular) =====
+.inferior { display: none; }
+
+// Abaixo de 1000 px: o menu vira uma coluna de ícones.
+@media (max-width: 1000px) {
+  .sidebar { width: $largura-trilho; padding: 22px 12px; align-items: center; }
+  .principal { margin-left: $largura-trilho; }
+  .marca { padding: 0 0 18px; .marca__nome { display: none; } }
+  .menu { align-items: stretch; width: 100%; a { justify-content: center; padding: 0; } }
+  .menu__texto, .menu__rotulo { display: none; }
+  .menu a { position: relative; .menu__contador { position: absolute; top: 2px; right: 2px; } }
+  .menu__contador:not(.menu__contador--destaque) { display: none; }
+  .conta { flex-direction: column; .conta__dados { display: none; } .conta__perfil { flex: 0 0 auto; } }
+  .conta__menu { right: auto; left: calc(100% + 8px); bottom: 0; }
+  .topo { padding: 0 24px; }
+}
+
+// Abaixo de 700 px: o menu some e entra a barra inferior.
+@media (max-width: 700px) {
+  .sidebar { display: none; }
+  .principal { margin-left: 0; padding-bottom: 72px; }
+  .topo { height: 60px; padding: 0 16px; kbd { display: none; } }
+  .topo__registrar { width: 40px; padding: 0; font-size: 0; }
+  .inferior {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 30;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    height: 64px;
+    border-top: 1px solid var(--line-soft);
+    background: #0c0f13;
+    a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--muted); font-size: 10px; font-weight: 700; &:hover { text-decoration: none; } &.ativo { color: var(--accent); } }
+  }
+}

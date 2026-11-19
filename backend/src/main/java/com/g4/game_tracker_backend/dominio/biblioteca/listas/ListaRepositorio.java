@@ -14,6 +14,8 @@ public interface ListaRepositorio {
      * pontas. listaIgnorada (pode ser null) é a própria lista, na renomeação.
      */
     boolean existePorDonoETituloIgnorandoCaixa(UUID donoId, String titulo, UUID listaIgnorada);
+    /** Busca global: listas cujo título contém o termo, sem diferenciar caixa, das mais recentes. */
+    List<ListaPersonalizada> buscarPorTitulo(String termo, int limite);
     /** Exclusão física: a lista e os seus itens. */
     void remover(UUID id);
 }

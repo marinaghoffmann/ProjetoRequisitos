@@ -34,7 +34,7 @@ subpacote por contexto delimitado do modelo CML (`catalogo`, `avaliacao`, `bibli
 | Camada | Contém | Pode depender de |
 |---|---|---|
 | `dominio` | Entidades, objetos de valor, regras de negócio, eventos e **interfaces** de repositório. Java puro. | nada |
-| `aplicacao` | Casos de uso (um serviço por fluxo). Transação e eventos pelas portas `ExecutorDeTransacao` e `PublicadorDeEventos` (já assim na negociação e nos pedidos) | `dominio` |
+| `aplicacao` | Casos de uso (um por fluxo), sem Spring: marque a classe com `@CasoDeUso`, a transação com `@Transacional` (ou a porta `ExecutorDeTransacao`) e publique eventos pela porta `PublicadorDeEventos`. Um observador novo ganha um método em `infraestrutura/eventos/OuvintesDeEventosSpring` | `dominio` |
 | `infraestrutura` | Entidades JPA, repositórios Spring Data, mapeadores, clientes de API externa, configurações | `dominio`, `aplicacao` |
 | `apresentacao` | Controllers REST (`/api/...`) e DTOs (records) | `aplicacao`, `dominio` |
 
@@ -59,7 +59,8 @@ com a mensagem no campo `detail`, e o frontend mostra esse texto. Também existe
 ## Cenários BDD (Cucumber)
 
 1. Os cenários ficam em `backend/src/test/resources/features/`, em português (`# language: pt`).
-2. Funcionalidades com a tag `@pendente` não rodam. Ao começar a sua, **remova a tag** do topo do arquivo.
+2. Cenários com a tag `@pendente` não rodam. Hoje não há nenhum: use a tag só enquanto escreve os steps de um
+   cenário novo e tire-a antes de abrir o PR.
 3. Crie os steps em `backend/src/test/java/com/g4/game_tracker_backend/bdd/`, uma classe por funcionalidade
    (`PassosChatNegociacao`, `PassosReviews`...). Use `PassosInfraestrutura` como modelo.
 4. Nos steps `Quando`, chame o caso de uso por `contexto.executar(...)` ou `contexto.obter(...)`. Assim a

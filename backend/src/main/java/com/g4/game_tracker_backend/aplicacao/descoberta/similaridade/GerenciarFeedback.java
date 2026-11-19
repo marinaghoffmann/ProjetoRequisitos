@@ -3,9 +3,6 @@ package com.g4.game_tracker_backend.aplicacao.descoberta.similaridade;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
@@ -14,6 +11,8 @@ import com.g4.game_tracker_backend.dominio.descoberta.similaridade.FeedbackSuges
 import com.g4.game_tracker_backend.dominio.descoberta.similaridade.SimilaridadeJogo;
 import com.g4.game_tracker_backend.dominio.descoberta.similaridade.SimilaridadeRepositorio;
 import com.g4.game_tracker_backend.dominio.descoberta.similaridade.TipoFeedback;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /**
  * F-10 RN 2 (FeedbackSugestaoService do modelo): o usuário autenticado registra, edita ou remove o seu
@@ -23,7 +22,7 @@ import com.g4.game_tracker_backend.dominio.descoberta.similaridade.TipoFeedback;
  * agregado decide o rebaixamento (mais de 15 negativos). Assim, editar ou remover um feedback desfaz o
  * rebaixamento quando o total volta a 15 ou menos.
  */
-@Service
+@CasoDeUso
 public class GerenciarFeedback {
 
     private final SimilaridadeRepositorio similaridades;
@@ -37,7 +36,7 @@ public class GerenciarFeedback {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
+    @Transacional
     public SimilaridadeJogo registrar(UUID similaridadeId, TipoFeedback tipo) {
         UUID usuarioId = verificadorDeAcesso.usuarioAtualId();
         SimilaridadeJogo sugestao = Sugestoes.visivel(similaridades, similaridadeId);
@@ -48,7 +47,7 @@ public class GerenciarFeedback {
         return recontar(sugestao);
     }
 
-    @Transactional
+    @Transacional
     public SimilaridadeJogo editar(UUID similaridadeId, TipoFeedback novoTipo) {
         UUID usuarioId = verificadorDeAcesso.usuarioAtualId();
         SimilaridadeJogo sugestao = Sugestoes.visivel(similaridades, similaridadeId);
@@ -57,7 +56,7 @@ public class GerenciarFeedback {
         return recontar(sugestao);
     }
 
-    @Transactional
+    @Transacional
     public SimilaridadeJogo remover(UUID similaridadeId) {
         UUID usuarioId = verificadorDeAcesso.usuarioAtualId();
         SimilaridadeJogo sugestao = Sugestoes.visivel(similaridades, similaridadeId);

@@ -44,6 +44,45 @@ small { color: var(--muted); font-size: 0.8rem; }
 code { padding: 0.1rem 0.4rem; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+// ===== Larguras de página (protótipo) =====
+// Larga: gutter lateral de 48 px e topo de 48 px. Estreita: ~850 px centralizada (Journal, Timeline, Zerados,
+// Notificações, Tópico e Pedidos).
+.pagina { width: 100%; max-width: 1480px; margin: 0 auto; padding: 48px 48px 80px; }
+.pagina--estreita { max-width: calc(850px + 96px); }
+@media (max-width: 1000px) { .pagina { padding: 32px 24px 64px; } }
+@media (max-width: 700px) { .pagina { padding: 24px 16px 48px; } }
+
+// Navegação de volta, só nas páginas de detalhe ("← Voltar ao marketplace", "← Voltar à comunidade").
+.voltar-a { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 18px; color: var(--muted); font-size: 12px; font-weight: 700;
+  &:hover { color: var(--accent); text-decoration: none; } }
+
+// Linha de filtros com rótulo inline: "Origem [select]  Jogo [select]  De [data]".
+.linha-filtros {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin: 0 0 24px; padding: 0;
+  label { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; font-weight: 700; white-space: nowrap; }
+  input, select { width: auto; min-width: 120px; min-height: 34px; padding: 0 10px; font-size: 12px; }
+  input[type='date'] { min-width: 140px; }
+}
+.linha-filtros__fim { margin-left: auto; }
+
+// Chips cinza informativos (linhas da biblioteca, metadados).
+.chip-cinza { display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 6px; background: var(--surface-3);
+  color: #b9c1cc; font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+.chip-cinza--acento { background: rgb(217 255 67 / 12%); color: var(--accent); }
+
+// Grade de pôsteres: 5-6 colunas no desktop, 2 no celular.
+.grade-posters { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 28px 20px; }
+@media (max-width: 700px) { .grade-posters { grid-template-columns: repeat(2, 1fr); gap: 20px 14px; } }
+
+// Botões da biblioteca: contornado, ação em texto e "Excluir" com fundo vermelho translúcido.
+.botao-contorno, button.botao-contorno { min-height: 34px; padding: 0 14px; border: 1px solid var(--line); background: transparent; color: var(--text); font-size: 12px;
+  &:hover { border-color: var(--accent); color: var(--accent); filter: none; } }
+.botao-texto, button.botao-texto { min-height: 34px; padding: 0 6px; background: transparent; color: var(--muted); font-size: 12px;
+  &:hover { color: var(--text); filter: none; transform: none; } }
+.botao-excluir, button.botao-excluir { min-height: 34px; padding: 0 14px; background: rgb(255 92 108 / 12%); color: var(--danger); font-size: 12px;
+  &:hover { background: rgb(255 92 108 / 22%); filter: none; } }
+select.select-compacto { width: auto; min-height: 34px; padding: 0 10px; font-size: 12px; }
+
 // ===== Containers de página =====
 .pagina-listagem,
 .pagina-anuncio,
@@ -322,3 +361,4 @@ form > button[type='submit'] { margin-top: 0.5rem; min-height: 2.75rem; }
   p { margin: 0.6rem 0; }
   .markdown-forum { margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px solid var(--line-soft); color: var(--text); }
 }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

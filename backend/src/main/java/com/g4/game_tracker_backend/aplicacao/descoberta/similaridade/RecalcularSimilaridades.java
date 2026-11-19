@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.descoberta.similaridade.CalculoSimilaridade;
@@ -17,6 +14,8 @@ import com.g4.game_tracker_backend.dominio.descoberta.similaridade.PerfilJogo;
 import com.g4.game_tracker_backend.dominio.descoberta.similaridade.PerfilJogoGateway;
 import com.g4.game_tracker_backend.dominio.descoberta.similaridade.SimilaridadeJogo;
 import com.g4.game_tracker_backend.dominio.descoberta.similaridade.SimilaridadeRepositorio;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /**
  * F-10 (CalculoSimilaridadeService do modelo): compara o jogo com os demais jogos ATIVOS do catálogo,
@@ -28,7 +27,7 @@ import com.g4.game_tracker_backend.dominio.descoberta.similaridade.SimilaridadeR
  * Não está ligado ao cadastro de jogos da F-01: roda pelo endpoint de administrador ou sob demanda, na
  * primeira consulta de um jogo que ainda não tem similares calculados.
  */
-@Service
+@CasoDeUso
 public class RecalcularSimilaridades {
 
     private final CalculoSimilaridade calculo = CalculoSimilaridade.padrao();
@@ -44,14 +43,14 @@ public class RecalcularSimilaridades {
     }
 
     /** Recálculo pedido pelo administrador (POST .../similares/recalcular). */
-    @Transactional
+    @Transacional
     public List<SimilaridadeJogo> executarComoAdministrador(UUID jogoId) {
         Sugestoes.exigirAdministrador(verificadorDeAcesso);
         return recalcular(jogoId);
     }
 
     /** Recálculo do sistema: usado pela consulta sob demanda. Devolve as conexões visíveis do jogo. */
-    @Transactional
+    @Transacional
     public List<SimilaridadeJogo> recalcular(UUID jogoId) {
         PerfilJogo perfil = perfis.obterPerfil(jogoId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Jogo não encontrado"));

@@ -6,15 +6,15 @@ Funcionalidade: F-01 Importação, cadastramento manual e gerenciamento do catá
 
   # RN 1 - evitar duplicidade por API e vínculo de origem
   Cenário: Jogo importado da API é inserido quando o identificador externo é novo
-    Dado que não existe jogo com identificador externo "IGDB-1942" no catálogo
-    Quando o sistema importa o jogo "The Witcher 3" com identificador externo "IGDB-1942"
-    Então o catálogo deve conter 1 jogo com identificador externo "IGDB-1942"
+    Dado que não existe jogo com identificador externo "STEAM-292030" no catálogo
+    Quando o sistema importa o jogo "The Witcher 3" com identificador externo "STEAM-292030"
+    Então o catálogo deve conter 1 jogo com identificador externo "STEAM-292030"
     E a origem do jogo deve ser "API"
 
   Cenário: Jogo importado da API é atualizado quando o identificador externo já existe
-    Dado que existe o jogo "Witcher 3" com identificador externo "IGDB-1942" no catálogo
-    Quando o sistema importa o jogo "The Witcher 3: Wild Hunt" com identificador externo "IGDB-1942"
-    Então o catálogo deve conter 1 jogo com identificador externo "IGDB-1942"
+    Dado que existe o jogo "Witcher 3" com identificador externo "STEAM-292030" no catálogo
+    Quando o sistema importa o jogo "The Witcher 3: Wild Hunt" com identificador externo "STEAM-292030"
+    Então o catálogo deve conter 1 jogo com identificador externo "STEAM-292030"
     E o título do jogo deve ser "The Witcher 3: Wild Hunt"
 
   Cenário: Cadastro manual com título repetido na mesma desenvolvedora é recusado
@@ -46,8 +46,8 @@ Funcionalidade: F-01 Importação, cadastramento manual e gerenciamento do catá
     Então o perfil da desenvolvedora "Studio Recife" deve exibir a biografia "Estúdio indie pernambucano"
 
   # RN 3 - exclusão lógica e manutenção da integridade de vínculos
-  # Os dois cenários abaixo dependem de reviews (F-02), journal (F-15) e listas (F-04).
-  @pendente
+  # Com vínculos em outros contextos (reviews, journal, listas, wishlist...), a remoção é lógica;
+  # sem nenhum vínculo, é definitiva.
   Cenário: Administrador remove jogo com reviews vinculadas por exclusão lógica
     Dado um usuário com papel "ADMINISTRADOR"
     E que o jogo "Hollow Knight" possui 3 reviews
@@ -55,7 +55,6 @@ Funcionalidade: F-01 Importação, cadastramento manual e gerenciamento do catá
     Então o jogo "Hollow Knight" deve continuar no banco com status "INATIVO"
     E as 3 reviews do jogo devem ser preservadas
 
-  @pendente
   Cenário: Administrador remove jogo sem vínculos definitivamente
     Dado um usuário com papel "ADMINISTRADOR"
     E que o jogo "Jogo Teste" não possui reviews, entradas de journal nem itens de lista
@@ -64,9 +63,17 @@ Funcionalidade: F-01 Importação, cadastramento manual e gerenciamento do catá
 
   Cenário: Administrador desativa um jogo sem apagar seus dados
     Dado um usuário com papel "ADMINISTRADOR"
-    E que existe o jogo "Jogo Descontinuado" no catálogo
+    E que o jogo "Jogo Descontinuado" está na lista de um jogador
     Quando o administrador remove o jogo "Jogo Descontinuado"
     Então o jogo "Jogo Descontinuado" deve continuar no banco com status "INATIVO"
+    E a lista do jogador deve continuar com o jogo "Jogo Descontinuado"
+
+  Cenário: Administrador desativa uma desenvolvedora
+    Dado um usuário com papel "ADMINISTRADOR"
+    E que a desenvolvedora ativa "Estúdio Encerrado" tem o jogo "Último Lançamento" no catálogo
+    Quando o administrador desativa a desenvolvedora "Estúdio Encerrado"
+    Então a desenvolvedora "Estúdio Encerrado" deve continuar no banco como inativa
+    E o jogo "Último Lançamento" deve continuar ativo no catálogo
 
   Cenário: Usuário comum não remove jogos do catálogo
     Dado um usuário com papel "COMUM"

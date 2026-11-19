@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.biblioteca.listas.ListaPersonalizada;
 import com.g4.game_tracker_backend.dominio.biblioteca.listas.ListaRepositorio;
@@ -19,12 +16,14 @@ import com.g4.game_tracker_backend.dominio.identidade.Usuario;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
 import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
 import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /**
  * Consultas da F-04: as listas do usuário autenticado, as listas públicas de um usuário e uma lista com os
  * itens. Cada lista traz o total de jogos; os dados dos jogos (título e capa) vêm do catálogo.
  */
-@Service
+@CasoDeUso
 public class ConsultarListas {
 
     /** Título e capa do jogo de um item, como o catálogo os informa. */
@@ -46,12 +45,12 @@ public class ConsultarListas {
         this.moderacao = moderacao;
     }
 
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public List<ListaPersonalizada> minhas() {
         return listas.listarPorDono(verificadorDeAcesso.usuarioAtualId());
     }
 
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public List<ListaPersonalizada> doUsuario(UUID usuarioId) {
         if (usuarios.buscarPorId(usuarioId).filter(Usuario::ativo).isEmpty()) {
             throw new RecursoNaoEncontradoException("Usuário não encontrado");
@@ -59,12 +58,12 @@ public class ConsultarListas {
         return listas.listarPorDono(usuarioId);
     }
 
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public ListaPersonalizada buscar(UUID listaId) {
         return ListasDoUsuario.existente(listas, listaId);
     }
 
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public Map<UUID, JogoDaLista> jogosDosItens(Collection<ListaPersonalizada> consultadas) {
         Map<UUID, JogoDaLista> resultado = new HashMap<>();
         HashSet<UUID> ids = new HashSet<>();
@@ -76,7 +75,7 @@ public class ConsultarListas {
         return resultado;
     }
 
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public Map<UUID, String> nomesDosDonos(Collection<UUID> donoIds) {
         Map<UUID, String> nomes = new HashMap<>();
         for (UUID donoId : new HashSet<>(donoIds)) {

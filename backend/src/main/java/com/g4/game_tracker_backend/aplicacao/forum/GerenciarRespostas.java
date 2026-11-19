@@ -4,10 +4,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.forum.CurtidaForumRepositorio;
 import com.g4.game_tracker_backend.dominio.forum.RespostaForum;
@@ -16,23 +12,26 @@ import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForumRepositorio;
 import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
 import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
+import com.g4.game_tracker_backend.dominio.compartilhado.PublicadorDeEventos;
 
 /**
  * F-13: publicar, editar e excluir respostas. As regras (tópico encerrado, autor, prazo de 48 horas,
  * contador e última atividade) ficam no agregado TopicoDeForum. Cada resposta nova publica um
  * RespostaPublicada no contexto do Spring, até o barramento da T04 existir.
  */
-@Service
+@CasoDeUso
 public class GerenciarRespostas {
 
     private final TopicoDeForumRepositorio topicos;
     private final VerificadorDeAcesso verificadorDeAcesso;
     private final EstadoPublico moderacao;
-    private final ApplicationEventPublisher eventos;
+    private final PublicadorDeEventos eventos;
     private final CurtidaForumRepositorio curtidas;
 
     public GerenciarRespostas(TopicoDeForumRepositorio topicos, VerificadorDeAcesso verificadorDeAcesso,
-            ApplicationEventPublisher eventos, CurtidaForumRepositorio curtidas,
+            PublicadorDeEventos eventos, CurtidaForumRepositorio curtidas,
             EstadoPublico moderacao) {
         this.topicos = topicos;
         this.verificadorDeAcesso = verificadorDeAcesso;
@@ -41,12 +40,12 @@ public class GerenciarRespostas {
         this.moderacao = moderacao;
     }
 
-    @Transactional
+    @Transacional
     public RespostaForum responder(UUID topicoId, UUID respostaPaiId, String conteudo) {
         return responder(topicoId, respostaPaiId, conteudo, null);
     }
 
-    @Transactional
+    @Transacional
     public RespostaForum responder(UUID topicoId, UUID respostaPaiId, String conteudo, List<String> imagens) {
         TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, topicoId);
         moderacao.exigirAtivo(TipoConteudo.TOPICO,topicoId);
@@ -57,11 +56,11 @@ public class GerenciarRespostas {
                 imagens, Instant.now());
         topicos.salvar(atualizado);
         RespostaForum nova = atualizado.ultimaResposta();
-        eventos.publishEvent(new RespostaPublicada(topicoId, nova.id(), nova.autorId(), nova.publicadaEm()));
+        eventos.publicar(new RespostaPublicada(topicoId, nova.id(), nova.autorId(), nova.publicadaEm()));
         return nova;
     }
 
-    @Transactional
+    @Transacional
     public RespostaForum editar(UUID topicoId, UUID respostaId, String conteudo) {
         TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, topicoId);
         moderacao.exigirAtivo(TipoConteudo.TOPICO,topicoId);
@@ -71,7 +70,7 @@ public class GerenciarRespostas {
         return topicos.salvar(atualizado).resposta(respostaId);
     }
 
-    @Transactional
+    @Transacional
     public void excluir(UUID topicoId, UUID respostaId) {
         TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, topicoId);
         moderacao.exigirAtivo(TipoConteudo.TOPICO,topicoId);

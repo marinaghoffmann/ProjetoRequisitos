@@ -5,11 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.aplicacao.notificacao.DespacharNotificacao;
@@ -29,12 +24,14 @@ import com.g4.game_tracker_backend.dominio.moderacao.LogModeracaoRepositorio;
 import com.g4.game_tracker_backend.dominio.moderacao.TextoModerado;
 import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 import com.g4.game_tracker_backend.dominio.notificacao.TipoNotificacao;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /**
  * Central de moderação (F-14). Denunciar é aberto a qualquer usuário autenticado; as demais operações
  * exigem moderador ou administrador. Toda decisão gera um log e notifica o autor do conteúdo.
  */
-@Service
+@CasoDeUso
 public class GerenciarModeracao implements ModeracaoOperacoes {
 
     private static final int LIMITE_DA_JUSTIFICATIVA = 2000;
@@ -75,7 +72,7 @@ public class GerenciarModeracao implements ModeracaoOperacoes {
 
     /** Uma pendência por jogador e alvo: denunciar de novo devolve a denúncia já aberta. */
     @Override
-    @Transactional
+    @Transacional
     public Denuncia denunciar(TipoConteudo tipo, UUID id, String motivo) {
         UUID denunciante = acesso.usuarioAtualId();
         DenunciaConteudo nova = DenunciaConteudo.registrar(denunciante, tipo, id, motivo, Instant.now());
@@ -86,15 +83,15 @@ public class GerenciarModeracao implements ModeracaoOperacoes {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Page<Denuncia> fila(int pagina, int tamanho) {
+    @Transacional(somenteLeitura = true)
+    public Pagina<Denuncia> fila(int pagina, int tamanho) {
         exigirModerador();
         validarPagina(pagina, tamanho);
-        return paraPage(denuncias.filaDePendentes(pagina, tamanho).map(GerenciarModeracao::dto));
+        return denuncias.filaDePendentes(pagina, tamanho).map(GerenciarModeracao::dto);
     }
 
     @Override
-    @Transactional
+    @Transacional
     public Log arquivar(UUID denunciaId, String justificativa) {
         exigirModerador();
         DenunciaConteudo denuncia = denuncias.buscarPorId(denunciaId)
@@ -110,14 +107,14 @@ public class GerenciarModeracao implements ModeracaoOperacoes {
     // ---- Ações sobre o conteúdo ----
 
     @Override
-    @Transactional
+    @Transacional
     public Log agir(AcaoModeracao acao, TipoConteudo tipo, UUID id, String justificativa, String novoTitulo,
             String novoConteudo, String novaCategoria) {
         return agir(acao, tipo, id, justificativa, novoTitulo, novoConteudo, novaCategoria, null);
     }
 
     @Override
-    @Transactional
+    @Transacional
     public Log agir(AcaoModeracao acao, TipoConteudo tipo, UUID id, String justificativa, String novoTitulo,
             String novoConteudo, String novaCategoria, UUID novaRespostaPaiId) {
         return new AcaoSobreConteudo(acao, tipo, id, justificativa, novoTitulo, novoConteudo, novaCategoria,
@@ -312,7 +309,7 @@ public class GerenciarModeracao implements ModeracaoOperacoes {
     // ---- Advertências e auditoria ----
 
     @Override
-    @Transactional
+    @Transacional
     public Advertencia advertir(UUID usuarioId, String motivo) {
         exigirModerador();
         Instant agora = Instant.now();
@@ -330,25 +327,25 @@ public class GerenciarModeracao implements ModeracaoOperacoes {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public List<Advertencia> advertencias(UUID usuarioId) {
         exigirModerador();
         return advertencias.listarPorUsuario(usuarioId).stream().map(GerenciarModeracao::dto).toList();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public long totalAdvertencias(UUID usuarioId) {
         exigirModerador();
         return advertencias.contarPorUsuario(usuarioId);
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Page<Log> historico(int pagina, int tamanho) {
+    @Transacional(somenteLeitura = true)
+    public Pagina<Log> historico(int pagina, int tamanho) {
         exigirModerador();
         validarPagina(pagina, tamanho);
-        return paraPage(logs.historico(pagina, tamanho).map(GerenciarModeracao::dto));
+        return logs.historico(pagina, tamanho).map(GerenciarModeracao::dto);
     }
 
     // ---- Apoio ----
@@ -374,12 +371,6 @@ public class GerenciarModeracao implements ModeracaoOperacoes {
         if (pagina < 1 || tamanho < 1 || tamanho > 50) {
             throw new RegraDeNegocioException("Página ou tamanho inválido");
         }
-    }
-
-    /** A API da central já devolvia o formato de página do Spring; a conversão fica só aqui. */
-    private static <T> Page<T> paraPage(Pagina<T> pagina) {
-        return new PageImpl<>(pagina.itens(), PageRequest.of(pagina.pagina() - 1, pagina.tamanho()),
-                pagina.totalItens());
     }
 
     private static Denuncia dto(DenunciaConteudo d) {

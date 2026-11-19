@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +42,12 @@ public class ListaRepositorioPostgres implements ListaRepositorio {
     @Override
     public Optional<ListaPersonalizada> buscarPorId(UUID id) {
         return springData.findById(id).map(ListaPersonalizadaJpa::paraDominio);
+    }
+
+    @Override
+    public List<ListaPersonalizada> buscarPorTitulo(String termo, int limite) {
+        return springData.findByTituloContainingIgnoreCaseOrderByAtualizadaEmDesc(termo, PageRequest.of(0, limite))
+                .stream().map(ListaPersonalizadaJpa::paraDominio).toList();
     }
 
     @Override

@@ -1,9 +1,4 @@
 // Botões, etiquetas, status e mensagens vêm do tema global (styles.scss).
-.pagina-detalhe-anuncio {
-  width: min(1080px, calc(100% - 2rem));
-  margin: 0 auto;
-  padding: 3rem 0 5rem;
-}
 
 .detalhe-anuncio {
   display: grid;
@@ -111,3 +106,15 @@
     grid-template-columns: 1fr;
   }
 }
+
+.eyebrow { margin: 0; color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; }
+.aceita { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; color: var(--muted); font-size: 12px; }
+.vendedor { display: flex; align-items: center; gap: 10px; margin: 6px 0; padding: 10px 12px; border: 1px solid var(--line-soft); border-radius: 12px;
+  color: var(--text); &:hover { border-color: var(--line); text-decoration: none; } }
+.vendedor__avatar { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(140deg, #6375ff, #ee5bc2);
+  color: #fff; font-weight: 800; text-transform: uppercase; }
+.vendedor__dados { display: flex; flex-direction: column; small { color: var(--accent); font-weight: 700; } }
+.protecao { display: flex; gap: 12px; margin: 14px 0; padding: 14px; border: 1px solid rgb(217 255 67 / 25%); border-radius: 12px;
+  background: rgb(217 255 67 / 5%); color: var(--accent);
+  p { margin: 0; color: var(--muted); font-size: 12px; } strong { display: block; color: var(--text); } }
+.acoes-compra { display: grid; gap: 8px; button { width: 100%; min-height: 44px; } .escuro { background: var(--surface-3); color: var(--text); } }

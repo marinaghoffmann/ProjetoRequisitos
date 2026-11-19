@@ -2,16 +2,15 @@ package com.g4.game_tracker_backend.aplicacao.identidade;
 
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.identidade.ArmazenamentoDeImagem;
 import com.g4.game_tracker_backend.dominio.identidade.Usuario;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /** O usuário autenticado troca a própria foto de perfil ou o banner. */
-@Service
+@CasoDeUso
 public class AtualizarImagemPerfil {
 
     public enum Tipo { AVATAR, BANNER }
@@ -27,7 +26,7 @@ public class AtualizarImagemPerfil {
         this.armazenamento = armazenamento;
     }
 
-    @Transactional
+    @Transacional
     public Usuario executar(Tipo tipo, byte[] conteudo, String extensao) {
         UUID id = verificadorDeAcesso.usuarioAtualId();
         Usuario atual = usuarios.buscarPorId(id)

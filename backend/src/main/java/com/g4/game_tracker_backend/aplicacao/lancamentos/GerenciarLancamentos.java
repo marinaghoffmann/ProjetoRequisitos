@@ -2,15 +2,15 @@ package com.g4.game_tracker_backend.aplicacao.lancamentos;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import com.g4.game_tracker_backend.aplicacao.catalogo.SalvarJogoComEvento;
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.catalogo.*;
 import com.g4.game_tracker_backend.dominio.compartilhado.*;
 import com.g4.game_tracker_backend.dominio.identidade.*;
 import com.g4.game_tracker_backend.dominio.lancamentos.*;
-@Service
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
+@CasoDeUso
 public class GerenciarLancamentos {
     private final LancamentoRepositorio lancamentos;
     private final InteresseLancamentoRepositorio interesses;
@@ -28,11 +28,11 @@ public class GerenciarLancamentos {
         this.usuarios=usuarios;this.acesso=acesso;this.salvarJogo=salvarJogo;
         this.gestaoInteresses=gestaoInteresses;
     }
-    @Transactional
+    @Transacional
     public LancamentoFuturo cadastrar(UUID jogoId,LocalDate data) {
         return cadastrar(jogoId,data,TipoDataLancamento.CONFIRMADA);
     }
-    @Transactional
+    @Transacional
     public LancamentoFuturo cadastrar(UUID jogoId,LocalDate data,TipoDataLancamento tipoData) {
         Jogo jogo=jogoAutorizado(jogoId);
         Instant agora=Instant.now();
@@ -44,11 +44,11 @@ public class GerenciarLancamentos {
         salvarJogo.atualizarData(jogo.id(),data);
         return l;
     }
-    @Transactional
+    @Transacional
     public LancamentoFuturo alterarData(UUID id,LocalDate data) {
         return alterarData(id,data,null);
     }
-    @Transactional
+    @Transacional
     public LancamentoFuturo alterarData(UUID id,LocalDate data,TipoDataLancamento tipoData) {
         LancamentoFuturo l=buscar(id);
         jogoAutorizado(l.jogoId());
@@ -63,7 +63,7 @@ public class GerenciarLancamentos {
         if (!l.dataPrevista().equals(data)) salvarJogo.atualizarData(l.jogoId(),data);
         return buscar(id);
     }
-    @Transactional
+    @Transacional
     public void excluir(UUID id) {
         LancamentoFuturo l=buscar(id);
         jogoAutorizado(l.jogoId());

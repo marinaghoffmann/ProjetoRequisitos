@@ -2,14 +2,14 @@ package com.g4.game_tracker_backend.aplicacao.lancamentos;
 import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionTemplate;
 import com.g4.game_tracker_backend.aplicacao.notificacao.DespacharNotificacao;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.StatusCatalogo;
 import com.g4.game_tracker_backend.dominio.lancamentos.*;
 import com.g4.game_tracker_backend.dominio.notificacao.TipoNotificacao;
-@Service
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.ExecutorDeTransacao;
+@CasoDeUso
 public class ProcessarLancamentos {
     private static final Logger LOG=LoggerFactory.getLogger(ProcessarLancamentos.class);
     private final LancamentoRepositorio lancamentos;
@@ -17,10 +17,10 @@ public class ProcessarLancamentos {
     private final AlertaLancamentoRepositorio alertas;
     private final JogoRepositorio jogos;
     private final DespacharNotificacao notificacoes;
-    private final TransactionTemplate transacao;
+    private final ExecutorDeTransacao transacao;
     public ProcessarLancamentos(LancamentoRepositorio lancamentos,InteresseLancamentoRepositorio interesses,
             AlertaLancamentoRepositorio alertas,JogoRepositorio jogos,DespacharNotificacao notificacoes,
-            TransactionTemplate transacao) {
+            ExecutorDeTransacao transacao) {
         this.lancamentos=lancamentos;this.interesses=interesses;this.alertas=alertas;
         this.jogos=jogos;this.notificacoes=notificacoes;this.transacao=transacao;
     }
@@ -29,7 +29,7 @@ public class ProcessarLancamentos {
         for (LancamentoFuturo l:lancamentos.listarVencidos(DatasLancamentos.hoje(agora))) {
             if (l.tipoData()==TipoDataLancamento.ESTIMADA) continue;
             try {
-                transacao.executeWithoutResult(s->{
+                transacao.executarSemRetorno(()->{
                     lancamentos.buscar(l.id()).filter(a->a.status()==StatusLancamento.FUTURO_LANCAMENTO
                             && a.tipoData()==TipoDataLancamento.CONFIRMADA)
                             .ifPresent(a->lancamentos.salvar(a.lancar()));
@@ -45,7 +45,7 @@ public class ProcessarLancamentos {
         int total=0;
         for (NotificacaoLancamento candidato:alertas.vencidos(agora)) {
             try {
-                Boolean enviada=transacao.execute(s->{
+                Boolean enviada=transacao.executar(()->{
                     NotificacaoLancamento a=alertas.buscar(candidato.id()).orElse(null);
                     if (a==null || a.enviada()) return false;
                     InteresseEmLancamento i=interesses.buscarPorId(a.interesseId()).orElse(null);

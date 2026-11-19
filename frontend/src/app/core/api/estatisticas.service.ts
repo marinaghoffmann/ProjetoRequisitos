@@ -24,11 +24,33 @@ export interface EstatisticaJogo {
   atualizadaEm: string | null;
 }
 
+export type VisibilidadeEstatistica = 'TODOS' | 'PUBLICAS' | 'OCULTAS';
+
+/** Linha da tabela "Estatísticas da comunidade". Ficha oculta (RN 3): os indicadores vêm null. */
+export interface EstatisticaComunidade {
+  jogoId: string;
+  titulo: string;
+  capaUrl: string | null;
+  generos: string[];
+  publica: boolean;
+  totalReviewsAtivas: number;
+  minimoDeReviews: number;
+  mediaGeral: number | null;
+  totalConclusoes: number | null;
+  totalEmWishlists: number | null;
+  totalNegociacoes: number | null;
+  atualizadaEm: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class EstatisticasService {
   private readonly http = inject(HttpClient);
 
   consultar(jogoId: string): Observable<EstatisticaJogo> {
     return this.http.get<EstatisticaJogo>(`/api/catalogo/jogos/${jogoId}/estatisticas`);
+  }
+
+  comunidade(visibilidade: VisibilidadeEstatistica = 'TODOS'): Observable<EstatisticaComunidade[]> {
+    return this.http.get<EstatisticaComunidade[]>('/api/estatisticas', { params: { visibilidade } });
   }
 }

@@ -8,10 +8,12 @@ import { finalize } from 'rxjs';
 import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
 import { ConclusoesService, RegistroZeradoNaBiblioteca } from '../../core/api/conclusoes.service';
 import { ErroApi } from '../../core/http/erro-api';
+import { gradientePara } from '../../shared/apresentacao-jogo';
+import { CabecalhoPaginaComponent } from '../../shared/ui/cabecalho-pagina.component';
 
 @Component({
   selector: 'app-zerados',
-  imports: [DatePipe, DecimalPipe, ReactiveFormsModule, RouterLink],
+  imports: [DatePipe, DecimalPipe, ReactiveFormsModule, RouterLink, CabecalhoPaginaComponent],
   templateUrl: './zerados.page.html',
   styleUrl: './zerados.page.scss',
 })
@@ -42,6 +44,17 @@ export class ZeradosPage {
     concluido: new FormControl(true, { nonNullable: true }),
     platina: new FormControl(false, { nonNullable: true }),
   });
+
+  /** "N conclusões em M jogos". */
+  protected readonly subtitulo = computed(() => {
+    const total = this.registros()?.length ?? 0;
+    const jogos = this.porJogo().size;
+    return `${total} ${total === 1 ? 'conclusão' : 'conclusões'} em ${jogos} ${jogos === 1 ? 'jogo' : 'jogos'}`;
+  });
+
+  protected gradiente(jogoId: string): string {
+    return gradientePara(jogoId);
+  }
 
   protected readonly porJogo = computed(() => {
     const grupos = new Map<string, RegistroZeradoNaBiblioteca[]>();

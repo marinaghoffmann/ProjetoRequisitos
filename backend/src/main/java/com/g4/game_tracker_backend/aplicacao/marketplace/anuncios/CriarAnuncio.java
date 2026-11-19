@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.catalogo.Jogo;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
@@ -19,9 +16,11 @@ import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketpla
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.EstadoConservacao;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.MidiaJogo;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.TipoNegociacao;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /** F-18 RN 1: qualquer usuário autenticado anuncia um jogo ATIVO do catálogo, com ao menos 1 foto. */
-@Service
+@CasoDeUso
 public class CriarAnuncio {
 
     private final AnuncioMarketplaceRepositorio anuncios;
@@ -35,7 +34,7 @@ public class CriarAnuncio {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
+    @Transacional
     public AnuncioMarketplace executar(UUID jogoId, String titulo, EstadoConservacao estado, BigDecimal preco,
             TipoNegociacao tipoNegociacao, MidiaJogo midia, String localidade, List<String> fotos) {
         UUID vendedorId = verificadorDeAcesso.usuarioAtualId();

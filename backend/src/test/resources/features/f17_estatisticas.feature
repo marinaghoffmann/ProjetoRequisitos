@@ -44,3 +44,13 @@ Funcionalidade: F-17 Engine de agregação de estatísticas e métricas da comun
     Dado que o jogo "Hades" possui 3 reviews ativas
     Quando o usuário consulta a ficha de estatísticas de "Hades"
     Então as estatísticas públicas devem ser exibidas
+
+  # RN 3 também na tabela "Estatísticas da comunidade"
+  Cenário: Tabela da comunidade separa fichas públicas e ocultas
+    Dado que o jogo "Celeste" possui 3 reviews ativas
+    E que o jogo "Tunic" possui 1 reviews ativas
+    Quando o usuário consulta as estatísticas da comunidade com visibilidade "PUBLICAS"
+    Então a tabela deve trazer "Celeste" com os indicadores
+    E a tabela não deve trazer "Tunic"
+    Quando o usuário consulta as estatísticas da comunidade com visibilidade "OCULTAS"
+    Então a tabela deve trazer "Tunic" sem os indicadores
