@@ -1,15 +1,10 @@
-<main class="pagina-timeline">
-  <header class="cabecalho">
-    <div>
-      <a class="voltar" routerLink="/">← Game Tracker</a>
-      <h1>Minha timeline</h1>
-      <p>Suas anotações e o que você fez na plataforma, em ordem cronológica.</p>
-    </div>
-    <a class="botao" routerLink="/journal">Escrever no Journal</a>
-  </header>
+<main class="pagina pagina--estreita pagina-timeline">
+  <gt-cabecalho-pagina titulo="Minha timeline" subtitulo="Suas anotações e o que você fez na plataforma, em ordem cronológica.">
+    <a acao class="botao" routerLink="/journal">Escrever no Journal</a>
+  </gt-cabecalho-pagina>
 
   @if (carregando()) {
-    <p class="estado">Carregando a timeline…</p>
+    <gt-carregando tipo="linhas" [quantidade]="3" />
   } @else if (erro(); as mensagem) {
     <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
   } @else if (pagina(); as resultado) {

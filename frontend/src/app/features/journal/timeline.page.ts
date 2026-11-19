@@ -7,9 +7,12 @@ import { EVENTOS_PLATAFORMA, EntradaTimeline, JournalService } from '../../core/
 import { ErroApi } from '../../core/http/erro-api';
 
 /** Timeline unificada do jogador (F-16): entradas manuais e automáticas, da mais recente para a mais antiga. */
+import { CabecalhoPaginaComponent } from '../../shared/ui/cabecalho-pagina.component';
+import { CarregandoComponent } from '../../shared/ui/estados.component';
+
 @Component({
   selector: 'app-timeline',
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, RouterLink, CabecalhoPaginaComponent, CarregandoComponent],
   templateUrl: './timeline.page.html',
   styleUrl: './timeline.page.scss',
 })

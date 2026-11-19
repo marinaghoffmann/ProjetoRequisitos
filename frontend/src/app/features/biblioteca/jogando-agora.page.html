@@ -1,30 +1,28 @@
-<main class="pagina">
-  <h1>Jogando agora</h1>
-  <p class="contagem">{{ jogos().length }} de {{ limite }} jogos</p>
+<main class="pagina pagina--estreita">
+  <gt-cabecalho-pagina titulo="Em andamento" [subtitulo]="subtitulo()" />
 
-  @if (erro(); as m) { <p class="erro" role="alert">{{ m }}</p> }
-
-  @if (!jogos().length) {
-  <p>Você não marcou nenhum jogo. <a routerLink="/catalogo">Ir ao catálogo</a></p>
+  @if (carregando()) {
+    <gt-carregando tipo="linhas" [quantidade]="3" />
+  } @else if (erro(); as mensagem) {
+    <gt-erro [mensagem]="mensagem" />
+  } @else if (!jogos().length) {
+    <gt-estado-vazio icone="jogos" titulo="Nenhum jogo em andamento"
+      texto="Marque até 5 jogos como &quot;Jogando agora&quot; na página de cada jogo." ctaRotulo="Ver jogos" ctaRota="/catalogo" />
   } @else {
-  <section class="lista">
-    @for (j of jogos(); track j.jogoId) {
-    <article class="item">
-      @if (j.capaUrl) { <img [src]="j.capaUrl" [alt]="'Capa de ' + j.titulo" /> }
-      <div class="dados">
-        <a [routerLink]="['/catalogo', j.jogoId]">{{ j.titulo }}</a>
-        <small>Desde {{ j.iniciadoEm | date: 'dd/MM/yyyy' }}</small>
-        <div class="controles">
-          <select (change)="alterar(j.jogoId, $any($event.target).value)">
-            @for (p of progressos; track p) {
-            <option [value]="p" [selected]="p === j.progresso">{{ rotulos[p] }}</option>
-            }
-          </select>
-          <button type="button" (click)="remover(j.jogoId)">Concluí / remover</button>
-        </div>
-      </div>
-    </article>
-    }
-  </section>
+    <section class="lista" aria-label="Jogos em andamento">
+      @for (j of jogos(); track j.jogoId) {
+        <gt-linha-biblioteca [jogoId]="j.jogoId" [titulo]="j.titulo" [capaUrl]="j.capaUrl"
+          [meta]="(meta(j.jogoId) ? meta(j.jogoId) + ' · ' : '') + 'iniciado em ' + (j.iniciadoEm | date: &quot;dd 'de' MMM, HH:mm&quot;)">
+          <ng-container acoes>
+            <label class="sr-only" [attr.for]="'progresso-' + j.jogoId">Progresso de {{ j.titulo }}</label>
+            <select class="select-compacto" [id]="'progresso-' + j.jogoId" [ngModel]="j.progresso" (ngModelChange)="alterar(j, $event)">
+              @for (p of progressos; track p) { <option [value]="p">{{ rotulos[p] }}</option> }
+            </select>
+            <button type="button" class="botao-contorno" (click)="remover(j, true)">✓ Concluir</button>
+            <button type="button" class="botao-texto" (click)="remover(j, false)">Remover</button>
+          </ng-container>
+        </gt-linha-biblioteca>
+      }
+    </section>
   }
 </main>
