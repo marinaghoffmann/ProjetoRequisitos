@@ -1,6 +1,5 @@
 import { Component, HostListener, computed, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { DatePipe } from '@angular/common';
 
 import { CatalogoService, Captura, Desenvolvedora, Genero, Jogo } from '../../core/api/catalogo.service';
 import {
@@ -9,6 +8,8 @@ import {
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { PerfilPublicoService } from '../../core/api/perfil-publico.service';
 import { ItemWishlist, WishlistService } from '../../core/api/wishlist.service';
+import { EstatisticaJogo, EstatisticasService } from '../../core/api/estatisticas.service';
+import { formatarNota, juntarMeta, plataformasDe } from '../../shared/apresentacao-jogo';
 import { ErroApi } from '../../core/http/erro-api';
 import { AdicionarAListaComponent } from './adicionar-a-lista.component';
 import { ConclusoesJogoComponent } from './conclusoes-jogo.component';
@@ -21,7 +22,7 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
 @Component({
   selector: 'app-detalhe-jogo',
   imports: [
-    RouterLink, DatePipe, EstatisticasJogoComponent, ReviewsJogoComponent, AdicionarAListaComponent,
+    RouterLink, EstatisticasJogoComponent, ReviewsJogoComponent, AdicionarAListaComponent,
     SimilaresJogoComponent, ConclusoesJogoComponent,
   ],
   template: `
@@ -31,7 +32,6 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
     }
 
     <div class="conteudo">
-      <a class="voltar" routerLink="/catalogo">← Catálogo</a>
 
       @if (erro()) {
         <p role="alert">{{ erro() }}</p>
@@ -42,11 +42,7 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
           </div>
 
           <div class="info">
-            <p class="meta">
-              @if (desenvolvedora(); as dev) { {{ dev }} }
-              @if (desenvolvedora() && ano()) { <span class="meta__sep">·</span> }
-              @if (ano(); as a) { {{ a }} }
-            </p>
+            @if (eyebrow()) { <p class="eyebrow">{{ eyebrow() }}</p> }
 
             <h1 class="titulo">
               @if (logo(); as l) {
@@ -56,33 +52,43 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
               }
             </h1>
 
-            @if (generoNomes().length) {
-              <ul class="chips">
-                @for (g of generoNomes(); track g) { <li>{{ g }}</li> }
-              </ul>
-            }
+            <p class="meta">
+              @if (ano(); as a) { {{ a }} }
+              @if (desenvolvedora() && ano()) { <span class="meta__sep">·</span> }
+              @if (desenvolvedora(); as dev) { {{ dev }} }
+            </p>
 
             <p class="resumo">{{ j.resumo }}</p>
+
+            <div class="nota-bloco">
+              <strong class="nota-bloco__valor">{{ notaGeral() }}</strong>
+              <span class="nota-bloco__estrelas" aria-hidden="true">
+                @for (n of [1, 2, 3, 4, 5]; track n) { <span [class.cheia]="n <= estrelasCheias()">★</span> }
+              </span>
+              <span class="nota-bloco__total">
+                {{ ficha()?.totalReviewsAtivas ?? 0 }} {{ ficha()?.totalReviewsAtivas === 1 ? 'avaliação' : 'avaliações' }}
+                @if (ficha() && !ficha()!.elegivel) { · nota a partir de {{ ficha()!.minimoDeReviews }} }
+              </span>
+            </div>
 
             <div class="acoes">
               @if (autenticacao.usuarioAtual()) {
                 @if (atual(); as a) {
-                  <select [value]="a.progresso" (change)="alterar(j.id, $any($event.target).value)">
+                  <button type="button" class="primario" (click)="remover(j.id)" title="Tirar do destaque">✓ Em andamento</button>
+                  <select class="select-compacto progresso" aria-label="Progresso" [value]="a.progresso" (change)="alterar(j.id, $any($event.target).value)">
                     @for (p of progressos; track p) {
                       <option [value]="p">{{ rotulos[p] }}</option>
                     }
                   </select>
-                  <button type="button" (click)="remover(j.id)">Parar de jogar</button>
                 } @else {
-                  <button type="button" class="primario" (click)="marcar(j.id)">Jogando agora</button>
+                  <button type="button" class="primario" (click)="marcar(j.id)">Jogar agora</button>
                 }
               } @else {
                 <a routerLink="/login" class="primario">Entre para marcar</a>
               }
-              @if (autenticacao.usuarioAtual()) { <app-adicionar-a-lista [jogoId]="j.id" /> }
               @if (autenticacao.usuarioAtual()) {
-                <button type="button" [disabled]="salvandoWishlist()" (click)="alternarWishlist(j.id)">
-                  {{ wishlistIds().includes(j.id) ? 'Na wishlist' : 'Adicionar à wishlist' }}
+                <button type="button" [disabled]="salvandoWishlist()" [attr.aria-pressed]="wishlistIds().includes(j.id)" (click)="alternarWishlist(j.id)">
+                  {{ wishlistIds().includes(j.id) ? '♥ Na wishlist' : '♡ Wishlist' }}
                 </button>
               }
               @if (autenticacao.usuarioAtual()) {
@@ -90,9 +96,10 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
               }
               @if (autenticacao.usuarioAtual()) {
                 <button type="button" [disabled]="salvandoFavorito()" (click)="alternarFavorito(j.id)">
-                  {{ favoritosIds().includes(j.id) ? 'Remover dos favoritos' : 'Favoritar' }}
+                  {{ favoritosIds().includes(j.id) ? '★ Favorito' : '☆ Favoritar' }}
                 </button>
               }
+              @if (autenticacao.usuarioAtual()) { <app-adicionar-a-lista [jogoId]="j.id" /> }
               @if (autenticacao.temPapel('ADMINISTRADOR', 'DESENVOLVEDOR')) {
                 <a [routerLink]="['/catalogo', j.id, 'editar']">Editar</a>
               }
@@ -117,11 +124,12 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
           </div>
         </section>
 
-        <nav class="abas">
+        <nav class="abas" aria-label="Seções do jogo">
           <button type="button" [class.ativa]="aba() === 'geral'" (click)="irParaAba('geral')">Visão geral</button>
           <button type="button" [class.ativa]="aba() === 'reviews'" (click)="irParaAba('reviews')">Reviews</button>
-          <span>Journal</span>
-          <span>Listas</span><span>Fórum</span>
+          @if (autenticacao.usuarioAtual()) { <a routerLink="/journal">Journal</a> }
+          @if (autenticacao.usuarioAtual()) { <a routerLink="/biblioteca/listas">Listas</a> }
+          <a routerLink="/forum" [queryParams]="{ jogo: j.id }">Fórum</a>
         </nav>
 
         @if (capturas().length) {
@@ -141,12 +149,6 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
 
         <section class="grade">
           <div class="principal">
-            @if (j.resumo) {
-              <section class="painel">
-                <h2>Sobre o jogo</h2>
-                <p class="sobre">{{ j.resumo }}</p>
-              </section>
-            }
             @if (autenticacao.usuarioAtual()) {
               <section class="painel">
                 <app-conclusoes-jogo [jogoId]="j.id" (alterado)="estatisticas.recarregar()" />
@@ -158,20 +160,6 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
           </div>
 
           <div class="lateral">
-            <section class="painel ficha">
-              <h2>Ficha técnica</h2>
-              <dl>
-                @if (j.dataLancamento) {
-                  <div><dt>Lançamento</dt><dd>{{ j.dataLancamento | date: 'dd/MM/yyyy' }}</dd></div>
-                }
-                @if (desenvolvedora(); as dev) {
-                  <div><dt>Desenvolvedora</dt><dd>{{ dev }}</dd></div>
-                }
-                @if (generoNomes().length) {
-                  <div><dt>Gêneros</dt><dd>{{ generoNomes().join(', ') }}</dd></div>
-                }
-              </dl>
-            </section>
             <app-estatisticas-jogo #estatisticas [jogoId]="j.id" />
           </div>
         </section>
@@ -232,6 +220,16 @@ export class DetalheJogoPage {
     return this.generos().filter((g) => ids.includes(g.id)).map((g) => g.nome);
   });
 
+  /** Ficha da F-17 para o bloco de nota do topo; sem 3 avaliações a média não aparece (RN 3). */
+  protected readonly ficha = signal<EstatisticaJogo | null>(null);
+  protected readonly notaGeral = computed(() => formatarNota(this.ficha()?.elegivel ? this.ficha()!.mediaGeral : null));
+  protected readonly estrelasCheias = computed(() => Math.round(this.ficha()?.elegivel ? (this.ficha()!.mediaGeral ?? 0) : 0));
+  /** "GÊNERO · PLATAFORMAS". */
+  protected readonly eyebrow = computed(() => {
+    const j = this.jogo();
+    return j ? juntarMeta(this.generoNomes().join(', '), plataformasDe(j).join(', ')) : '';
+  });
+
   protected readonly desenvolvedora = computed(() => {
     const id = this.jogo()?.desenvolvedoraId;
     return this.desenvolvedoras().find((d) => d.id === id)?.nome ?? null;
@@ -248,6 +246,7 @@ export class DetalheJogoPage {
 
   constructor() {
     const id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
+    inject(EstatisticasService).consultar(id).subscribe({ next: (f) => this.ficha.set(f), error: () => {} });
 
     this.catalogo.buscarJogo(id).subscribe({
       next: (j) => {

@@ -120,24 +120,6 @@ $line: var(--line, #262630);
   }
 }
 
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 0 0 14px;
-  padding: 0;
-  list-style: none;
-
-  li {
-    padding: 4px 10px;
-    border: 1px solid rgb(255 255 255 / 18%);
-    border-radius: 999px;
-    background: rgb(255 255 255 / 6%);
-    font-size: 11px;
-    font-weight: 600;
-  }
-}
-
 .resumo {
   max-width: 640px;
   margin: 0;
@@ -184,17 +166,24 @@ $line: var(--line, #262630);
 
 .erro { margin: 10px 0 0; color: #ff7b7b; font-size: 13px; }
 
-// ===== Abas =====
+// ===== Abas sublinhadas =====
 .abas {
   display: flex;
-  gap: 20px;
+  gap: 26px;
   border-bottom: 1px solid $line;
-  padding-bottom: 8px;
   font-size: 13px;
-  opacity: .9;
-
-  .ativa { color: $accent; border-bottom: 2px solid $accent; padding-bottom: 6px; }
+  font-weight: 700;
+  a, button { padding: 0 0 10px; border-bottom: 2px solid transparent; color: var(--muted); }
+  a:hover { color: var(--text); text-decoration: none; }
+  .ativa { color: var(--text); border-bottom-color: $accent; }
 }
+
+// ===== Eyebrow e bloco de nota do topo =====
+.eyebrow { margin: 0 0 10px; color: $accent; font-size: 10px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; }
+.nota-bloco { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin: 6px 0 18px; }
+.nota-bloco__valor { font: 700 38px var(--font-title); }
+.nota-bloco__estrelas { color: var(--faint); letter-spacing: 2px; .cheia { color: $accent; } }
+.nota-bloco__total { color: var(--muted); font-size: 12px; }
 
 // ===== Galeria =====
 .galeria {
@@ -263,19 +252,9 @@ $line: var(--line, #262630);
   p { margin: 0; }
 }
 
-.sobre { color: #cfd6de; font-size: 14px; line-height: 1.7; }
 
 .vazio { opacity: .85; }
 
-.ficha dl { display: grid; gap: 12px; margin: 0; }
-.ficha dl > div { display: grid; gap: 2px; }
-.ficha dt {
-  color: var(--muted, #8b93a1);
-  font-size: 11px;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-}
-.ficha dd { margin: 0; font-size: 14px; }
 
 .carregando { margin-top: 120px; text-align: center; opacity: .7; }
 
@@ -334,13 +313,12 @@ $line: var(--line, #262630);
   .fundo { height: 460px; }
 }
 
-// F-02: as abas que já funcionam são botões, com o mesmo visual dos rótulos
 .abas button {
   min-height: auto;
-  padding: 0;
+  border-radius: 0;
   background: transparent;
-  color: inherit;
   font: inherit;
-  font-weight: 400;
-  &:hover { transform: none; color: $accent; }
+  &:hover { transform: none; filter: none; color: var(--text); }
 }
+
+.acoes .progresso { flex: 0 0 auto; width: auto; min-height: 44px; }

@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
 import { ForumService, Pagina, ResumoTopico, STATUS_TOPICO, StatusTopico } from '../../core/api/forum.service';
@@ -36,7 +36,8 @@ export class ForumPage {
   protected readonly imagens = signal<string[]>([]);
   protected readonly anexando = signal(false);
   protected readonly tamanho = 5;
-  protected filtro = { jogoId: '', categoria: 'Todas', status: '' as StatusTopico | '', ordem: 'recentes' as 'recentes' | 'emAlta' };
+  /** ?jogo=<id> vem da aba "Fórum" do detalhe do jogo. */
+  protected filtro = { jogoId: inject(ActivatedRoute).snapshot.queryParamMap.get('jogo') ?? '', categoria: 'Todas', status: '' as StatusTopico | '', ordem: 'recentes' as 'recentes' | 'emAlta' };
   protected rascunho = { jogoId: '', categoria: 'Discussão geral', titulo: '', conteudo: '' };
   private readonly valorGerais = '__GERAIS__';
 
