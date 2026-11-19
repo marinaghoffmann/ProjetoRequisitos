@@ -1,98 +1,82 @@
-<main class="pagina-listagem">
-  <header class="cabecalho">
-    <div>
-      <a class="voltar" routerLink="/">← Game Tracker</a>
-      <h1>Marketplace</h1>
-      <p>Compre ou troque jogos físicos e digitais anunciados pela comunidade.</p>
+<main class="pagina">
+  <section class="hero">
+    <div class="hero__textos">
+      <p class="hero__eyebrow">Compra e venda entre players</p>
+      <h1>Dê uma nova vida aos seus jogos.</h1>
+      <p class="hero__subtitulo">Anuncie, negocie no chat e receba com pagamento protegido: o valor fica em custódia até a entrega.</p>
+      <a class="botao" [routerLink]="autenticacao.usuarioAtual() ? '/marketplace/novo' : '/login'">+ Criar anúncio</a>
     </div>
-    @if (autenticacao.usuarioAtual()) {
-      <div class="acoes-cabecalho">
-        <a class="botao botao--secundario" routerLink="/marketplace/meus">Meus anúncios</a>
-        <a class="botao" routerLink="/marketplace/novo">Anunciar jogo</a>
-      </div>
-    } @else {
-      <a class="botao" routerLink="/login">Entrar para anunciar</a>
-    }
-  </header>
+    <aside class="hero__protecao">
+      <span class="hero__escudo"><gt-icone nome="escudo" [tamanho]="22" /></span>
+      <strong>Compra protegida</strong>
+      <p>O pagamento só é liberado ao vendedor depois que você confirma a entrega, ou ao fim do prazo de tolerância após o envio.</p>
+    </aside>
+  </section>
 
-  <form class="filtros" (ngSubmit)="pesquisar()">
-    <label>
-      Jogo
-      <select name="jogoId" [(ngModel)]="filtro.jogoId">
-        <option value="">Todos os jogos</option>
-        @for (jogo of jogos(); track jogo.id) {
-          <option [value]="jogo.id">{{ jogo.titulo }}</option>
-        }
+  <div class="barra">
+    <span class="chip-ativo">Jogos</span>
+    @if (autenticacao.usuarioAtual()) { <a class="barra__link" routerLink="/marketplace/pedidos">Meus pedidos <gt-icone nome="chevron" [tamanho]="14" /></a> }
+  </div>
+
+  <h2 class="titulo-secao">Anúncios da comunidade</h2>
+  <form class="linha-filtros" (submit)="$event.preventDefault()" aria-label="Filtros dos anúncios">
+    <label>Jogo
+      <select name="jogoId" [(ngModel)]="filtro.jogoId" (ngModelChange)="filtrar()">
+        <option value="">Todos</option>
+        @for (jogo of jogos(); track jogo.id) { <option [value]="jogo.id">{{ jogo.titulo }}</option> }
       </select>
     </label>
-    <label>
-      Título do anúncio
-      <input name="titulo" type="search" [(ngModel)]="filtro.titulo" placeholder="Ex.: edição de colecionador" />
-    </label>
-    <label>
-      Preço mínimo (R$)
-      <input name="precoMinimo" type="number" min="0" step="0.01" [(ngModel)]="filtro.precoMinimo" />
-    </label>
-    <label>
-      Preço máximo (R$)
-      <input name="precoMaximo" type="number" min="0" step="0.01" [(ngModel)]="filtro.precoMaximo" />
-    </label>
-    <label>
-      Estado de conservação
-      <select name="estado" [(ngModel)]="filtro.estado">
-        <option value="">Qualquer estado</option>
-        @for (estado of chaves(estados); track estado) {
-          <option [value]="estado">{{ estados[estado] }}</option>
-        }
+    <label>Preço de <input name="precoMinimo" type="number" min="0" step="0.01" placeholder="R$" [(ngModel)]="filtro.precoMinimo" (ngModelChange)="filtrar()" /></label>
+    <label>até <input name="precoMaximo" type="number" min="0" step="0.01" placeholder="R$" [(ngModel)]="filtro.precoMaximo" (ngModelChange)="filtrar()" /></label>
+    <label>Estado
+      <select name="estado" [(ngModel)]="filtro.estado" (ngModelChange)="filtrar()">
+        <option value="">Qualquer</option>
+        @for (estado of chaves(estados); track estado) { <option [value]="estado">{{ estados[estado] }}</option> }
       </select>
     </label>
-    <label>
-      Negociação
-      <select name="tipoNegociacao" [(ngModel)]="filtro.tipoNegociacao">
+    <label>Tipo
+      <select name="tipoNegociacao" [(ngModel)]="filtro.tipoNegociacao" (ngModelChange)="filtrar()">
         <option value="">Venda ou troca</option>
         <option value="VENDA">Venda</option>
         <option value="TROCA">Troca</option>
       </select>
     </label>
-    <label>
-      Região
-      <input name="regiao" type="search" [(ngModel)]="filtro.regiao" placeholder="Ex.: Recife" />
-    </label>
-    <div class="filtros__botoes">
-      <button type="submit">Buscar</button>
-      <button class="botao--secundario" type="button" (click)="limpar()">Limpar</button>
-    </div>
+    <label>Região <input name="regiao" type="search" placeholder="Ex.: Recife" [(ngModel)]="filtro.regiao" (ngModelChange)="filtrar()" /></label>
+    <label>Título <input name="titulo" type="search" placeholder="Ex.: colecionador" [(ngModel)]="filtro.titulo" (ngModelChange)="filtrar()" /></label>
   </form>
 
   @if (carregando()) {
-    <p class="estado">Carregando anúncios…</p>
+    <gt-carregando tipo="cards" [quantidade]="8" />
   } @else if (erro(); as mensagem) {
-    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+    <gt-erro [mensagem]="mensagem" />
   } @else if (!anuncios().length) {
-    <p class="estado">Nenhum anúncio encontrado.</p>
+    <gt-estado-vazio icone="marketplace" titulo="Nenhum anúncio encontrado" texto="Ajuste os filtros ou anuncie um jogo da sua coleção." />
   } @else {
-    <p class="quantidade">{{ anuncios().length }} anúncio(s) encontrado(s)</p>
-    <section class="grade" aria-label="Anúncios do marketplace">
+    <section class="anuncios" aria-label="Anúncios do marketplace">
       @for (anuncio of anuncios(); track anuncio.id) {
-        <article class="card">
-          @if (anuncio.fotos.length && imagemUrl(anuncio.fotos[0])) {
-            <img class="card__capa" [src]="imagemUrl(anuncio.fotos[0])" [alt]="'Foto de ' + anuncio.titulo" />
-          } @else {
-            <div class="card__sem-capa" aria-label="Anúncio sem foto">GT</div>
-          }
-          <div class="card__conteudo">
-            <h2><a class="card__titulo" [routerLink]="['/marketplace', anuncio.id]">{{ anuncio.titulo }}</a></h2>
-            <p class="preco">{{ anuncio.preco | currency: 'BRL' }}</p>
-            <p class="etiquetas">
-              <span class="etiqueta">{{ rotuloEstado(anuncio.estado) }}</span>
-              <span class="etiqueta">{{ rotuloTipo(anuncio.tipoNegociacao) }}</span>
-              <span class="etiqueta">{{ midias[anuncio.midia] }}</span>
-              @if (anuncio.status === 'EM_NEGOCIACAO') {
-                <span class="etiqueta etiqueta--alerta">Em negociação</span>
-              }
-            </p>
-            <p class="detalhe">{{ anuncio.localidade }}</p>
-            <a class="detalhe" [routerLink]="['/marketplace/vendedores', anuncio.vendedorId]">Ver reputação do vendedor</a>
+        <article class="anuncio">
+          <a class="anuncio__foto" [routerLink]="['/marketplace', anuncio.id]" [style.background]="foto(anuncio) ? null : fundo(anuncio)"
+            [attr.aria-label]="anuncio.titulo">
+            @if (foto(anuncio); as url) { <img [src]="url" [alt]="'Foto de ' + anuncio.titulo" loading="lazy" /> }
+            <span class="anuncio__estado">{{ rotuloEstado(anuncio.estado) }}</span>
+            @if (anuncio.status === 'EM_NEGOCIACAO') { <span class="anuncio__negociacao">Em negociação</span> }
+          </a>
+          <a class="anuncio__titulo" [routerLink]="['/marketplace', anuncio.id]">{{ anuncio.titulo }}</a>
+          <p class="anuncio__preco">{{ anuncio.preco | currency: 'BRL' }}</p>
+          <p class="anuncio__meta">
+            {{ rotuloTipo(anuncio.tipoNegociacao) }} · {{ anuncio.localidade }}
+            @if (vendedores().get(anuncio.vendedorId); as nome) {
+              · por <a [routerLink]="['/marketplace/vendedores', anuncio.vendedorId]">&#64;{{ nome }}</a>
+            }
+          </p>
+          <div class="anuncio__acoes">
+            @if (!meu(anuncio) && anuncio.status === 'ATIVO') {
+              <button type="button" class="botao-texto" (click)="conversar(anuncio)">Conversar</button>
+            }
+            @if (meu(anuncio)) { <a class="botao-texto" [routerLink]="['/marketplace', anuncio.id, 'editar']">Editar anúncio</a> }
+            @if (podeComprar(anuncio)) {
+              <button type="button" class="anuncio__comprar" (click)="comprar(anuncio)">Comprar</button>
+            }
           </div>
         </article>
       }

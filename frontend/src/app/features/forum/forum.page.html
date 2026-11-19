@@ -102,7 +102,6 @@
               }
             </ul>
             <nav class="paginacao" aria-label="Paginação">
-              <span>Mostrando {{ inicioDaPagina(resultado) }}–{{ fimDaPagina(resultado) }} de {{ resultado.totalItens }}</span>
               <div class="paginacao__botoes">
                 <button type="button" [disabled]="resultado.pagina <= 1" (click)="carregar(resultado.pagina - 1)" aria-label="Página anterior">‹</button>
                 @for (numero of paginas(resultado.totalPaginas, resultado.pagina); track numero) {

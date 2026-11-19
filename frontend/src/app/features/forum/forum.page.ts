@@ -125,10 +125,4 @@ export class ForumPage {
     const inicio = Math.max(1, Math.min(atual - 2, total - 4));
     return Array.from({ length: Math.min(total, 5) }, (_, indice) => inicio + indice);
   }
-  protected inicioDaPagina(resultado: Pagina<ResumoTopico>): number {
-    return resultado.totalItens ? (resultado.pagina - 1) * resultado.tamanho + 1 : 0;
-  }
-  protected fimDaPagina(resultado: Pagina<ResumoTopico>): number {
-    return Math.min(resultado.pagina * resultado.tamanho, resultado.totalItens);
-  }
 }
