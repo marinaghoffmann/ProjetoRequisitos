@@ -4,10 +4,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.MetricasDoJogoAlteradas;
 import com.g4.game_tracker_backend.dominio.avaliacao.reviews.NotaInformada;
@@ -16,6 +12,9 @@ import com.g4.game_tracker_backend.dominio.avaliacao.reviews.ReviewJaPublicadaEx
 import com.g4.game_tracker_backend.dominio.avaliacao.reviews.ReviewRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.journal.eventos.ReviewPublicada;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
+import com.g4.game_tracker_backend.dominio.compartilhado.PublicadorDeEventos;
 
 /**
  * F-02: o usuário autenticado publica a review de um jogo ATIVO do catálogo.
@@ -26,23 +25,23 @@ import com.g4.game_tracker_backend.dominio.journal.eventos.ReviewPublicada;
  * Dentro da transação publica ReviewPublicada (F-16, entrada automática do journal, que sofre rollback
  * junto) e MetricasDoJogoAlteradas (F-17, recalculada depois do commit).
  */
-@Service
+@CasoDeUso
 public class PublicarReview {
 
     private final ReviewRepositorio reviews;
     private final JogoRepositorio jogos;
     private final VerificadorDeAcesso verificadorDeAcesso;
-    private final ApplicationEventPublisher eventos;
+    private final PublicadorDeEventos eventos;
 
     public PublicarReview(ReviewRepositorio reviews, JogoRepositorio jogos, VerificadorDeAcesso verificadorDeAcesso,
-            ApplicationEventPublisher eventos) {
+            PublicadorDeEventos eventos) {
         this.reviews = reviews;
         this.jogos = jogos;
         this.verificadorDeAcesso = verificadorDeAcesso;
         this.eventos = eventos;
     }
 
-    @Transactional
+    @Transacional
     public Review executar(UUID jogoId, Integer notaGeral, List<NotaInformada> notasPorCategoria, String texto) {
         UUID autorId = verificadorDeAcesso.usuarioAtualId();
         JogosAvaliaveis.exigirAtivo(jogos, jogoId);
@@ -52,8 +51,8 @@ public class PublicarReview {
 
         Review review = reviews.salvar(Review.publicar(autorId, jogoId, notaGeral, notasPorCategoria, texto,
                 Instant.now()));
-        eventos.publishEvent(new ReviewPublicada(autorId, jogoId, review.id().toString(), review.criadaEm()));
-        eventos.publishEvent(new MetricasDoJogoAlteradas(jogoId));
+        eventos.publicar(new ReviewPublicada(autorId, jogoId, review.id().toString(), review.criadaEm()));
+        eventos.publicar(new MetricasDoJogoAlteradas(jogoId));
         return review;
     }
 }

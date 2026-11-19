@@ -1,14 +1,13 @@
 package com.g4.game_tracker_backend.aplicacao.identidade;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.identidade.Papel;
 import com.g4.game_tracker_backend.dominio.identidade.Usuario;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
-@Service
+@CasoDeUso
 public class CadastrarUsuarioPrivilegiado {
 
     private final RegistrarUsuario registrarUsuario;
@@ -22,7 +21,7 @@ public class CadastrarUsuarioPrivilegiado {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
+    @Transacional
     public Usuario executar(String nome, String email, String senha, Papel papel) {
         verificadorDeAcesso.exigirPapel(Papel.ADMINISTRADOR);
         if (papel != Papel.ADMINISTRADOR && papel != Papel.DESENVOLVEDOR) {

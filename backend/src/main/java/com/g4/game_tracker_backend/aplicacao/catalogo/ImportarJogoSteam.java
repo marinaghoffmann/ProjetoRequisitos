@@ -3,9 +3,6 @@ package com.g4.game_tracker_backend.aplicacao.catalogo;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.catalogo.Desenvolvedora;
 import com.g4.game_tracker_backend.dominio.catalogo.DesenvolvedoraRepositorio;
@@ -14,8 +11,10 @@ import com.g4.game_tracker_backend.dominio.catalogo.GeneroRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.Jogo;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.identidade.Papel;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
-@Service
+@CasoDeUso
 public class ImportarJogoSteam {
 
     private final ImportadorJogoExterno importador;
@@ -36,7 +35,7 @@ public class ImportarJogoSteam {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
+    @Transacional
     public Jogo executar(String termo) {
         verificadorDeAcesso.exigirPapel(Papel.ADMINISTRADOR);
         var dados = importador.buscar(termo);

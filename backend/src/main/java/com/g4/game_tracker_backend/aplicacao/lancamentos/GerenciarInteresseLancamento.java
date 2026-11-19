@@ -2,15 +2,15 @@ package com.g4.game_tracker_backend.aplicacao.lancamentos;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.StatusCatalogo;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.lancamentos.*;
-@Service
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
+@CasoDeUso
 public class GerenciarInteresseLancamento {
     private final LancamentoRepositorio lancamentos;
     private final InteresseLancamentoRepositorio interesses;
@@ -21,7 +21,7 @@ public class GerenciarInteresseLancamento {
             AlertaLancamentoRepositorio alertas,VerificadorDeAcesso acesso,JogoRepositorio jogos) {
         this.lancamentos=lancamentos;this.interesses=interesses;this.alertas=alertas;this.acesso=acesso;this.jogos=jogos;
     }
-    @Transactional
+    @Transacional
     public void marcar(UUID lancamentoId) {
         LancamentoFuturo l=futuro(lancamentoId);
         UUID usuario=acesso.usuarioAtualId();
@@ -35,7 +35,7 @@ public class GerenciarInteresseLancamento {
         if (l.tipoData()==TipoDataLancamento.CONFIRMADA && alertas.pendentePorInteresse(i.id()).isEmpty())
             agendar(i,l.dataPrevista(),agora);
     }
-    @Transactional
+    @Transacional
     public void desmarcar(UUID lancamentoId) {
         LancamentoFuturo l=lancamentos.buscar(lancamentoId)
                 .orElseThrow(()->new RecursoNaoEncontradoException("Lançamento não encontrado"));
@@ -44,7 +44,7 @@ public class GerenciarInteresseLancamento {
             alertas.cancelarPendentes(i.id());
         });
     }
-    @Transactional
+    @Transacional
     public void reagendar(UUID jogoId,LocalDate novaData,Instant agora) {
         boolean confirmada=lancamentos.buscarPorJogo(jogoId)
                 .map(l->l.tipoData()==TipoDataLancamento.CONFIRMADA).orElse(false);
@@ -53,7 +53,7 @@ public class GerenciarInteresseLancamento {
             if (confirmada && novaData.isAfter(DatasLancamentos.hoje(agora))) agendar(i,novaData,agora);
         }
     }
-    @Transactional
+    @Transacional
     public void cancelarTodos(UUID jogoId) {
         for (InteresseEmLancamento i: interesses.todosPorJogo(jogoId)) alertas.cancelarPendentes(i.id());
     }

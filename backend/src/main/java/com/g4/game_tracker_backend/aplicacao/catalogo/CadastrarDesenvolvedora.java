@@ -2,16 +2,15 @@ package com.g4.game_tracker_backend.aplicacao.catalogo;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.catalogo.Desenvolvedora;
 import com.g4.game_tracker_backend.dominio.catalogo.DesenvolvedoraRepositorio;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.identidade.Papel;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
-@Service
+@CasoDeUso
 public class CadastrarDesenvolvedora {
 
     private final DesenvolvedoraRepositorio desenvolvedoras;
@@ -23,7 +22,7 @@ public class CadastrarDesenvolvedora {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
+    @Transacional
     public Desenvolvedora executar(String nome, String biografia, String site, String redesSociais, String pais) {
         verificadorDeAcesso.exigirPapel(Papel.ADMINISTRADOR);
         if (nome != null && desenvolvedoras.buscarPorNome(nome).isPresent()) {
@@ -32,7 +31,7 @@ public class CadastrarDesenvolvedora {
         return desenvolvedoras.salvar(Desenvolvedora.criar(nome, biografia, site, redesSociais, pais));
     }
 
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public List<Desenvolvedora> listar() {
         return desenvolvedoras.listar();
     }

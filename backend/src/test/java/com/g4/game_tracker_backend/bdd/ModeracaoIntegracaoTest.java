@@ -41,7 +41,7 @@ class ModeracaoIntegracaoTest {
   assertEquals(primeira.id(),moderacao.denunciar(TipoConteudo.RESPOSTA,resposta,"Ofensa").id());
   assertThrows(AcessoNegadoException.class,()->moderacao.fila(1,10));
   SessaoDeTeste.autenticarComo(mod);
-  assertTrue(moderacao.fila(1,50).getContent().stream().anyMatch(d->d.id().equals(primeira.id())));
+  assertTrue(moderacao.fila(1,50).itens().stream().anyMatch(d->d.id().equals(primeira.id())));
   assertEquals("A justificativa é obrigatória",assertThrows(RuntimeException.class,()->moderacao.agir(AcaoModeracao.EXCLUIR,TipoConteudo.RESPOSTA,resposta,"",null,null,null)).getMessage());
   var log=moderacao.agir(AcaoModeracao.EXCLUIR,TipoConteudo.RESPOSTA,resposta,"Spam",null,null,null);
   assertFalse(estados.visivel(TipoConteudo.RESPOSTA,resposta));
@@ -52,7 +52,7 @@ class ModeracaoIntegracaoTest {
   moderacao.agir(AcaoModeracao.REVERTER_EXCLUSAO,TipoConteudo.RESPOSTA,resposta,"Decisão revista",null,null,null);
   assertTrue(estados.visivel(TipoConteudo.RESPOSTA,resposta));
   assertEquals(2,jdbc.queryForObject("select total_respostas from forum_topicos where id = ?",Integer.class,topicoId));
-  assertTrue(moderacao.historico(1,50).getContent().stream().anyMatch(l->l.id().equals(log.id())));
+  assertTrue(moderacao.historico(1,50).itens().stream().anyMatch(l->l.id().equals(log.id())));
  }
  @Test void aviso18EArquivamentoSaoAuditados() {
   Usuario autor=usuario(Papel.COMUM), denunciante=usuario(Papel.COMUM), mod=usuario(Papel.MODERADOR);
@@ -90,7 +90,7 @@ class ModeracaoIntegracaoTest {
   }
   SessaoDeTeste.autenticarComo(modA);
   assertTrue(estados.oculto(TipoConteudo.TOPICO,id));assertTrue(estados.removido(TipoConteudo.TOPICO,id));
-  assertEquals(2,moderacao.historico(1,50).getContent().stream().filter(l->id.equals(l.conteudoId())).count());
+  assertEquals(2,moderacao.historico(1,50).itens().stream().filter(l->id.equals(l.conteudoId())).count());
  }
 
  @Test void moverRespostaMantemArvoreERejeitaCiclo() {

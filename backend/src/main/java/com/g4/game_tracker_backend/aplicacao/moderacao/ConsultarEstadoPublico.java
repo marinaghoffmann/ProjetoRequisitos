@@ -3,15 +3,14 @@ package com.g4.game_tracker_backend.aplicacao.moderacao;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.moderacao.EstadoConteudo;
 import com.g4.game_tracker_backend.dominio.moderacao.EstadoConteudoRepositorio;
 import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
 
 /** Conteúdo sem estado gravado nunca foi moderado: é público e sem aviso. */
-@Service
+@CasoDeUso
 public class ConsultarEstadoPublico implements EstadoPublico {
 
     private final EstadoConteudoRepositorio estados;

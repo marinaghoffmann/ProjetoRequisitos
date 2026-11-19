@@ -2,9 +2,6 @@ package com.g4.game_tracker_backend.aplicacao.catalogo;
 
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.catalogo.Jogo;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoDesativado;
@@ -13,6 +10,8 @@ import com.g4.game_tracker_backend.dominio.catalogo.VinculosDoJogo;
 import com.g4.game_tracker_backend.dominio.compartilhado.PublicadorDeEventos;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.identidade.Papel;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /**
  * F-01 RN 3: o administrador remove o jogo do catálogo.
@@ -23,7 +22,7 @@ import com.g4.game_tracker_backend.dominio.identidade.Papel;
  * alertas do lançamento).</li>
  * </ul>
  */
-@Service
+@CasoDeUso
 public class RemoverJogo {
 
     /** O que aconteceu com o jogo: {@code definitiva} indica que ele não existe mais no banco. */
@@ -43,7 +42,7 @@ public class RemoverJogo {
         this.eventos = eventos;
     }
 
-    @Transactional
+    @Transacional
     public Resultado executar(UUID id) {
         verificadorDeAcesso.exigirPapel(Papel.ADMINISTRADOR);
         Jogo jogo = jogos.buscarPorId(id)

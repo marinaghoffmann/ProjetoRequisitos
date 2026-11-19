@@ -8,9 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.EstatisticaJogo;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.EstatisticaJogoRepositorio;
@@ -24,6 +21,8 @@ import com.g4.game_tracker_backend.dominio.descoberta.similaridade.FeedbackSuges
 import com.g4.game_tracker_backend.dominio.descoberta.similaridade.SimilaridadeJogo;
 import com.g4.game_tracker_backend.dominio.descoberta.similaridade.SimilaridadeRepositorio;
 import com.g4.game_tracker_backend.dominio.descoberta.similaridade.TipoFeedback;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /**
  * Consulta pública da F-10: os similares de um jogo, do maior para o menor grau de relevância, com limite.
@@ -32,7 +31,7 @@ import com.g4.game_tracker_backend.dominio.descoberta.similaridade.TipoFeedback;
  * sugerido, e só jogos elegíveis (3 ou mais reviews) entram. Se o jogo ainda não tem similares calculados, o
  * cálculo roda aqui, sob demanda. Cada sugestão traz a contagem de feedbacks e o feedback do usuário logado.
  */
-@Service
+@CasoDeUso
 public class ConsultarSimilares {
 
     public static final int LIMITE_PADRAO = 10;
@@ -61,7 +60,7 @@ public class ConsultarSimilares {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
+    @Transacional
     public List<Similar> consultar(UUID jogoId, BigDecimal notaMinima, Integer limite) {
         int quantidade = limite == null ? LIMITE_PADRAO : limite;
         if (quantidade < 1 || quantidade > LIMITE_MAXIMO) {

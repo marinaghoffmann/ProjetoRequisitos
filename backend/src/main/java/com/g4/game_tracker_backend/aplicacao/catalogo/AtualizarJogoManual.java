@@ -4,9 +4,6 @@ import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.catalogo.Desenvolvedora;
 import com.g4.game_tracker_backend.dominio.catalogo.DesenvolvedoraRepositorio;
@@ -18,12 +15,14 @@ import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoExc
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.identidade.Papel;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /**
  * Edição de metadados: o administrador edita qualquer jogo; o desenvolvedor, apenas os jogos da
  * desenvolvedora a que está vinculado, sem transferi-los para outra.
  */
-@Service
+@CasoDeUso
 public class AtualizarJogoManual {
 
     private final JogoRepositorio jogos;
@@ -44,7 +43,7 @@ public class AtualizarJogoManual {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
+    @Transacional
     public Jogo executar(UUID id, String titulo, String tituloOriginal, String resumo, UUID desenvolvedoraId,
             Set<UUID> generosIds, LocalDate dataLancamento, String capaUrl, String trailerUrl, String metadadosJson) {
         Jogo atual = jogos.buscarPorId(id)

@@ -3,13 +3,12 @@ package com.g4.game_tracker_backend.aplicacao.identidade;
 import java.util.Arrays;
 import java.util.UUID;
 
-import org.springframework.stereotype.Component;
-
 import com.g4.game_tracker_backend.dominio.compartilhado.AcessoNegadoException;
 import com.g4.game_tracker_backend.dominio.identidade.Papel;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
 
 /** Regras reutilizáveis para autorização por papel e propriedade de recursos. */
-@Component
+@CasoDeUso
 public class VerificadorDeAcesso {
 
     private final IdentidadeAutenticada identidade;

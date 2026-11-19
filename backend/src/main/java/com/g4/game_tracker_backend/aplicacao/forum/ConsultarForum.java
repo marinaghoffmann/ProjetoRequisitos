@@ -6,9 +6,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.dominio.compartilhado.Pagina;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.forum.FiltroTopicos;
@@ -19,9 +16,11 @@ import com.g4.game_tracker_backend.dominio.identidade.Usuario;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
 import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
 import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /** Consultas públicas da F-13: tópicos paginados por jogo ou categoria e um tópico com as suas respostas. */
-@Service
+@CasoDeUso
 public class ConsultarForum {
 
     public static final int TAMANHO_MAXIMO_DA_PAGINA = 50;
@@ -37,7 +36,7 @@ public class ConsultarForum {
         this.moderacao = moderacao;
     }
 
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public Pagina<ResumoTopico> listar(FiltroTopicos filtro, int pagina, int tamanho) {
         if (pagina < 1) {
             throw new RegraDeNegocioException("A página deve ser maior ou igual a 1");
@@ -49,7 +48,7 @@ public class ConsultarForum {
         return topicos.listar(filtro == null ? FiltroTopicos.todos() : filtro, pagina, tamanho);
     }
 
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public TopicoDeForum buscarPorId(UUID id) {
         TopicoDeForum topico = TopicosDoForum.visivel(topicos, id);
         moderacao.exigirVisivel(TipoConteudo.TOPICO, id);
@@ -57,7 +56,7 @@ public class ConsultarForum {
     }
 
     /** Nome de exibição de cada autor, para as telas não mostrarem apenas identificadores. */
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public Map<UUID, Usuario> autores(Collection<UUID> autorIds) {
         Map<UUID, Usuario> nomes = new HashMap<>();
         for (UUID autorId : new HashSet<>(autorIds)) {

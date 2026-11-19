@@ -4,8 +4,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
 
+import com.g4.game_tracker_backend.dominio.compartilhado.Pagina;
 import com.g4.game_tracker_backend.dominio.moderacao.AcaoModeracao;
 import com.g4.game_tracker_backend.dominio.moderacao.ConteudoRemovidoDecorator;
 import com.g4.game_tracker_backend.dominio.moderacao.StatusDenuncia;
@@ -35,9 +35,9 @@ public interface ModeracaoOperacoes {
 
     Denuncia denunciar(TipoConteudo tipo, UUID id, String motivo);
 
-    Page<Denuncia> fila(int pagina, int tamanho);
+    Pagina<Denuncia> fila(int pagina, int tamanho);
 
-    Page<Log> historico(int pagina, int tamanho);
+    Pagina<Log> historico(int pagina, int tamanho);
 
     List<Advertencia> advertencias(UUID usuarioId);
 

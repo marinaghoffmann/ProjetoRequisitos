@@ -1,14 +1,9 @@
 package com.g4.game_tracker_backend.aplicacao.marketplace.reputacao;
 
 import java.time.Instant;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
@@ -21,6 +16,9 @@ import com.g4.game_tracker_backend.dominio.marketplace.reputacao.PedidoAvaliavel
 import com.g4.game_tracker_backend.dominio.marketplace.reputacao.ReputacaoUsuario;
 import com.g4.game_tracker_backend.dominio.marketplace.reputacao.ReputacaoUsuarioRepositorio;
 import com.g4.game_tracker_backend.dominio.marketplace.reputacao.TagComportamento;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
+import com.g4.game_tracker_backend.dominio.compartilhado.PublicadorDeEventos;
 
 /**
  * F-21: o comprador ou o vendedor de um pedido concluído avalia a outra parte.
@@ -29,20 +27,20 @@ import com.g4.game_tracker_backend.dominio.marketplace.reputacao.TagComportament
  * RN 3: a reputação do avaliado é recalculada na mesma transação, com a linha travada para que duas
  * avaliações simultâneas não se sobrescrevam.
  *
- * A fonte de pedidos é opcional porque a F-20 ainda não existe: sem ela, nenhum pedido é encontrado.
+ * Os pedidos vêm da F-20 pela porta FonteDePedidos.
  */
-@Service
+@CasoDeUso
 public class AvaliarNegociacao {
 
-    private final ObjectProvider<FonteDePedidos> pedidos;
+    private final FonteDePedidos pedidos;
     private final AvaliacaoMarketplaceRepositorio avaliacoes;
     private final ReputacaoUsuarioRepositorio reputacoes;
     private final VerificadorDeAcesso verificadorDeAcesso;
-    private final ApplicationEventPublisher eventos;
+    private final PublicadorDeEventos eventos;
 
-    public AvaliarNegociacao(ObjectProvider<FonteDePedidos> pedidos, AvaliacaoMarketplaceRepositorio avaliacoes,
+    public AvaliarNegociacao(FonteDePedidos pedidos, AvaliacaoMarketplaceRepositorio avaliacoes,
             ReputacaoUsuarioRepositorio reputacoes, VerificadorDeAcesso verificadorDeAcesso,
-            ApplicationEventPublisher eventos) {
+            PublicadorDeEventos eventos) {
         this.pedidos = pedidos;
         this.avaliacoes = avaliacoes;
         this.reputacoes = reputacoes;
@@ -50,7 +48,7 @@ public class AvaliarNegociacao {
         this.eventos = eventos;
     }
 
-    @Transactional
+    @Transacional
     public AvaliacaoMarketplace executar(UUID pedidoId, int estrelas, Set<TagComportamento> tags, String comentario) {
         UUID avaliadorId = verificadorDeAcesso.usuarioAtualId();
         PedidoAvaliavel pedido = buscarPedido(pedidoId);
@@ -65,14 +63,13 @@ public class AvaliarNegociacao {
                 .orElseGet(() -> ReputacaoUsuario.semAvaliacoes(avaliacao.avaliadoId()));
         reputacoes.salvar(atual.registrarAvaliacao(avaliacao.estrelas(), agora));
 
-        eventos.publishEvent(new AvaliacaoMarketplaceCriada(avaliacao.id(), pedidoId, avaliacao.avaliadoId(),
+        eventos.publicar(new AvaliacaoMarketplaceCriada(avaliacao.id(), pedidoId, avaliacao.avaliadoId(),
                 avaliacao.estrelas()));
         return avaliacao;
     }
 
     private PedidoAvaliavel buscarPedido(UUID pedidoId) {
-        FonteDePedidos fonte = pedidos.getIfAvailable();
-        return (fonte == null ? Optional.<PedidoAvaliavel>empty() : fonte.buscarPedido(pedidoId))
+        return pedidos.buscarPedido(pedidoId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Pedido não encontrado"));
     }
 }

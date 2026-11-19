@@ -1,11 +1,10 @@
 package com.g4.game_tracker_backend.aplicacao.catalogo;
 
-import org.springframework.stereotype.Service;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.identidade.Papel;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
 
-@Service
+@CasoDeUso
 public class ArmazenarImagem {
 
     private final ArmazenadorDeImagem armazenador;

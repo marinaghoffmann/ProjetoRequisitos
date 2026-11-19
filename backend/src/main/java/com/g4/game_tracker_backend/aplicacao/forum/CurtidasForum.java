@@ -7,9 +7,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
@@ -18,9 +15,11 @@ import com.g4.game_tracker_backend.dominio.forum.CurtidaForum;
 import com.g4.game_tracker_backend.dominio.forum.CurtidaForumRepositorio;
 import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
 import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /** Curtidas idempotentes. O bloqueio da raiz serializa escritas e mantém a contagem em alta correta. */
-@Service
+@CasoDeUso
 public class CurtidasForum {
     private final TopicoDeForumRepositorio topicos;
     private final CurtidaForumRepositorio curtidas;
@@ -35,7 +34,7 @@ public class CurtidasForum {
         this.moderacao = moderacao;
     }
 
-    @Transactional
+    @Transacional
     public void definir(UUID topicoId, UUID respostaId, boolean curtir) {
         TopicoDeForum topico = topicos.buscarPorIdParaAlteracao(topicoId)
                 .filter(t -> !t.removido())
@@ -59,7 +58,7 @@ public class CurtidasForum {
         curtidas.sincronizarTotal(topicoId);
     }
 
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public Resumo resumo(UUID topicoId, UUID usuarioId) {
         List<CurtidaForum> itens = curtidas.listar(topicoId);
         Map<UUID, Integer> porResposta = new HashMap<>();

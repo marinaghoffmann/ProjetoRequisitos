@@ -3,14 +3,13 @@ package com.g4.game_tracker_backend.aplicacao.identidade;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.identidade.Usuario;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
-@Service
+@CasoDeUso
 public class RegistrarUsuario {
 
     private static final int SENHA_MINIMA_BYTES = 8;
@@ -24,7 +23,7 @@ public class RegistrarUsuario {
         this.codificadorDeSenha = codificadorDeSenha;
     }
 
-    @Transactional
+    @Transacional
     public Usuario executar(String nome, String email, String senha) {
         String emailNormalizado = email.trim().toLowerCase(Locale.ROOT);
         validarSenha(senha);

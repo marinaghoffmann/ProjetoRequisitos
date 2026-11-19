@@ -3,12 +3,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import com.g4.game_tracker_backend.dominio.catalogo.*;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.lancamentos.*;
-@Service
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
+@CasoDeUso
 public class ConsultarLancamentos {
     public record Visao(UUID id, UUID jogoId, UUID desenvolvedoraId, String titulo, String capaUrl, LocalDate dataPrevista,
             StatusLancamento status, TipoDataLancamento tipoData, long diasRestantes, long totalInteressados, boolean alertaAtivoDoUsuario,
@@ -20,7 +20,7 @@ public class ConsultarLancamentos {
             JogoRepositorio jogos) {
         this.lancamentos=lancamentos;this.interesses=interesses;this.jogos=jogos;
     }
-    @Transactional(readOnly=true)
+    @Transacional(somenteLeitura = true)
     public List<Visao> listar(UUID usuarioId) {
         Instant agora=Instant.now();
         return lancamentos.listarFuturos().stream()
@@ -30,7 +30,7 @@ public class ConsultarLancamentos {
                 .map(j->j.status()==StatusCatalogo.ATIVO).orElse(false))
                 .map(l->visao(l,usuarioId,agora)).toList();
     }
-    @Transactional(readOnly=true)
+    @Transacional(somenteLeitura = true)
     public List<Visao> listarComLancados(UUID usuarioId) {
         Instant agora=Instant.now();
         List<Visao> resultado=new java.util.ArrayList<>(listar(usuarioId));
@@ -40,7 +40,7 @@ public class ConsultarLancamentos {
                 .map(l->visao(l,usuarioId,agora)).forEach(resultado::add);
         return List.copyOf(resultado);
     }
-    @Transactional(readOnly=true)
+    @Transacional(somenteLeitura = true)
     public Visao buscar(UUID id,UUID usuarioId) {
         LancamentoFuturo l=lancamentos.buscar(id)
                 .orElseThrow(()->new RecursoNaoEncontradoException("Lançamento não encontrado"));

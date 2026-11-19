@@ -4,18 +4,17 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.StatusCatalogo;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForumRepositorio;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /** F-13: qualquer usuário autenticado cria um tópico geral ou atrelado a um jogo ATIVO do catálogo. */
-@Service
+@CasoDeUso
 public class CriarTopico {
 
     private final TopicoDeForumRepositorio topicos;
@@ -33,7 +32,7 @@ public class CriarTopico {
         return executar(jogoId, categoria, titulo, conteudo, null);
     }
 
-    @Transactional
+    @Transacional
     public TopicoDeForum executar(UUID jogoId, String categoria, String titulo, String conteudo,
             List<String> imagens) {
         UUID autorId = verificadorDeAcesso.usuarioAtualId();

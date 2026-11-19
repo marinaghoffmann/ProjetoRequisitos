@@ -6,18 +6,17 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.compartilhado.Pagina;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.journal.EntradaDeJournal;
 import com.g4.game_tracker_backend.dominio.journal.EntradaDeJournalRepositorio;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /** Consulta da F-16: a timeline unificada do jogador autenticado, com entradas manuais e automáticas. */
-@Service
+@CasoDeUso
 public class ConsultarTimeline {
 
     public static final int TAMANHO_MAXIMO_DA_PAGINA = 50;
@@ -34,7 +33,7 @@ public class ConsultarTimeline {
     }
 
     /** Da sessão mais recente para a mais antiga. A página começa em 1. */
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public Pagina<EntradaDeJournal> consultar(int pagina, int tamanho) {
         if (pagina < 1) {
             throw new RegraDeNegocioException("A página deve ser maior ou igual a 1");
@@ -47,7 +46,7 @@ public class ConsultarTimeline {
     }
 
     /** Título de cada jogo citado, para a tela não mostrar apenas identificadores. */
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public Map<UUID, String> titulosDosJogos(Collection<UUID> jogoIds) {
         Map<UUID, String> titulos = new HashMap<>();
         for (UUID jogoId : new HashSet<>(jogoIds)) {

@@ -3,13 +3,12 @@ package com.g4.game_tracker_backend.aplicacao.catalogo;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-
 import com.g4.game_tracker_backend.dominio.catalogo.Jogo;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
 
-@Service
+@CasoDeUso
 public class ConsultarCapturasJogo {
 
     private final JogoRepositorio jogos;

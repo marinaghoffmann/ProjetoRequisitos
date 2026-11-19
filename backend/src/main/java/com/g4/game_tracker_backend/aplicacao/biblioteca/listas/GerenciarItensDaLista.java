@@ -3,9 +3,6 @@ package com.g4.game_tracker_backend.aplicacao.biblioteca.listas;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.biblioteca.listas.ListaPersonalizada;
 import com.g4.game_tracker_backend.dominio.biblioteca.listas.ListaRepositorio;
@@ -13,12 +10,14 @@ import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.StatusCatalogo;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /**
  * F-04: o dono adiciona jogos ATIVOS do catálogo à lista, edita a nota explicativa de cada item e remove
  * itens. RN 2 (sem jogo repetido) e RN 3 (até 100 jogos) ficam no agregado.
  */
-@Service
+@CasoDeUso
 public class GerenciarItensDaLista {
 
     private final ListaRepositorio listas;
@@ -32,7 +31,7 @@ public class GerenciarItensDaLista {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
+    @Transacional
     public ListaPersonalizada adicionar(UUID listaId, UUID jogoId, String notaExplicativa) {
         UUID solicitante = verificadorDeAcesso.usuarioAtualId();
         ListaPersonalizada lista = ListasDoUsuario.existente(listas, listaId);
@@ -41,14 +40,14 @@ public class GerenciarItensDaLista {
         return listas.salvar(lista.adicionarJogo(solicitante, jogoId, notaExplicativa, Instant.now()));
     }
 
-    @Transactional
+    @Transacional
     public ListaPersonalizada editarNota(UUID listaId, UUID jogoId, String notaExplicativa) {
         ListaPersonalizada lista = ListasDoUsuario.existente(listas, listaId);
         return listas.salvar(lista.editarNotaExplicativa(verificadorDeAcesso.usuarioAtualId(), jogoId,
                 notaExplicativa, Instant.now()));
     }
 
-    @Transactional
+    @Transacional
     public ListaPersonalizada remover(UUID listaId, UUID jogoId) {
         ListaPersonalizada lista = ListasDoUsuario.existente(listas, listaId);
         return listas.salvar(lista.removerJogo(verificadorDeAcesso.usuarioAtualId(), jogoId, Instant.now()));

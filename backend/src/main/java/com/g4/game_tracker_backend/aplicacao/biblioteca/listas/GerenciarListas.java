@@ -3,12 +3,11 @@ package com.g4.game_tracker_backend.aplicacao.biblioteca.listas;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.biblioteca.listas.ListaPersonalizada;
 import com.g4.game_tracker_backend.dominio.biblioteca.listas.ListaRepositorio;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /**
  * F-04: o usuário autenticado cria, renomeia (título e descrição) e exclui as suas listas.
@@ -16,7 +15,7 @@ import com.g4.game_tracker_backend.dominio.biblioteca.listas.ListaRepositorio;
  * RN 1: o título é único entre as listas do dono, sem diferenciar maiúsculas e minúsculas, também ao
  * renomear. A exclusão é física e leva os itens; só o dono altera ou exclui (checado no agregado).
  */
-@Service
+@CasoDeUso
 public class GerenciarListas {
 
     private final ListaRepositorio listas;
@@ -27,7 +26,7 @@ public class GerenciarListas {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
+    @Transacional
     public ListaPersonalizada criar(String titulo, String descricao) {
         UUID donoId = verificadorDeAcesso.usuarioAtualId();
         ListaPersonalizada nova = ListaPersonalizada.criar(donoId, titulo, descricao, Instant.now());
@@ -35,7 +34,7 @@ public class GerenciarListas {
         return listas.salvar(nova);
     }
 
-    @Transactional
+    @Transacional
     public ListaPersonalizada editar(UUID listaId, String titulo, String descricao) {
         ListaPersonalizada atual = ListasDoUsuario.existente(listas, listaId);
         ListaPersonalizada editada = atual.editar(verificadorDeAcesso.usuarioAtualId(), titulo, descricao,
@@ -44,7 +43,7 @@ public class GerenciarListas {
         return listas.salvar(editada);
     }
 
-    @Transactional
+    @Transacional
     public void excluir(UUID listaId) {
         ListaPersonalizada atual = ListasDoUsuario.existente(listas, listaId);
         atual.exigirDono(verificadorDeAcesso.usuarioAtualId());

@@ -3,14 +3,13 @@ package com.g4.game_tracker_backend.aplicacao.wishlist;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.IdentidadeAutenticada;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.wishlist.WishlistRepositorio;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
-@Service
+@CasoDeUso
 public class ConsultarWishlist {
 
     private final IdentidadeAutenticada identidade;
@@ -29,7 +28,7 @@ public class ConsultarWishlist {
     }
 
     /** Ordenada por prioridade. Sem wishlist, devolve lista vazia. */
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public List<ItemWishlistDetalhado> executar(UUID donoId) {
         return wishlists.buscarPorDono(donoId).stream()
                 .flatMap(w -> w.itensOrdenados().stream())

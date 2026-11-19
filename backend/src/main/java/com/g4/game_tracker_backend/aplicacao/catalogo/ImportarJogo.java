@@ -4,9 +4,6 @@ import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.catalogo.Desenvolvedora;
 import com.g4.game_tracker_backend.dominio.catalogo.DesenvolvedoraRepositorio;
@@ -15,9 +12,11 @@ import com.g4.game_tracker_backend.dominio.catalogo.Jogo;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.identidade.Papel;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /** F-01 RN 1: importação pela API externa; se o identificador externo já existe, atualiza o jogo. */
-@Service
+@CasoDeUso
 public class ImportarJogo {
 
     private final JogoRepositorio jogos;
@@ -36,7 +35,7 @@ public class ImportarJogo {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
+    @Transacional
     public Jogo executar(String titulo, String tituloOriginal, String resumo, String identificadorExterno,
             UUID desenvolvedoraId, Set<UUID> generosIds, LocalDate dataLancamento, String capaUrl,
             String trailerUrl) {

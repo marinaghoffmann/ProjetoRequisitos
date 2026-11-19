@@ -2,16 +2,15 @@ package com.g4.game_tracker_backend.aplicacao.avaliacao.estatisticas;
 
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.EstatisticaJogo;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.EstatisticaJogoRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /** Consulta pública da F-17: a ficha de estatísticas consolidadas de um jogo. */
-@Service
+@CasoDeUso
 public class ConsultarEstatisticas {
 
     private final EstatisticaJogoRepositorio estatisticas;
@@ -22,7 +21,7 @@ public class ConsultarEstatisticas {
         this.jogos = jogos;
     }
 
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public EstatisticaJogo consultarFicha(UUID jogoId) {
         if (jogos.buscarPorId(jogoId).isEmpty()) {
             throw new RecursoNaoEncontradoException("Jogo não encontrado");

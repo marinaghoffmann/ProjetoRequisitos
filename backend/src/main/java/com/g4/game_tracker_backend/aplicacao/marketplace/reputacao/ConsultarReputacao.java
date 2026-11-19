@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.identidade.Usuario;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
@@ -18,9 +15,11 @@ import com.g4.game_tracker_backend.dominio.marketplace.reputacao.ReputacaoUsuari
 import com.g4.game_tracker_backend.dominio.marketplace.reputacao.ReputacaoUsuarioRepositorio;
 import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
 import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /** Consulta pública da F-21: o perfil de vendedor, com a reputação e as avaliações recebidas. */
-@Service
+@CasoDeUso
 public class ConsultarReputacao {
 
     private final ReputacaoUsuarioRepositorio reputacoes;
@@ -36,7 +35,7 @@ public class ConsultarReputacao {
         this.moderacao = moderacao;
     }
 
-    @Transactional(readOnly = true)
+    @Transacional(somenteLeitura = true)
     public PerfilDeVendedor perfil(UUID usuarioId) {
         Usuario usuario = usuarios.buscarPorId(usuarioId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado"));

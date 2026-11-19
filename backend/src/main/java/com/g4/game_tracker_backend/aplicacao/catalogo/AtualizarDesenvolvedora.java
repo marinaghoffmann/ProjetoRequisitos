@@ -2,9 +2,6 @@ package com.g4.game_tracker_backend.aplicacao.catalogo;
 
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.catalogo.Desenvolvedora;
 import com.g4.game_tracker_backend.dominio.catalogo.DesenvolvedoraRepositorio;
@@ -12,9 +9,11 @@ import com.g4.game_tracker_backend.dominio.compartilhado.AcessoNegadoException;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.identidade.Papel;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
 /** Perfil institucional: alterado pelo administrador ou pelo desenvolvedor vinculado à desenvolvedora. */
-@Service
+@CasoDeUso
 public class AtualizarDesenvolvedora {
 
     private final DesenvolvedoraRepositorio desenvolvedoras;
@@ -28,7 +27,7 @@ public class AtualizarDesenvolvedora {
         this.verificadorDeAcesso = verificadorDeAcesso;
     }
 
-    @Transactional
+    @Transacional
     public Desenvolvedora executar(UUID id, String biografia, String site, String redesSociais, String pais) {
         exigirPermissao(id);
         Desenvolvedora atual = desenvolvedoras.buscarPorId(id)

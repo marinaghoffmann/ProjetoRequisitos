@@ -1,16 +1,15 @@
 package com.g4.game_tracker_backend.aplicacao.lancamentos;
 import java.time.Instant;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import com.g4.game_tracker_backend.aplicacao.notificacao.DespacharNotificacao;
 import com.g4.game_tracker_backend.dominio.catalogo.DataJogoAlterada;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoDesativado;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.lancamentos.*;
 import com.g4.game_tracker_backend.dominio.notificacao.TipoNotificacao;
-@Component
+import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
+import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional.Propagacao;
+@CasoDeUso
 public class SincronizarLancamentosComCatalogo {
     private final LancamentoRepositorio lancamentos;
     private final InteresseLancamentoRepositorio interesses;
@@ -25,15 +24,13 @@ public class SincronizarLancamentosComCatalogo {
     }
 
     /** Jogo desativado no catálogo (F-01 RN 3): os alertas pendentes dos interessados são cancelados. */
-    @EventListener
-    @Transactional(propagation=Propagation.MANDATORY)
+    @Transacional(propagacao = Propagacao.EXIGIR_EXISTENTE)
     public void jogoDesativado(JogoDesativado evento) {
         for (InteresseEmLancamento interesse : interesses.ativosPorJogo(evento.jogoId())) {
             alertas.cancelarPendentes(interesse.id());
         }
     }
-    @EventListener
-    @Transactional(propagation=Propagation.MANDATORY)
+    @Transacional(propagacao = Propagacao.EXIGIR_EXISTENTE)
     public void dataAlterada(DataJogoAlterada evento) {
         lancamentos.buscarPorJogo(evento.jogoId()).ifPresent(atual->{
             if (evento.nova()==null) throw new RegraDeNegocioException(
