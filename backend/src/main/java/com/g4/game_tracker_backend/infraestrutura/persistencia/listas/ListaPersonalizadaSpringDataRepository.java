@@ -4,12 +4,16 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ListaPersonalizadaSpringDataRepository extends JpaRepository<ListaPersonalizadaJpa, UUID> {
 
     List<ListaPersonalizadaJpa> findByDonoIdOrderByAtualizadaEmDescIdDesc(UUID donoId);
+
+    List<ListaPersonalizadaJpa> findByTituloContainingIgnoreCaseOrderByAtualizadaEmDesc(String termo,
+            Pageable pagina);
 
     @Query("""
             select count(l) > 0 from ListaPersonalizadaJpa l

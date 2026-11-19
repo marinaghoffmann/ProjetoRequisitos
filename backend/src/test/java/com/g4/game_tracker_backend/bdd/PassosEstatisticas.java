@@ -25,6 +25,9 @@ import com.g4.game_tracker_backend.aplicacao.avaliacao.reviews.GerenciarReview;
 import com.g4.game_tracker_backend.aplicacao.avaliacao.reviews.PublicarReview;
 import com.g4.game_tracker_backend.aplicacao.biblioteca.conclusoes.GerenciarConclusoes;
 import com.g4.game_tracker_backend.aplicacao.wishlist.AdicionarNaWishlist;
+import com.g4.game_tracker_backend.aplicacao.avaliacao.estatisticas.ConsultarEstatisticasDaComunidade.Visibilidade;
+import com.g4.game_tracker_backend.apresentacao.avaliacao.estatisticas.EstatisticaComunidadeResponse;
+import com.g4.game_tracker_backend.apresentacao.avaliacao.estatisticas.EstatisticasJogoController;
 import com.g4.game_tracker_backend.apresentacao.avaliacao.estatisticas.EstatisticaJogoResponse;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.EstatisticaJogo;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.EstatisticaJogoRepositorio;
@@ -73,13 +76,16 @@ public class PassosEstatisticas {
     private final Map<UUID, Usuario> autoresDasReviews = new HashMap<>();
     private Jogo jogoAtual;
     private EstatisticaJogoResponse fichaConsultada;
+    private List<EstatisticaComunidadeResponse> tabelaDaComunidade;
+    private final EstatisticasJogoController controller;
 
     public PassosEstatisticas(RecalcularEstatisticas recalcular, ConsultarEstatisticas consultar,
             EstatisticaJogoRepositorio estatisticas, AdicionarNaWishlist adicionarNaWishlist,
             AnuncioMarketplaceRepositorio anuncios, JogoRepositorio jogos,
             DesenvolvedoraRepositorio desenvolvedoras, ApplicationEventPublisher eventos,
             PublicarReview publicarReview, GerenciarReview gerenciarReview, GerenciarConclusoes conclusoes,
-            DadosDoCenario dados) {
+            DadosDoCenario dados, EstatisticasJogoController controller) {
+        this.controller = controller;
         this.recalcular = recalcular;
         this.consultar = consultar;
         this.estatisticas = estatisticas;
@@ -227,6 +233,43 @@ public class PassosEstatisticas {
         assertTrue(fichaConsultada.elegivel());
         assertNotNull(fichaConsultada.mediaGeral());
         assertNotNull(fichaConsultada.totalConclusoes());
+    }
+
+    // ---- Tabela da comunidade ----
+
+    @Quando("o usuário consulta as estatísticas da comunidade com visibilidade {string}")
+    public void consultaTabelaDaComunidade(String visibilidade) {
+        tabelaDaComunidade = controller.listar(Visibilidade.valueOf(visibilidade));
+    }
+
+    @Entao("a tabela deve trazer {string} com os indicadores")
+    public void tabelaDeveTrazerComIndicadores(String titulo) {
+        EstatisticaComunidadeResponse linha = linhaDa(titulo);
+        assertTrue(linha.publica());
+        assertNotNull(linha.mediaGeral());
+        assertNotNull(linha.totalConclusoes());
+    }
+
+    @Entao("a tabela deve trazer {string} sem os indicadores")
+    public void tabelaDeveTrazerSemIndicadores(String titulo) {
+        EstatisticaComunidadeResponse linha = linhaDa(titulo);
+        assertFalse(linha.publica());
+        assertNull(linha.mediaGeral());
+        assertNull(linha.totalConclusoes());
+        assertNull(linha.totalEmWishlists());
+        assertNull(linha.totalNegociacoes());
+    }
+
+    @Entao("a tabela não deve trazer {string}")
+    public void tabelaNaoDeveTrazer(String titulo) {
+        UUID id = jogo(titulo).id();
+        assertTrue(tabelaDaComunidade.stream().noneMatch(l -> l.jogoId().equals(id)));
+    }
+
+    private EstatisticaComunidadeResponse linhaDa(String titulo) {
+        UUID id = jogo(titulo).id();
+        return tabelaDaComunidade.stream().filter(l -> l.jogoId().equals(id)).findFirst()
+                .orElseThrow(() -> new AssertionError("O jogo " + titulo + " não está na tabela"));
     }
 
     // ---- Apoio ----
