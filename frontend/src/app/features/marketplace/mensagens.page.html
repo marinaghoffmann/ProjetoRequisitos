@@ -1,11 +1,7 @@
-<main class="pagina-mensagens">
-  <header class="cabecalho">
-    <div>
-      <a class="voltar" routerLink="/marketplace">← Anúncios</a>
-      <h1>Mensagens</h1>
-      <p>Negociações em que você é comprador ou vendedor.</p>
-    </div>
-  </header>
+<main class="pagina pagina-mensagens" [class.com-conversa]="aberta()">
+  <gt-cabecalho-pagina titulo="Mensagens" subtitulo="Negociações em que você é comprador ou vendedor." />
+  <div class="colunas">
+  <aside class="coluna-lista" aria-label="Conversas">
 
   @if (erro(); as mensagem) {
     <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
@@ -16,7 +12,8 @@
       <ul class="conversas">
         @for (c of lista; track c.id) {
           <li>
-            <a class="conversa" [class.conversa--nao-lida]="c.naoLidas > 0" [routerLink]="['/marketplace/mensagens', c.id]">
+            <a class="conversa" [class.conversa--nao-lida]="c.naoLidas > 0" [routerLink]="['/marketplace/mensagens', c.id]"
+              routerLinkActive="conversa--ativa">
               @if (imagem(c.fotoAnuncio)) {
                 <img class="conversa__foto" [src]="imagem(c.fotoAnuncio)" alt="" />
               } @else {
@@ -51,6 +48,14 @@
       </ul>
     }
   } @else {
-    <p class="estado">Carregando conversas…</p>
+    <gt-carregando tipo="linhas" [quantidade]="3" />
   }
+  </aside>
+  <section class="coluna-conversa">
+    <router-outlet (activate)="aberta.set(true)" (deactivate)="aberta.set(false)" />
+    @if (!aberta()) {
+      <gt-estado-vazio icone="mensagens" titulo="Escolha uma conversa" texto="As mensagens e as propostas aparecem aqui." />
+    }
+  </section>
+  </div>
 </main>

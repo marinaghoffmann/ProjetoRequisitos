@@ -42,7 +42,9 @@ export class ConversaPage {
   private readonly router = inject(Router);
   private readonly autenticacao = inject(AutenticacaoService);
   private readonly naoLidas = inject(NaoLidasService);
-  private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
+  private readonly rota = inject(ActivatedRoute);
+  /** Na tela de duas colunas o componente é reaproveitado ao trocar de conversa: o id vem sempre da rota atual. */
+  private id = this.rota.snapshot.paramMap.get('id') ?? '';
 
   protected readonly statusProposta = STATUS_PROPOSTA;
   protected readonly statusAnuncio = STATUS_ANUNCIO;
@@ -76,7 +78,12 @@ export class ConversaPage {
   });
 
   constructor() {
-    this.carregar(true);
+    this.rota.paramMap.pipe(takeUntilDestroyed()).subscribe((params) => {
+      this.id = params.get('id') ?? '';
+      this.conversa.set(null);
+      this.erro.set(null);
+      this.carregar(true);
+    });
     interval(ATUALIZAR_A_CADA_MS)
       .pipe(takeUntilDestroyed(inject(DestroyRef)))
       .subscribe(() => this.carregar(false));

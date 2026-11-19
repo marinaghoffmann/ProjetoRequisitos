@@ -1,7 +1,13 @@
-.pagina-mensagens {
-  width: min(52rem, calc(100% - 2rem));
-  margin: 0 auto;
-  padding: 3rem 0 5rem;
+.colunas { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 20px; align-items: start; }
+.coluna-lista { position: sticky; top: 88px; max-height: calc(100vh - 120px); overflow-y: auto; }
+.coluna-conversa { min-width: 0; }
+.conversas { margin-top: 0 !important; }
+.conversa--ativa { border-color: var(--accent) !important; }
+@media (max-width: 900px) { .colunas { grid-template-columns: 280px minmax(0, 1fr); } }
+@media (max-width: 700px) {
+  .colunas { grid-template-columns: 1fr; }
+  .coluna-lista { position: static; max-height: none; }
+  .com-conversa .coluna-lista, .pagina-mensagens:not(.com-conversa) .coluna-conversa { display: none; }
 }
 
 .conversas {
@@ -105,3 +111,9 @@
   font-size: 0.75rem;
   font-weight: 800;
 }
+
+// Na coluna estreita, o texto da conversa encolhe em vez de empurrar o card para fora.
+.coluna-lista { overflow-x: hidden; }
+.coluna-lista .conversa { min-width: 0; gap: 0.75rem; }
+.coluna-lista .conversa__texto { flex: 1; min-width: 0; overflow: hidden; }
+.coluna-lista .conversa__topo small { flex: 0 0 auto; white-space: nowrap; }

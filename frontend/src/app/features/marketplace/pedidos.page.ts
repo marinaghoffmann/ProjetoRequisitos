@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -12,10 +12,15 @@ import {
   STATUS_PAGAMENTO,
   STATUS_PEDIDO,
 } from '../../core/api/pedidos.service';
-import { ReputacaoService, TAGS_COMPORTAMENTO, TagComportamento } from '../../core/api/reputacao.service';
+import { PerfilVendedor, ReputacaoService, TAGS_COMPORTAMENTO, TagComportamento } from '../../core/api/reputacao.service';
+import { AutenticacaoService } from '../../core/auth/autenticacao.service';
+import { Aba as AbaVisual, AbasComponent } from '../../shared/ui/abas.component';
+import { CabecalhoPaginaComponent } from '../../shared/ui/cabecalho-pagina.component';
+import { CarregandoComponent } from '../../shared/ui/estados.component';
 import { ErroApi } from '../../core/http/erro-api';
 
-type Aba = 'COMPRAS' | 'VENDAS' | 'CONCLUIDOS';
+type Aba = 'COMPRAS' | 'VENDAS' | 'CONCLUIDOS' | 'REPUTACAO';
+type AbaDePedidos = Exclude<Aba, 'REPUTACAO'>;
 
 /**
  * Meus pedidos (F-20): compras, vendas e concluídos, com o status da entrega e do pagamento e o saldo da
@@ -24,7 +29,7 @@ type Aba = 'COMPRAS' | 'VENDAS' | 'CONCLUIDOS';
  */
 @Component({
   selector: 'app-pedidos',
-  imports: [CurrencyPipe, DatePipe, FormsModule, RouterLink],
+  imports: [CurrencyPipe, DatePipe, DecimalPipe, FormsModule, RouterLink, AbasComponent, CabecalhoPaginaComponent, CarregandoComponent],
   templateUrl: './pedidos.page.html',
   styleUrl: './pedidos.page.scss',
 })
@@ -59,8 +64,49 @@ export class PedidosPage {
       COMPRAS: todos.filter((p) => p.papel === 'COMPRA' && p.status !== 'CONCLUIDO'),
       VENDAS: todos.filter((p) => p.papel === 'VENDA' && p.status !== 'CONCLUIDO'),
       CONCLUIDOS: todos.filter((p) => p.status === 'CONCLUIDO'),
-    } satisfies Record<Aba, Pedido[]>;
+    } satisfies Record<AbaDePedidos, Pedido[]>;
   });
+
+  protected readonly abas = computed<AbaVisual<Aba>[]>(() => [
+    { valor: 'COMPRAS', rotulo: 'Compras', contador: this.porAba().COMPRAS.length },
+    { valor: 'VENDAS', rotulo: 'Vendas', contador: this.porAba().VENDAS.length },
+    { valor: 'CONCLUIDOS', rotulo: 'Concluídos', contador: this.porAba().CONCLUIDOS.length },
+    { valor: 'REPUTACAO', rotulo: 'Reputação' },
+  ]);
+
+  /** Pedidos da aba atual (a de reputação não lista pedidos). */
+  protected readonly listaDaAba = computed(() => {
+    const aba = this.aba();
+    return aba === 'REPUTACAO' ? [] : this.porAba()[aba];
+  });
+
+  /** Reputação do próprio usuário (F-21), carregada ao abrir a aba. */
+  protected readonly minhaReputacao = signal<PerfilVendedor | null>(null);
+  private readonly autenticacao = inject(AutenticacaoService);
+
+  protected readonly subtitulo = computed(() => {
+    const saldo = this.saldo();
+    const base = 'Compras e vendas do marketplace, com a entrega e o pagamento';
+    return saldo === null ? base : `${base} · Saldo da carteira: ${saldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+  });
+
+  /** Etapas do stepper: pagamento protegido, envio e entrega/conclusão. */
+  protected etapa(p: Pedido): number {
+    switch (p.status) {
+      case 'AGUARDANDO_ENVIO': return 1;
+      case 'ENVIADO': return 2;
+      case 'CONCLUIDO': return 3;
+      default: return 0;
+    }
+  }
+
+  protected abrirAba(aba: Aba): void {
+    this.aba.set(aba);
+    const id = this.autenticacao.usuarioAtual()?.id;
+    if (aba === 'REPUTACAO' && id && !this.minhaReputacao()) {
+      this.reputacao.perfil(id).subscribe({ next: (r) => this.minhaReputacao.set(r), error: () => {} });
+    }
+  }
 
   constructor() {
     this.carregar(true);

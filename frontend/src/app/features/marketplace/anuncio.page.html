@@ -1,5 +1,5 @@
-<main class="pagina-detalhe-anuncio">
-  <a class="voltar" routerLink="/marketplace">← Anúncios</a>
+<main class="pagina pagina-detalhe-anuncio">
+  <a class="voltar-a" routerLink="/marketplace">← Voltar ao marketplace</a>
 
   @if (erro(); as mensagem) {
     <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
@@ -29,16 +29,27 @@
       </section>
 
       <section class="informacoes">
-        <span class="status" [class.status--alerta]="a.status !== 'ATIVO'">{{ statusAnuncio[a.status] }}</span>
+        <p class="eyebrow">{{ estados[a.estado] }} · {{ tipos[a.tipoNegociacao] }} · {{ midias[a.midia] }}</p>
         <h1>{{ a.titulo }}</h1>
         <p class="preco">{{ a.preco | currency: 'BRL' }}</p>
-        <p class="etiquetas">
-          <span class="etiqueta">{{ estados[a.estado] }}</span>
-          <span class="etiqueta">{{ tipos[a.tipoNegociacao] }}</span>
-          <span class="etiqueta">{{ midias[a.midia] }}</span>
-        </p>
+        <p class="aceita">{{ textoNegociacao(a.tipoNegociacao) }}
+          <gt-badge [status]="a.status">{{ statusAnuncio[a.status] }}</gt-badge></p>
+
+        <a class="vendedor" [routerLink]="['/marketplace/vendedores', a.vendedorId]">
+          <span class="vendedor__avatar" aria-hidden="true">{{ (vendedor()?.nome ?? '?').charAt(0) }}</span>
+          <span class="vendedor__dados">
+            <strong>&#64;{{ vendedor()?.nome ?? 'vendedor' }}</strong>
+            @if (vendedor(); as v) {
+              <small>@if (v.notaMedia !== null) { ★ {{ v.notaMedia | number: '1.1-1' }} · } {{ v.negociacoesBemSucedidas }} {{ v.negociacoesBemSucedidas === 1 ? 'negociação' : 'negociações' }}</small>
+            }
+          </span>
+        </a>
         <p class="detalhe">Envio a partir de {{ a.localidade }}</p>
-        <a class="detalhe" [routerLink]="['/marketplace/vendedores', a.vendedorId]">Ver reputação do vendedor</a>
+
+        <aside class="protecao">
+          <gt-icone nome="escudo" [tamanho]="20" />
+          <p><strong>Proteção GameTrack</strong>O pagamento fica em custódia e só é liberado ao vendedor depois que você confirma a entrega ou ao fim do prazo de tolerância após o envio.</p>
+        </aside>
 
         <div class="negociar">
           @if (dono()) {
@@ -56,14 +67,14 @@
                 }
               </p>
             }
-            <div class="acoes">
-              <button class="botao--secundario" type="button" (click)="conversar()">Conversar</button>
-              @if (negociavel()) {
-                <button class="botao--secundario" type="button" (click)="abrirProposta()">Fazer proposta</button>
-              }
+            <div class="acoes-compra">
               @if (compraDireta()) {
-                <button type="button" (click)="comprar()">Comprar por {{ a.preco | currency: 'BRL' }}</button>
+                <button type="button" (click)="comprar()"><gt-icone nome="carrinho" [tamanho]="16" /> Comprar agora</button>
               }
+              @if (negociavel()) {
+                <button class="escuro" type="button" (click)="abrirProposta()">Fazer proposta</button>
+              }
+              <button class="botao-contorno" type="button" (click)="conversar()">Conversar com o vendedor</button>
             </div>
           }
           @if (erroAcao(); as mensagem) {
