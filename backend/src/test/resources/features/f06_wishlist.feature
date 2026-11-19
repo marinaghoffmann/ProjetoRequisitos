@@ -1,5 +1,4 @@
 # language: pt
-@pendente
 Funcionalidade: F-06 Gerenciamento da wishlist
   Como jogador, quero manter uma wishlist com prioridades, para lembrar quais jogos
   quero jogar primeiro.

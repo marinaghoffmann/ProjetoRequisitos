@@ -38,8 +38,7 @@ public class MarcarJogandoAgora {
         // RN 1 e RN 2: no limite, exige escolher qual jogo substituir antes de gravar.
         if (registros.contarAtivos(usuarioId) >= JogandoAgora.LIMITE) {
             if (substituirJogoId == null) {
-                throw new RegraDeNegocioException("Você já tem " + JogandoAgora.LIMITE
-                        + " jogos em andamento. Escolha um para substituir ou remova um antes de continuar");
+                throw new RegraDeNegocioException("Remova ou substitua um jogo para continuar");
             }
             JogandoAgora substituido = registros.buscarAtivo(usuarioId, substituirJogoId).orElseThrow(
                     () -> new RegraDeNegocioException("O jogo a substituir não está entre os seus jogos em andamento"));
