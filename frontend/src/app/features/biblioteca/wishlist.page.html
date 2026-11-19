@@ -1,0 +1,30 @@
+<main class="pagina pagina--estreita">
+  <gt-cabecalho-pagina titulo="Minha wishlist"
+    [subtitulo]="'Jogos que você quer conhecer · ' + itens().length + (itens().length === 1 ? ' jogo' : ' jogos') + ', da prioridade mais alta para a mais baixa'" />
+
+  @if (carregando()) {
+    <gt-carregando tipo="linhas" [quantidade]="4" />
+  } @else if (erro(); as mensagem) {
+    <gt-erro [mensagem]="mensagem" />
+  } @else if (!linhas().length) {
+    <gt-estado-vazio icone="coracao" titulo="Sua wishlist está vazia"
+      texto="Toque no coração de um jogo para guardá-lo aqui." ctaRotulo="Descobrir jogos" ctaRota="/descobrir" />
+  } @else {
+    <section class="lista" aria-label="Jogos na wishlist">
+      @for (item of linhas(); track item.jogoId) {
+        <gt-linha-biblioteca [jogoId]="item.jogoId" [titulo]="item.titulo" [capaUrl]="item.capaUrl" [meta]="item.meta">
+          <span chips class="chip-cinza" [class.chip-cinza--acento]="item.prioridade === 'ALTA'">Prioridade {{ rotulo(item.prioridade) }}</span>
+          <span lado class="nota"><gt-icone nome="estrela" [tamanho]="12" class="preenchido" /> {{ item.nota }}</span>
+          <ng-container acoes>
+            <label class="sr-only" [attr.for]="'prioridade-' + item.jogoId">Prioridade de {{ item.titulo }}</label>
+            <select class="select-compacto" [id]="'prioridade-' + item.jogoId" [ngModel]="item.prioridade"
+              (ngModelChange)="alterarPrioridade(item, $event)">
+              @for (p of prioridades; track p[0]) { <option [value]="p[0]">{{ p[1] }}</option> }
+            </select>
+            <button type="button" class="botao-texto" (click)="remover(item)">Remover</button>
+          </ng-container>
+        </gt-linha-biblioteca>
+      }
+    </section>
+  }
+</main>

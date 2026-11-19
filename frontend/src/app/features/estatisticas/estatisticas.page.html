@@ -1,0 +1,53 @@
+<main class="pagina">
+  <gt-cabecalho-pagina eyebrow="Engine de estatísticas" titulo="Estatísticas da comunidade"
+    subtitulo="Recalculadas a cada review, conclusão, wishlist ou venda no marketplace, com duas casas decimais. A ficha de um jogo fica pública a partir de 3 avaliações." />
+
+  <gt-chips [opcoes]="chips" [(selecionado)]="visibilidade" rotulo="Visibilidade" />
+
+  @if (carregando()) {
+    <gt-carregando tipo="linhas" [quantidade]="5" />
+  } @else if (erro(); as mensagem) {
+    <gt-erro [mensagem]="mensagem" />
+  } @else if (!linhas().length) {
+    <gt-estado-vazio icone="estatisticas" titulo="Nenhum jogo nesta visão" texto="Troque o filtro de visibilidade." />
+  } @else {
+    <div class="tabela-rolagem">
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th scope="col">Jogo</th>
+            <th scope="col" class="num">Avaliações</th>
+            <th scope="col" class="num">Média</th>
+            <th scope="col" class="num">Conclusões</th>
+            <th scope="col" class="num">Wishlists</th>
+            <th scope="col" class="num">Negociações</th>
+            <th scope="col">Visibilidade</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (l of linhas(); track l.jogoId) {
+            <tr>
+              <td>
+                <a class="jogo" [routerLink]="['/catalogo', l.jogoId]">{{ l.titulo }}</a>
+                <span class="genero">{{ l.generos.join(' · ') || 'Sem gênero' }}</span>
+              </td>
+              <td class="num">{{ l.totalReviewsAtivas }}</td>
+              <td class="num">
+                @if (l.mediaGeral !== null) {
+                  <span class="media"><gt-icone nome="estrela" [tamanho]="12" class="preenchido" /> {{ l.mediaGeral | number: '1.2-2' : 'pt-BR' }}</span>
+                } @else { — }
+              </td>
+              <td class="num">{{ l.totalConclusoes ?? '—' }}</td>
+              <td class="num">{{ l.totalEmWishlists ?? '—' }}</td>
+              <td class="num">{{ l.totalNegociacoes ?? '—' }}</td>
+              <td>
+                @if (l.publica) { <gt-badge status="PUBLICA">Pública</gt-badge> }
+                @else { <gt-badge status="OCULTA" [attr.title]="'Faltam ' + (l.minimoDeReviews - l.totalReviewsAtivas) + ' avaliações'">Oculta</gt-badge> }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</main>

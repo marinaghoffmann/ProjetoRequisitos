@@ -46,6 +46,17 @@ export interface Jogo {
   status: string;
 }
 
+export type OrigemJogo = 'API' | 'MANUAL_CRIADOR';
+export type StatusCatalogo = 'ATIVO' | 'INATIVO';
+
+export interface FiltroCatalogo {
+  titulo?: string;
+  generoId?: string;
+  desenvolvedoraId?: string;
+  origem?: OrigemJogo;
+  status?: StatusCatalogo;
+}
+
 export interface Captura { miniatura: string; completa: string; }
 
 
@@ -112,9 +123,13 @@ export class CatalogoService {
     return this.http.get<Captura[]>(`/api/catalogo/jogos/${id}/capturas`);
   }
 
-  listarJogos(titulo?: string): Observable<Jogo[]> {
+  /** F-01: sem status, a API devolve só os ATIVOS. */
+  listarJogos(filtro: string | FiltroCatalogo = {}): Observable<Jogo[]> {
+    const f: FiltroCatalogo = typeof filtro === 'string' ? { titulo: filtro } : filtro;
     let params = new HttpParams();
-    if (titulo) params = params.set('titulo', titulo);
+    for (const [chave, valor] of Object.entries(f)) {
+      if (valor) params = params.set(chave, valor);
+    }
     return this.http.get<Jogo[]>('/api/catalogo/jogos', { params });
   }
 }

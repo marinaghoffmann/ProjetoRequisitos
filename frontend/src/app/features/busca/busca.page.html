@@ -1,0 +1,72 @@
+<main class="pagina pagina--estreita">
+  <gt-cabecalho-pagina titulo="Busque no GameTrack" subtitulo="Encontre jogos do catálogo e listas da comunidade." />
+
+  <form class="campo" role="search" (submit)="$event.preventDefault(); pesquisar(campo.value)">
+    <gt-icone nome="busca" />
+    <input #campo type="search" [value]="termo()" placeholder="Digite o nome de um jogo ou de uma lista" aria-label="Termo da busca" />
+    <button type="submit">Buscar</button>
+  </form>
+
+  @if (!termo()) {
+    <section class="alta">
+      <h2>Buscas em alta</h2>
+      <p>Atalhos para os gêneros do catálogo.</p>
+      <div class="atalhos">
+        @for (g of generos(); track g.id) {
+          <a class="chip-cinza" routerLink="/catalogo" [queryParams]="{ genero: g.nome }">{{ g.nome }}</a>
+        }
+        <a class="chip-cinza chip-cinza--acento" routerLink="/descobrir">Melhor avaliados</a>
+        <a class="chip-cinza chip-cinza--acento" routerLink="/lancamentos">Em breve</a>
+      </div>
+    </section>
+  } @else if (termoCurto()) {
+    <p class="aviso">Digite pelo menos 2 letras.</p>
+  } @else if (carregando()) {
+    <gt-carregando tipo="linhas" [quantidade]="3" />
+  } @else if (erro(); as mensagem) {
+    <gt-erro [mensagem]="mensagem" />
+  } @else if (resultado(); as r) {
+    @if (!total()) {
+      <gt-estado-vazio icone="busca" [titulo]="'Nada encontrado para “' + r.termo + '”'" texto="Confira a grafia ou tente um termo mais curto." />
+    } @else {
+      <p class="aviso">{{ total() }} {{ total() === 1 ? 'resultado' : 'resultados' }} para “{{ r.termo }}”</p>
+      @if (r.jogos.length) {
+        <section class="grupo">
+          <h2>Jogos <span>{{ r.jogos.length }}</span></h2>
+          <ul>
+            @for (j of r.jogos; track j.id) {
+              <li>
+                <a class="resultado" [routerLink]="['/catalogo', j.id]">
+                  <span class="resultado__capa" [style.background]="capa(j.capaUrl, j.id).imagem ? null : capa(j.capaUrl, j.id).fundo">
+                    @if (capa(j.capaUrl, j.id).imagem; as imagem) { <img [src]="imagem" alt="" loading="lazy" /> }
+                  </span>
+                  <span class="resultado__textos"><strong>{{ j.titulo }}</strong><small>{{ ano(j.dataLancamento) ?? 'Jogo' }}</small></span>
+                  <gt-icone nome="chevron" />
+                </a>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+      @if (r.listas.length) {
+        <section class="grupo">
+          <h2>Listas <span>{{ r.listas.length }}</span></h2>
+          <ul>
+            @for (l of r.listas; track l.id) {
+              <li>
+                <a class="resultado" [routerLink]="['/biblioteca/listas', l.id]">
+                  <span class="resultado__icone"><gt-icone nome="listas" /></span>
+                  <span class="resultado__textos">
+                    <strong>{{ l.titulo }}</strong>
+                    <small>{{ l.totalJogos }} {{ l.totalJogos === 1 ? 'jogo' : 'jogos' }}@if (l.nomeDoDono) { · por {{ l.nomeDoDono }} }</small>
+                  </span>
+                  <gt-icone nome="chevron" />
+                </a>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    }
+  }
+</main>

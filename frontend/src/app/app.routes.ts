@@ -4,6 +4,9 @@ import { papelGuard } from './core/auth/papel.guard';
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'inicio' },
   { path: 'inicio', loadComponent: () => import('./features/inicio/inicio.page').then((m) => m.InicioPage) },
+  { path: 'descobrir', loadComponent: () => import('./features/descobrir/descobrir.page').then((m) => m.DescobrirPage) },
+  { path: 'estatisticas', loadComponent: () => import('./features/estatisticas/estatisticas.page').then((m) => m.EstatisticasPage) },
+  { path: 'busca', loadComponent: () => import('./features/busca/busca.page').then((m) => m.BuscaPage) },
   {
     path: 'perfil',
     canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
@@ -44,6 +47,11 @@ export const routes: Routes = [
   { path: 'biblioteca/jogando-agora',
     canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
     loadComponent: () => import('./features/biblioteca/jogando-agora.page').then((m) => m.JogandoAgoraPage),
+  },
+  {
+    path: 'biblioteca/wishlist',
+    canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
+    loadComponent: () => import('./features/biblioteca/wishlist.page').then((m) => m.WishlistPage),
   },
   {
     path: 'biblioteca/zerados',

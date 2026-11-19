@@ -1,0 +1,28 @@
+<main class="pagina">
+  <gt-cabecalho-pagina eyebrow="Catálogo curado" titulo="Descubra seu próximo jogo"
+    subtitulo="Os jogos do catálogo com a nota da comunidade. A nota aparece a partir de 3 avaliações." />
+
+  <div class="barra">
+    <gt-chips [opcoes]="chips()" [(selecionado)]="filtro" rotulo="Gêneros e plataformas" />
+    <label class="ordem">
+      <span class="sr-only">Ordenar por</span>
+      <select class="select-compacto" [ngModel]="ordem()" (ngModelChange)="ordem.set($event)">
+        @for (opcao of opcoesDeOrdenacao; track opcao.valor) { <option [value]="opcao.valor">{{ opcao.rotulo }}</option> }
+      </select>
+    </label>
+  </div>
+
+  @if (carregando()) {
+    <gt-carregando tipo="cards" [quantidade]="12" />
+  } @else if (erro(); as mensagem) {
+    <gt-erro [mensagem]="mensagem" />
+  } @else if (!visiveis().length) {
+    <gt-estado-vazio icone="descobrir" titulo="Nenhum jogo com esse filtro" texto="Escolha outro gênero ou plataforma." />
+  } @else {
+    <section class="grade-posters" aria-label="Jogos">
+      @for (jogo of visiveis(); track jogo.id) {
+        <gt-card-poster [jogo]="jogo" (alternarWishlist)="alternarWishlist($event)" />
+      }
+    </section>
+  }
+</main>

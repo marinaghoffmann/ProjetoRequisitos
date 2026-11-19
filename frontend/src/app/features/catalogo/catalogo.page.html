@@ -1,66 +1,63 @@
-<main class="pagina-listagem">
-  <header class="cabecalho">
-    <div>
-      <h1>Catálogo de jogos</h1>
-      <p>Encontre os jogos cadastrados no Game Tracker.</p>
-    </div>
-    @if (autenticacao.temPapel('DESENVOLVEDOR', 'ADMINISTRADOR')) {
-    <a class="botao" routerLink="/catalogo/novo">Cadastrar jogo</a>
-    }
-  </header>
+<main class="pagina">
+  <gt-cabecalho-pagina [eyebrow]="gerenciando() ? 'Gestão do catálogo' : 'Catálogo'"
+    [titulo]="gerenciando() ? 'Gerenciar catálogo' : 'Todos os jogos'"
+    [subtitulo]="visiveis().length + (visiveis().length === 1 ? ' jogo' : ' jogos') + ' · importados da API ou cadastrados pelo criador'">
+    @if (podeCadastrar()) { <a acao class="botao" routerLink="/catalogo/novo">+ Cadastrar jogo</a> }
+  </gt-cabecalho-pagina>
 
-  <form class="busca" (ngSubmit)="pesquisar()">
-    <label for="busca">Buscar jogo</label>
-    <div class="busca__linha">
-      <input id="busca" name="busca" type="search" [(ngModel)]="busca" placeholder="Digite o título do jogo" />
-      <button type="submit">Buscar</button>
-    </div>
-  </form>
+  <gt-chips class="generos" [opcoes]="chipsDeGenero()" [(selecionado)]="genero" rotulo="Gêneros" />
+
+  <div class="linha-filtros">
+    <label>Título <input type="search" [ngModel]="titulo()" (ngModelChange)="titulo.set($event)" placeholder="Filtrar pelo título" /></label>
+    <label>Desenvolvedora
+      <select [ngModel]="desenvolvedoraId()" (ngModelChange)="desenvolvedoraId.set($event); carregar()">
+        <option value="">Todas</option>
+        @for (d of desenvolvedoras(); track d.id) { <option [value]="d.id">{{ d.nome }}</option> }
+      </select>
+    </label>
+    <label>Origem
+      <select [ngModel]="origem()" (ngModelChange)="origem.set($event); carregar()">
+        <option value="">Todas</option>
+        <option value="API">API externa</option>
+        <option value="MANUAL_CRIADOR">Criador</option>
+      </select>
+    </label>
+    @if (autenticacao.temPapel('ADMINISTRADOR')) {
+      <label>Status
+        <select [ngModel]="status()" (ngModelChange)="status.set($event); carregar()">
+          <option value="ATIVO">Ativos</option>
+          <option value="INATIVO">Inativos</option>
+        </select>
+      </label>
+    }
+    <label class="linha-filtros__fim"><span class="sr-only">Ordenar por</span>
+      <select [ngModel]="ordem()" (ngModelChange)="ordem.set($event)">
+        @for (opcao of opcoesDeOrdenacao; track opcao.valor) { <option [value]="opcao.valor">{{ opcao.rotulo }}</option> }
+      </select>
+    </label>
+  </div>
 
   @if (carregando()) {
-  <p class="estado">Carregando jogos…</p>
+    <gt-carregando tipo="cards" [quantidade]="12" />
   } @else if (erro(); as mensagem) {
-  <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
-  } @else if (!jogos().length) {
-  <p class="estado">Nenhum jogo encontrado.</p>
+    <gt-erro [mensagem]="mensagem" />
+  } @else if (!visiveis().length) {
+    <gt-estado-vazio icone="jogos" titulo="Nenhum jogo encontrado" texto="Ajuste os filtros para ver outros jogos." />
   } @else {
-  <p class="quantidade">{{ jogos().length }} jogo(s) encontrado(s)</p>
-  <section class="grade" aria-label="Jogos do catálogo">
-    @for (jogo of jogos(); track jogo.id) {
-    <article class="card" [class.card--inativo]="jogo.status !== 'ATIVO'">
-      <div class="card__midia">
-        @if (jogo.capaUrl) {
-        <img class="card__capa" [src]="imagemUrl(jogo.capaUrl)" [alt]="'Capa de ' + jogo.titulo" loading="lazy" />
-        } @else {
-        <div class="card__sem-capa" aria-label="Jogo sem capa">GT</div>
-        }
-        @if (jogo.status !== 'ATIVO') {
-        <span class="card__selo">Inativo</span>
-        }
-      </div>
-
-      <div class="card__conteudo">
-        <h2><a class="link-card card__titulo" [routerLink]="['/catalogo', jogo.id]">{{ jogo.titulo }}</a></h2>
-
-        @if (jogo.dataLancamento) {
-        <p class="card__meta">{{ jogo.dataLancamento | date:'yyyy' }}</p>
-        }
-
-        @if (jogo.resumo) {
-        <p class="card__resumo">{{ jogo.resumo }}</p>
-        }
-
-        @if (podeEditar(jogo)) {
-        <div class="acoes">
-          <a class="acao" [routerLink]="['/catalogo', jogo.id, 'editar']">Editar</a>
-          @if (autenticacao.temPapel('ADMINISTRADOR')) {
-          <button class="acao acao--perigo" type="button" (click)="excluir(jogo)">Desativar</button>
+    <section class="grade-posters" aria-label="Jogos do catálogo">
+      @for (jogo of visiveis(); track jogo.id) {
+        <gt-card-poster [jogo]="jogo" [inativo]="jogo.jogo.status !== 'ATIVO'"
+          [selo]="jogo.jogo.status !== 'ATIVO' ? 'Inativo' : null" (alternarWishlist)="alternarWishlist($event)">
+          @if (podeEditar(jogo)) {
+            <div class="gestao">
+              <a class="botao-texto" [routerLink]="['/catalogo', jogo.id, 'editar']">Editar</a>
+              @if (autenticacao.temPapel('ADMINISTRADOR') && jogo.jogo.status === 'ATIVO') {
+                <button type="button" class="botao-texto gestao__remover" (click)="excluir(jogo)">Remover</button>
+              }
+            </div>
           }
-        </div>
-        }
-      </div>
-    </article>
-    }
-  </section>
+        </gt-card-poster>
+      }
+    </section>
   }
 </main>

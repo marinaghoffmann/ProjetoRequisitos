@@ -1,0 +1,30 @@
+/** Paths SVG (viewBox 24x24) no traço fino do menu (stroke 1,7). */
+export const ICONES = {
+  inicio: 'M3 11 12 3l9 8M5 10v10h5v-6h4v6h5V10',
+  descobrir: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM15.5 8.5l-2 5-5 2 2-5z',
+  jogos: 'M6 11h4M8 9v4M15 12h.01M18 10h.01M17.3 5H6.7a4 4 0 0 0-3.9 3.2l-1.1 5.4A3 3 0 0 0 4.6 17L8 14.5h8l3.4 2.5a3 3 0 0 0 2.9-3.4l-1.1-5.4A4 4 0 0 0 17.3 5Z',
+  listas: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+  journal: 'M5 3h14v18H5zM9 8h6M9 12h6',
+  comunidade: 'M16 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM21 20v-1a4 4 0 0 0-3-3.9M16 4.1a3.5 3.5 0 0 1 0 6.8',
+  marketplace: 'M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2',
+  mensagens: 'M4 5h16v11H9l-5 4z',
+  estatisticas: 'M4 20V4M4 20h16M9 20v-7M14 20V9M19 20v-5',
+  coracao: 'M12 21s-8-5.2-8-11a4.6 4.6 0 0 1 8-3 4.6 4.6 0 0 1 8 3c0 5.8-8 11-8 11Z',
+  check: 'm5 12 5 5 9-10',
+  timeline: 'M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z',
+  catalogo: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM16.5 13v7M13 16.5h7',
+  moderacao: 'M12 2l8 4v5c0 5-3 8-8 11-5-3-8-6-8-11V6l8-4zM9 12l2 2 4-4',
+  perfil: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1',
+  busca: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14ZM20 20l-3.5-3.5',
+  sino: 'M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10.3 20a2 2 0 0 0 3.4 0',
+  mais: 'M12 5v14M5 12h14',
+  estrela: 'm12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z',
+  fechar: 'M6 6l12 12M18 6 6 18',
+  chevron: 'm9 6 6 6-6 6',
+  vazio: 'M4 7h16M6 7l1 13h10l1-13M9 7V4h6v3',
+  listaMais: 'M8 6h13M8 12h9M8 18h5M3 6h.01M3 12h.01M3 18h.01M19 15v6M16 18h6',
+  escudo: 'M12 2l8 4v5c0 5-3 8-8 11-5-3-8-6-8-11V6l8-4z',
+  carrinho: 'M3 4h2l2.4 11h10.2L20 8H6.2M9 20h.01M17 20h.01',
+} as const;
+
+export type NomeIcone = keyof typeof ICONES;
