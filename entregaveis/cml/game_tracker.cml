@@ -35,7 +35,7 @@
 //  - Template Method : F-19 e F-20 (RotinaDePrazo: reserva de 48 h, envio e custodia)              [codigo]
 //  - Template Method : F-14 (FluxoAcaoModerativa: validar, aplicar, registrar, notificar)           [codigo]
 //  - Template Method : F-01 (CadastroJogoTemplate: origem API x origem Manual/Criador)            [previsto]
-//  - Proxy           : F-01 (ProxyBaseExternaJogos sobre IBaseExternaJogosGateway)                [previsto]
+//  - Proxy           : F-01 (CapturasEmCache: cache das capturas da Steam)                       [codigo]
 //  - Decorator       : F-15 (SpoilerMascaradoDecorator) e F-14 (ConteudoRemovidoDecorator) sobre IConteudoExibivel [codigo]
 //  - Iterator        : F-13 (IteradorDeRespostas: respostas encadeadas em profundidade)          [codigo]
 //  - Iterator        : F-13 e F-16 (paginacao de topicos e navegacao da timeline)                 [previsto]
@@ -207,7 +207,7 @@ BoundedContext ContextoCatalogoJogos implements CatalogoJogosSubdomain {
         }
 
         // Padrao Proxy (GoF): IBaseExternaJogosGateway e a interface comum. SteamGateway acessa a
-        // API real; ProxyBaseExternaJogos adiciona cache, limite de requisicoes e tratamento de falha.
+        // API real; o proxy adiciona cache e tratamento de falha (no codigo: CapturasEmCache, nas capturas).
         Service IBaseExternaJogosGateway {
             @DadosJogo buscarPorIdentificador(@IdentificadorExterno identificador);
             List<@DadosJogo> buscarPorTermo(String termo, Integer limite);

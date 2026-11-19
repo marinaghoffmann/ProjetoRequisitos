@@ -179,14 +179,26 @@ forma consistente em todos os agregados.
 | **Strategy** | Cobrar e reembolsar por forma de pagamento sem `if` por tipo; uma forma nova é um `@Bean` a mais | [`EstrategiaDePagamento`](backend/src/main/java/com/g4/game_tracker_backend/dominio/marketplace/pedidos/EstrategiaDePagamento.java), `PagamentoCartao`, `PagamentoPix`, `PagamentoSaldoCarteira` e `FormasDePagamento` | F-20 | Marina |
 | **Observer** | Gerar a timeline do journal e recalcular estatísticas quando outras funcionalidades agem, sem que elas conheçam quem reage | [`ObservadorEventosPlataforma`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/journal/ObservadorEventosPlataforma.java), [`ObservadorEstatisticaJogo`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/avaliacao/estatisticas/ObservadorEstatisticaJogo.java) e a porta [`PublicadorDeEventos`](backend/src/main/java/com/g4/game_tracker_backend/dominio/compartilhado/PublicadorDeEventos.java) | F-16, F-17 | Davi |
 | **Proxy** (de proteção) | Garantir em um só lugar que a conversa só chega ao comprador e ao vendedor (RN 3), sem repetir a checagem em cada caso de uso | [`ConversasDoParticipante`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/marketplace/negociacao/ConversasDoParticipante.java), com a mesma interface de `ConversaChatRepositorio` | F-19 | Marina |
+| **Proxy** (de cache) | A página de um jogo repetia a requisição à Steam a cada abertura: o proxy tem a mesma interface do buscador real, guarda as capturas por jogo durante a validade (24 h por padrão), devolve a cópia vencida se a Steam falhar e limita o cache a 500 jogos | [`CapturasEmCache`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/catalogo/CapturasEmCache.java) sobre `BuscadorDeCapturas` / `SteamCapturas` | F-01 | Caio |
 | **Template Method** | Toda ação moderativa segue a mesma sequência: validar, aplicar, registrar o log e notificar o autor | [`FluxoAcaoModerativa`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/moderacao/FluxoAcaoModerativa.java), estendida por `GerenciarModeracao` | F-14 | Henrique |
 | **Template Method** | Três rotinas de prazo repetiam o mesmo laço (buscar os vencidos, uma transação por item, registrar a falha sem parar as outras) | [`RotinaDePrazo`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/compartilhado/RotinaDePrazo.java), com as subclasses `ExpirarReservasVencidas`, `CancelarPedidosSemEnvio` e `LiberarCustodiaPorTolerancia` | F-19, F-20 | Marina |
 | **Decorator** | Muda o texto exibido sem mexer na entidade: oculta o spoiler do Journal até o clique do leitor e troca o conteúdo removido pela moderação pela mensagem de sistema | `IConteudoExibivel` e `ConteudoOriginal` (em `dominio.compartilhado`), `SpoilerMascaradoDecorator`, `ConteudoRemovidoDecorator` | F-15 (F12 do grupo), F-14 | Bruno, Henrique |
-| **Iterator** | Percorrer as respostas encadeadas de um tópico na ordem da conversa (pai antes das filhas, irmãs por publicação) sem expor a lista interna do agregado; a API do tópico e a contagem de respostas visíveis da moderação usam o mesmo percurso | [`IteradorDeRespostas`](backend/src/main/java/com/g4/game_tracker_backend/dominio/forum/IteradorDeRespostas.java) e `TopicoDeForum.arvoreDeRespostas()` | F-13 | `TODO(grupo)` |
+| **Iterator** | Percorrer as respostas encadeadas de um tópico na ordem da conversa (pai antes das filhas, irmãs por publicação) sem expor a lista interna do agregado; a API do tópico e a contagem de respostas visíveis da moderação usam o mesmo percurso | [`IteradorDeRespostas`](backend/src/main/java/com/g4/game_tracker_backend/dominio/forum/IteradorDeRespostas.java) e `TopicoDeForum.arvoreDeRespostas()` | F-13 | Henrique |
+
+Cada integrante usa pelo menos um padrão, e os seis padrões aparecem no projeto:
+
+| Integrante | Padrões |
+|---|---|
+| Caio | Proxy |
+| Lavínia | Strategy |
+| Bruno | Decorator |
+| Henrique | Template Method, Decorator, Iterator |
+| Davi | Observer |
+| Marina | Strategy, Proxy, Template Method |
 
 Testes dos padrões: `SimilaridadeTest`, os cenários de pagamento da F-20, `ConversasDoParticipanteTest`,
-`RotinaDePrazoTest`, `JournalRegrasTest`, `IteradorDeRespostasTest` e os cenários da F-13 (respostas
-encadeadas), da F-15, da F-16 e da F-17.
+`CapturasEmCacheTest`, `RotinaDePrazoTest`, `JournalRegrasTest`, `ModeracaoDominioTest`, `IteradorDeRespostasTest`
+e os cenários da F-13 (respostas encadeadas), da F-14, da F-15, da F-16 e da F-17.
 
 ## Testes e BDD
 

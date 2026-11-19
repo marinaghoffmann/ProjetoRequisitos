@@ -13,10 +13,10 @@ Atualizado em 18/11/2026, na branch `chore/entrega-final`. Legenda: ✅ cumprido
 | 3b | Mapa de histórias do usuário | ✅ | `entregaveis/mapa/` |
 | 3c | Protótipos de alta fidelidade | 🟡 `TODO(grupo)` | `entregaveis/prototipo/prototipo.md`: falta o link **público** `*.figma.site` |
 | 3d | Modelo dos subdomínios no Context Mapper (`.cml`) | ✅ | `entregaveis/cml/game_tracker.cml`: 0 erros e 0 avisos no servidor de linguagem do Context Mapper 6.12 (só 5 sugestões informativas de Value Object). Corrigidos 3 repositórios da F-14 declarados fora da entidade raiz. |
-| 3e | Cenários de teste BDD | ✅ | 20 `.feature` em `backend/src/test/resources/features/`: 257 cenários, nenhum `@pendente` |
-| 3f | Automação dos cenários com Cucumber | ✅ | `backend/src/test/java/.../bdd/` (`PassosXxx`, com os novos `PassosWishlist` e `PassosCurrentlyPlaying`): os 257 cenários executam e passam. Relatório em `backend/target/cucumber-relatorio.html` |
+| 3e | Cenários de teste BDD | ✅ | 20 `.feature` em `backend/src/test/resources/features/`: 258 cenários, nenhum `@pendente` |
+| 3f | Automação dos cenários com Cucumber | ✅ | `backend/src/test/java/.../bdd/` (`PassosXxx`, com os novos `PassosWishlist` e `PassosCurrentlyPlaying`): os 258 cenários executam e passam. Relatório em `backend/target/cucumber-relatorio.html` |
 | 4 | DDD preliminar, estratégico, tático e operacional; arquitetura limpa | ✅ | Seção "DDD nos quatro níveis" do README; `ArquiteturaTest` com 7 regras, incluindo a aplicação inteira sem Spring |
-| 5 | 4 ou mais padrões de projeto (Iterator, Decorator, Observer, Proxy, Strategy, Template Method) | ✅ 6 de 6 | Os seis em código e testados (seção 3) |
+| 5 | 4 ou mais padrões de projeto (Iterator, Decorator, Observer, Proxy, Strategy, Template Method) | ✅ 6 de 6 | Os seis em código e testados, e cada integrante usa pelo menos um (seção 3) |
 | 6 | Persistência com mapeamento objeto-relacional | ✅ | `infraestrutura/persistencia/**` (`XxxJpa` + adapters), PostgreSQL no `docker-compose.yml` |
 | 7 | Camada de apresentação web | ✅ | Angular em `frontend/`, com tela para todas as funcionalidades. Paridade com o protótipo em [front-paridade.md](front-paridade.md) |
 | 8 | Declaração de uso de IA e interações | 🟡 `TODO(grupo)` | `entregaveis/ia/declaracao_uso_ia.md` e `entregaveis/ia/interacoes/`: cada integrante anexa as suas |
@@ -27,7 +27,7 @@ Atualizado em 18/11/2026, na branch `chore/entrega-final`. Legenda: ✅ cumprido
 
 | ID | Funcionalidade | Resp. | Domínio | Caso de uso | JPA | Controller | Tela | `.feature` | Steps | Cenários |
 |---|---|---|---|---|---|---|---|---|---|---|
-| F-01 | Catálogo e desenvolvedoras | Caio | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 13/13 |
+| F-01 | Catálogo e desenvolvedoras | Caio | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 14/14 |
 | F-02 | Reviews | Lavínia | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 8/8 |
 | F-04 | Listas personalizadas | Lavínia | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 9/9 |
 | F-06 | Wishlist | Caio | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 6/6 |
@@ -47,7 +47,7 @@ Atualizado em 18/11/2026, na branch `chore/entrega-final`. Legenda: ✅ cumprido
 | F-21 | Reputação | Davi | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 7/7 |
 | T02 | Autenticação | grupo | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 6/6 |
 
-Total: 257 cenários executados e nenhum `@pendente` (cada linha de `Exemplos` conta como um cenário). O [diagnostico.md](diagnostico.md) é o retrato de partida (17/11) e não é mais atualizado.
+Total: 258 cenários executados e nenhum `@pendente` (cada linha de `Exemplos` conta como um cenário). O [diagnostico.md](diagnostico.md) é o retrato de partida (17/11) e não é mais atualizado.
 
 ## 3. Padrões de projeto
 
@@ -57,10 +57,11 @@ Total: 257 cenários executados e nenhum `@pendente` (cada linha de `Exemplos` c
 | Strategy | F-20 `EstrategiaDePagamento` | Marina | ✅ | ✅ `f20_pedido_checkout.feature` (RN 5 e 6) |
 | Observer | F-16 e F-17, observadores de eventos | Davi | ✅ | ✅ `f16_timeline_automatica.feature`, `f17_estatisticas.feature` |
 | Proxy | F-19 `ConversasDoParticipante` | Marina | ✅ | ✅ `ConversasDoParticipanteTest`, `f19_chat_negociacao.feature` (RN 3) |
+| Proxy (de cache) | F-01 `CapturasEmCache` (capturas da Steam) | Caio | ✅ | ✅ `CapturasEmCacheTest` |
 | Template Method | F-19/F-20 `RotinaDePrazo` | Marina | ✅ | ✅ `RotinaDePrazoTest`, cenários da RN 10 (F-19) e das RN 7 e 9 (F-20) |
 | Template Method | F-14 `FluxoAcaoModerativa` | Henrique | ✅ | ✅ `f14_moderacao.feature`, `ModeracaoIntegracaoTest` |
 | Decorator | F-15 `SpoilerMascaradoDecorator`; F-14 `ConteudoRemovidoDecorator` | Bruno, Henrique | ✅ | ✅ `JournalRegrasTest`, `ModeracaoDominioTest`, `f15_journal.feature` (RN 3), `f14_moderacao.feature` |
-| Iterator | F-13 `IteradorDeRespostas` (respostas encadeadas em profundidade) | `TODO(grupo)` | ✅ | ✅ `IteradorDeRespostasTest`, `f13_forum.feature` ("Respostas encadeadas aparecem na ordem da conversa") |
+| Iterator | F-13 `IteradorDeRespostas` (respostas encadeadas em profundidade) | Henrique | ✅ | ✅ `IteradorDeRespostasTest`, `f13_forum.feature` ("Respostas encadeadas aparecem na ordem da conversa") |
 
 ## 4. Arquitetura e repositório
 
@@ -85,5 +86,4 @@ Total: 257 cenários executados e nenhum `@pendente` (cada linha de `Exemplos` c
       de admin em todo ambiente que usou os valores do antigo `.env.backup`.
 - [ ] Cada integrante anexa as suas interações de IA em `entregaveis/ia/interacoes/` e completa a declaração.
 - [ ] Exportar os slides para `entregaveis/apresentacao/`.
-- [ ] Definir o **responsável** pelo Iterator (F-13) nas tabelas de padrões do README e deste checklist.
 - [ ] Exportar as telas do protótipo do Figma Make para `entregaveis/prototipo/telas/` (referência da paridade; ver [front-paridade.md](front-paridade.md)).
