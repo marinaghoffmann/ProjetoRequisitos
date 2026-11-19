@@ -42,13 +42,13 @@ numeração interna de 1 a 18, mostrada na coluna "Nº grupo".
 | Bounded context (CML) | Pacote (`com.g4.game_tracker_backend.<camada>.…`) | Funcionalidade | Nº grupo | Responsável | Situação |
 |---|---|---|---|---|---|
 | ContextoIdentidadeUsuario | `identidade` | T02 Cadastro, login (JWT) e papéis | — | grupo | ✅ |
-| ContextoCatalogoJogos | `catalogo` | F-01 Catálogo, importação e desenvolvedoras | 1 | Caio | 🟡 RN 3 pendente |
+| ContextoCatalogoJogos | `catalogo` | F-01 Catálogo, importação e desenvolvedoras | 1 | Caio | ✅ |
 | ContextoLancamentos | `lancamentos` | F-12 Lançamentos futuros e alertas | 9 | Henrique | ✅ |
 | ContextoAvaliacao | `avaliacao.reviews` | F-02 Reviews e notas por categoria | 2 | Lavínia | ✅ |
 | ContextoEstatisticas | `avaliacao.estatisticas` | F-17 Estatísticas da comunidade | 14 | Davi | ✅ |
 | ContextoListasPersonalizadas | `biblioteca.listas` | F-04 Listas personalizadas | 3 | Lavínia | ✅ |
-| ContextoWishlist | — | F-06 Wishlist | 4 | Caio | ❌ |
-| ContextoPerfilJogador | `biblioteca` e `identidade` | F-07 Currently Playing | 5 | Caio | 🟡 sem BDD |
+| ContextoWishlist | `wishlist` | F-06 Wishlist | 4 | Caio | ✅ |
+| ContextoPerfilJogador | `biblioteca` e `identidade` | F-07 Currently Playing | 5 | Caio | ✅ |
 | ContextoPerfilJogador | `biblioteca.perfil` e `identidade` | F-08 Favoritos e perfil público | 6 | Bruno | ✅ |
 | ContextoConclusoes | `biblioteca.conclusoes` | F-11 Registros de "zerado" | 8 | Bruno | ✅ |
 | ContextoSimilaridade | `descoberta.similaridade` | F-10 Similares e feedback | 7 | Lavínia | ✅ |
@@ -142,11 +142,17 @@ garante é o [`ArquiteturaTest`](backend/src/test/java/com/g4/game_tracker_backe
 - **Erros:** violação de regra vira `RegraDeNegocioException`, e o `TratadorGlobalDeErros` devolve **422** com
   `ProblemDetail` (mensagem em `detail`). `RecursoNaoEncontradoException` vira 404 e `AcessoNegadoException`, 403.
   No frontend, o interceptor `ErroApi` mostra a mensagem ao usuário.
-- **Aplicação sem framework (em migração):** a negociação (F-19) e os pedidos (F-20) já usam só portas:
-  `ExecutorDeTransacao` para a transação e `PublicadorDeEventos` para os eventos. Os beans são registrados em
-  `infraestrutura/configuracao/NegociacaoConfig` e `PedidosConfig`, e o ArchUnit garante esses pacotes livres de
-  Spring. Os outros contextos ainda usam `@Service` e `@Transactional`. Para migrar um contexto, siga o mesmo
-  modelo e acrescente o pacote à regra `aplicacaoMigradaNaoDependeDoSpring`.
+- **Aplicação sem framework:** nenhuma classe de `aplicacao/**` importa o Spring (regra
+  `aplicacaoNaoDependeDoSpring` do ArchUnit). A transação e os eventos ficam atrás de portas:
+  - `ExecutorDeTransacao` (transação programática, usada na negociação, nos pedidos, no journal e nas rotinas
+    de prazo) e a anotação `@Transacional`, a forma declarativa da mesma porta, para quando o método inteiro é
+    uma transação. Ela é Java puro (`aplicacao.compartilhado`) e a infraestrutura a aplica com o mesmo
+    interceptador do Spring (`TransacaoDosCasosDeUsoConfig`), então a propagação e o rollback não mudam;
+  - `PublicadorDeEventos` para publicar e `OuvintesDeEventosSpring` (infraestrutura) para entregar os eventos
+    aos observadores da aplicação;
+  - `@CasoDeUso` marca as classes que a infraestrutura registra como beans (`CasosDeUsoConfig`). As que pedem
+    montagem especial ficam em `infraestrutura/configuracao/XxxConfig` (`NegociacaoConfig`, `PedidosConfig`,
+    `JournalConfig`).
 
 **Por que um módulo Maven só, e não um por camada (como no PetCollar)?** A separação por módulos faria o compilador
 barrar dependências proibidas. Aqui quem faz isso é o ArchUnit, a cada build, com a mesma força. Dividir agora
@@ -176,10 +182,11 @@ forma consistente em todos os agregados.
 | **Template Method** | Toda ação moderativa segue a mesma sequência: validar, aplicar, registrar o log e notificar o autor | [`FluxoAcaoModerativa`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/moderacao/FluxoAcaoModerativa.java), estendida por `GerenciarModeracao` | F-14 | Henrique |
 | **Template Method** | Três rotinas de prazo repetiam o mesmo laço (buscar os vencidos, uma transação por item, registrar a falha sem parar as outras) | [`RotinaDePrazo`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/compartilhado/RotinaDePrazo.java), com as subclasses `ExpirarReservasVencidas`, `CancelarPedidosSemEnvio` e `LiberarCustodiaPorTolerancia` | F-19, F-20 | Marina |
 | **Decorator** | Muda o texto exibido sem mexer na entidade: oculta o spoiler do Journal até o clique do leitor e troca o conteúdo removido pela moderação pela mensagem de sistema | `IConteudoExibivel` e `ConteudoOriginal` (em `dominio.compartilhado`), `SpoilerMascaradoDecorator`, `ConteudoRemovidoDecorator` | F-15 (F12 do grupo), F-14 | Bruno, Henrique |
-| **Iterator** | `TODO(grupo)`. O CML prevê a paginação de tópicos e a navegação da timeline | — | F-13 / F-16 | `TODO(grupo)` |
+| **Iterator** | Percorrer as respostas encadeadas de um tópico na ordem da conversa (pai antes das filhas, irmãs por publicação) sem expor a lista interna do agregado; a API do tópico e a contagem de respostas visíveis da moderação usam o mesmo percurso | [`IteradorDeRespostas`](backend/src/main/java/com/g4/game_tracker_backend/dominio/forum/IteradorDeRespostas.java) e `TopicoDeForum.arvoreDeRespostas()` | F-13 | `TODO(grupo)` |
 
 Testes dos padrões: `SimilaridadeTest`, os cenários de pagamento da F-20, `ConversasDoParticipanteTest`,
-`RotinaDePrazoTest`, `JournalRegrasTest` e os cenários da F-15, da F-16 e da F-17.
+`RotinaDePrazoTest`, `JournalRegrasTest`, `IteradorDeRespostasTest` e os cenários da F-13 (respostas
+encadeadas), da F-15, da F-16 e da F-17.
 
 ## Testes e BDD
 
@@ -193,8 +200,11 @@ cd frontend && npm test          # Vitest
 - Os steps ficam em `backend/src/test/java/com/g4/game_tracker_backend/bdd/` (`PassosXxx`) e sobem o Spring com H2
   (`ConfiguracaoSpringCucumber`), chamando os casos de uso de verdade.
 - **Relatório HTML:** `backend/target/cucumber-relatorio.html`, gerado a cada `./mvnw verify`.
-- Funcionalidades marcadas com `@pendente` ainda não têm implementação e são puladas. Veja a matriz em
-  [docs/checklist-entrega.md](docs/checklist-entrega.md).
+- Todos os cenários rodam: não há nenhum `@pendente`. A tag continua aceita pelo runner
+  (`ExecutarCenariosBddTest`) para marcar um cenário novo enquanto os steps não existem. A matriz por
+  funcionalidade está em [docs/checklist-entrega.md](docs/checklist-entrega.md).
+- Testes de integração das consultas novas (`ConsultasDasTelasTest`) e da ligação das transações
+  (`TransacaoDosCasosDeUsoTest`).
 
 ## Integrantes
 
@@ -206,128 +216,3 @@ cd frontend && npm test          # Vitest
 | Bruno Mayer | F-08 Favoritos e perfil · F-11 Zerados · F-15 Journal |
 | Henrique Brito | F-12 Lançamentos · F-13 Fórum · F-14 Moderação |
 | Davi Marques | F-16 Timeline automática · F-17 Estatísticas · F-21 Reputação |
-
-## Lançamentos futuros e alertas (F-12)
-
-Os lançamentos são cadastrados **explicitamente** para jogos ativos do catálogo. Uma data futura
-no cadastro do jogo, por si só, não cria uma inscrição na agenda.
-
-| Método | Rota | Objetivo | Quem pode |
-|---|---|---|---|
-| `GET` | `/api/lancamentos` | Listar futuros por data, com contagem regressiva, total de interessados e alerta do usuário; `incluirLancados=true` acrescenta os já lançados | qualquer um |
-| `GET` | `/api/lancamentos/{id}` | Consultar lançamento e histórico de datas | qualquer um |
-| `POST` | `/api/lancamentos` | Cadastrar `{ "jogoId": "...", "dataPrevista": "AAAA-MM-DD", "tipoData": "ESTIMADA" }` | admin ou desenvolvedor vinculado ao jogo |
-| `PUT` | `/api/lancamentos/{id}` | Alterar `{ "dataPrevista": "AAAA-MM-DD", "tipoData": "CONFIRMADA" }` | admin ou desenvolvedor vinculado ao jogo |
-| `DELETE` | `/api/lancamentos/{id}` | Remover a agenda e cancelar alertas, mantendo o jogo | admin ou desenvolvedor vinculado ao jogo |
-| `PUT` / `DELETE` | `/api/lancamentos/{id}/interesse` | Ativar/desativar o interesse (operações idempotentes) | autenticado |
-| `GET` | `/api/notificacoes` | Caixa de notificações do próprio usuário | autenticado |
-| `PATCH` | `/api/notificacoes/{id}/leitura` | Marcar como lida | destinatário |
-
-A data é `LocalDate` no fuso `America/Sao_Paulo`. `tipoData` pode ser `ESTIMADA`
-(data possível, ainda sem confirmação) ou `CONFIRMADA`. O formulário inicia em `ESTIMADA`;
-a API mantém `CONFIRMADA` como padrão para clientes anteriores. Uma estimativa é exibida
-publicamente mesmo após passar, sem mudar automaticamente para `LANCADO` nem criar
-alerta. O usuário pode acompanhar o jogo; ao confirmar a data, os alertas dos interessados
-são agendados. O alerta confirmado vence à meia-noite do dia anterior (24 horas antes do
-início do dia oficial). O campo representa a classificação informada por quem cadastra;
-o sistema não verifica a fonte automaticamente. O status `LANCADO` pertence ao
-lançamento; o jogo continua `ATIVO` no catálogo. Edições de data nas rotas do catálogo e
-importações de jogos já inscritos sincronizam o histórico e reagendam os alertas na mesma
-transação. Avisos de data alterada e de lançamento próximo são internos ao aplicativo.
-
-`RotinasDosLancamentos` processa alertas e transições vencidas a cada minuto. Defina
-`APP_LANCAMENTOS_ROTINAS=false` para desativá-la; os testes a desativam e invocam os
-casos de uso com um instante fixo. Frontend: a seção “Em breve” de `/inicio` mostra os três primeiros lançamentos reais e o link “Todos” abre `/lancamentos`; essa página mostra a agenda e, ao final, os já lançados. Os formulários de cadastro/edição e `/notificacoes` continuam disponíveis. Cenários BDD: `f12_lancamentos.feature`.
-
-## Fórum (F-13)
-
-| Método | Rota | Objetivo | Quem pode |
-|---|---|---|---|
-| `GET` | `/api/forum/topicos` | Tópicos paginados (`jogoId`, `categoria`, `apenasGerais=true`, `status`, `ordem=recentes|emAlta`, `pagina` a partir de 1, `tamanho` até 50) | qualquer um |
-| `GET` | `/api/forum/topicos/{id}` | Tópico com todas as respostas (o encadeamento vem em `respostaPaiId`) | qualquer um |
-| `POST` | `/api/forum/topicos` | Criar tópico geral (`jogoId` nulo) ou de um jogo `ATIVO` do catálogo; nasce `ABERTO` | autenticado |
-| `PUT` | `/api/forum/topicos/{id}` | Editar título, mensagem e categoria (até 48 horas após a publicação) | autor |
-| `PATCH` | `/api/forum/topicos/{id}/status` | Marcar como `RESOLVIDO`, reabrir (`ABERTO`) ou encerrar (`ENCERRADO`) com `{ "status": "..." }` | autor |
-| `DELETE` | `/api/forum/topicos/{id}` | Excluir o tópico (exclusão lógica: ele some das consultas) | autor |
-| `POST` | `/api/forum/topicos/{id}/respostas` | Responder ao tópico, ou a outra resposta com `respostaPaiId` | autenticado |
-| `PUT` | `/api/forum/topicos/{id}/respostas/{respostaId}` | Editar a resposta (até 48 horas após a publicação) | autor |
-| `DELETE` | `/api/forum/topicos/{id}/respostas/{respostaId}` | Excluir a resposta | autor |
-| `PUT` / `DELETE` | `/api/forum/topicos/{id}/curtida` | Curtir / descurtir o tópico, sem duplicar em requisições repetidas | autenticado |
-| `PUT` / `DELETE` | `/api/forum/topicos/{id}/respostas/{respostaId}/curtida` | Curtir / descurtir uma resposta visível | autenticado |
-
-- RN 1: tópico `ENCERRADO` não aceita novas respostas, edições nem exclusões, e não pode ser reaberto pelo autor.
-- RN 2: só o autor edita ou exclui a sua postagem (403 "Apenas o autor pode alterar esta postagem"); a edição vale por 48 horas.
-- RN 3: criar, editar ou excluir uma resposta atualiza o contador do tópico e a data da última atividade. Os dois ficam
-  gravados no próprio tópico (`forum_topicos`), então a listagem não carrega as respostas. Escritas no mesmo tópico
-  são serializadas por bloqueio da linha raiz dentro da transação.
-- `ordem=recentes` (padrão) usa a última atividade; `ordem=emAlta` usa a soma de respostas ativas e curtidas,
-  com última atividade e ID para desempate. `status` aceita `ABERTO`, `RESOLVIDO` ou `ENCERRADO`. A categoria
-  `Discussão geral` também inclui tópicos antigos salvos como `Geral`. A resposta da API traz `totalCurtidas`
-  e `totalInteracoes` (respostas ativas + curtidas); no detalhe, cada resposta traz sua contagem e o estado
-  da curtida do usuário autenticado. Curtidas de respostas removidas pelo autor são apagadas; curtidas de conteúdo moderado saem dos totais públicos e voltam com a reversão.
-- `apenasGerais=true` seleciona tópicos sem jogo vinculado, independentemente da categoria. Pode ser combinado
-  com `categoria`, mas não com `jogoId`; essa combinação retorna erro de regra de negócio.
-- O upload em `/api/forum/imagens` aceita PNG, JPG ou WEBP de até 5 MB. A assinatura e o tamanho são
-  validados por `ImagensDoForum` no domínio; `ArmazenarImagemForum` autentica e grava o arquivo.
-- Conteúdo de tópicos e respostas é Markdown com negrito, itálico, listas, código e links. As telas oferecem prévia;
-  HTML bruto e imagens embutidas via Markdown não são renderizados. Imagens continuam no fluxo de anexos.
-- A exclusão de resposta é lógica: ela deixa de contar, volta sem conteúdo (`removida: true`) e continua na árvore
-  para as respostas filhas não sumirem. Não é possível responder a uma resposta removida.
-- Toda resposta nova publica um `RespostaPublicada` pelo `ApplicationEventPublisher`, até o barramento da T04 existir.
-- Frontend: `/forum` é a Comunidade, com editor na própria página, filtros por categoria, status e jogo,
-  abas Recentes/Em alta e paginação de 5 tópicos. `/forum/{id}` traz cartões de autor, curtidas e respostas
-  encadeadas com editor inline. `/forum/novo` e `/forum/{id}/editar` permanecem para compatibilidade.
-  As telas seguem a [referência visual da Comunidade no Figma Make](https://www.figma.com/make/Hbid18iRVvTGOqfX2p4UNW/Game-Tracker-MVP-Development--Copy-?t=zTCKnJrVlLNDiCpq-1).
-- Cenários BDD em `f13_forum.feature`, com steps em `PassosForum`. Jogadores e jogos de apoio ficam em `DadosDoCenario`,
-  compartilhado entre as classes de steps; o step `o jogador "<nome>" autenticado` agora fica em `PassosComuns`.
-
-A moderação do fórum, as denúncias e os avisos 18+ são descritos na F-14 abaixo. A listagem ainda mostra
-  o nome do jogo procurando no catálogo carregado pela tela; não há busca por título do tópico.
-
-## Moderação da plataforma (F-14)
-
-A moderação cobre `TOPICO`, `RESPOSTA`, `REVIEW`, `LISTA`, `AVALIACAO_MARKETPLACE`, `ANUNCIO`, `PERFIL` e `JOURNAL`.
-Jogos do catálogo e lançamentos futuros seguem os fluxos de gestão próprios. Denúncias **não** ocultam conteúdo:
-a postagem permanece pública até um moderador decidir.
-
-| Método | Rota | Objetivo | Quem pode |
-|---|---|---|---|
-| `POST` | `/api/denuncias` | Denunciar com `{ "tipoConteudo", "conteudoId", "motivo" }`; repetir enquanto pendente devolve a mesma denúncia | autenticado |
-| `GET` | `/api/moderacao/denuncias?pagina=1&tamanho=10` | Fila pendente por data, paginada (até 50 por página) | `MODERADOR` ou `ADMINISTRADOR` |
-| `POST` | `/api/moderacao/denuncias/{id}/arquivar` | Marcar uma denúncia improcedente, com `{ "justificativa" }`, e registrar log | `MODERADOR` ou `ADMINISTRADOR` |
-| `POST` | `/api/moderacao/acoes` | Aplicar `{ "acao", "tipoConteudo", "conteudoId", "justificativa" }`; edição do fórum também usa `novoTitulo` e `novoConteudo`; movimentação de tópico usa `novaCategoria` e movimentação de resposta usa `novaRespostaPaiId` (nulo para a raiz) | `MODERADOR` ou `ADMINISTRADOR` |
-| `GET` | `/api/moderacao/logs?pagina=1&tamanho=10` | Histórico imutável e paginado das ações | `MODERADOR` ou `ADMINISTRADOR` |
-| `GET` | `/api/moderacao/conteudos/{tipo}/{id}/previa` | Prévia privada e ID do autor | `MODERADOR` ou `ADMINISTRADOR` |
-| `GET` | `/api/moderacao/conteudos/{tipo}/{id}/estado` | Estado do aviso 18+ e moderação para a interface | qualquer um |
-| `POST` | `/api/moderacao/advertencias` | Registrar `{ "usuarioId", "motivo" }` sem suspender a conta | `MODERADOR` ou `ADMINISTRADOR` |
-| `GET` | `/api/moderacao/usuarios/{id}/advertencias` e `/total` | Advertências e contagem do usuário | `MODERADOR` ou `ADMINISTRADOR` |
-
-Ações aceitas: `OCULTAR`, `EXCLUIR`, `MARCAR_18`, `RETIRAR_18`, `REVERTER_OCULTACAO` e
-`REVERTER_EXCLUSAO` para todos os tipos; `EDITAR` para tópicos e respostas; `MOVER` e
-`ENCERRAR_TOPICO` só para tópicos; `MOVER` reorganiza a categoria de um tópico ou o pai de uma resposta no mesmo tópico. `OCULTAR` e `EXCLUIR` exigem justificativa. Uma ação procedente
-resolve todas as denúncias pendentes do alvo. Cada decisão gera um registro novo em `moderacao_logs` e
-notificação interna ao autor; a reversão acrescenta outro registro. A advertência também notifica o usuário.
-O `FluxoAcaoModerativa` implementa Template Method: validar permissão e justificativa, aplicar a ação,
-registrar o log e notificar o autor, sempre na transação do caso de uso.
-
-A remoção moderativa do tópico mantém seu endereço e as respostas, mostra uma mensagem de sistema e encerra
-a conversa. Respostas removidas mantêm as filhas. Conteúdo oculto ou removido não aparece nas consultas
-públicas nem em seus agregados; URLs de mídias anexadas são bloqueadas, inclusive as antigas após edição
-do autor. Anúncios moderados não aceitam novas conversas, propostas ou compras diretas. Pedidos existentes
-continuam registrados. O estado de moderação é separado dos dados editáveis pelo autor.
-
-`MARCAR_18` aplica um aviso visual e desfoque ao texto e às imagens. Qualquer visitante pode revelar o
-item na sessão atual, sem verificação de idade e sem restrição de acesso à API. Na interface, “Denunciar”
-aparece nas áreas públicas cobertas e `/moderacao` oferece fila, prévia, decisão, histórico e contagem de
-advertências somente para moderadores e administradores. Os cenários BDD estão em
-`f14_moderacao.feature`, os testes de integração em `ModeracaoIntegracaoTest` e os das regras dos agregados em
-`ModeracaoDominioTest`.
-
-Entradas do journal (F-15) oculta ou removida saem do journal público do autor (inclusive da paginação) e
-deixam de aceitar edição e de servir imagens. O dono continua vendo a entrada, marcada como moderada; a removida
-mostra a mensagem de sistema pelo `ConteudoRemovidoDecorator`.
-
-Organização em camadas: os agregados `DenunciaConteudo` e `EstadoConteudo`, o `LogDeModeracao`, a `Advertencia`
-e as portas dos repositórios ficam em `dominio.moderacao`, sem framework. O caso de uso `GerenciarModeracao`
-(aplicação) aplica as regras pelos agregados e acessa o conteúdo dos outros contextos pela porta
-`ConteudosModeraveis`, implementada em SQL por `ConteudosModeraveisJdbc` (infraestrutura).
