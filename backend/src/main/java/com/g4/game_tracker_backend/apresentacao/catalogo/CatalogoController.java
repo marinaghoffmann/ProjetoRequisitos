@@ -22,7 +22,7 @@ import com.g4.game_tracker_backend.aplicacao.catalogo.CadastrarGenero;
 import com.g4.game_tracker_backend.aplicacao.catalogo.CadastrarJogoManual;
 import com.g4.game_tracker_backend.aplicacao.catalogo.ConsultarCatalogo;
 import com.g4.game_tracker_backend.aplicacao.catalogo.AtualizarJogoManual;
-import com.g4.game_tracker_backend.aplicacao.catalogo.DesativarJogo;
+import com.g4.game_tracker_backend.aplicacao.catalogo.RemoverJogo;
 import com.g4.game_tracker_backend.aplicacao.catalogo.AtualizarDesenvolvedora;
 import com.g4.game_tracker_backend.aplicacao.catalogo.DesativarDesenvolvedora;
 import com.g4.game_tracker_backend.aplicacao.catalogo.ImportarJogoSteam;
@@ -45,7 +45,7 @@ public class CatalogoController {
     private final CadastrarGenero cadastrarGenero;
     private final ObjectMapper objectMapper;
     private final AtualizarJogoManual atualizarJogoManual;
-    private final DesativarJogo desativarJogo;
+    private final RemoverJogo removerJogo;
     private final AtualizarDesenvolvedora atualizarDesenvolvedora;
     private final DesativarDesenvolvedora desativarDesenvolvedora;
     private final ImportarJogoSteam importarJogoSteam;
@@ -53,7 +53,7 @@ public class CatalogoController {
     public CatalogoController(ConsultarCatalogo consultarCatalogo, CadastrarJogoManual cadastrarJogoManual,
             ImportarJogo importarJogo, CadastrarDesenvolvedora cadastrarDesenvolvedora,
             CadastrarGenero cadastrarGenero, ObjectMapper objectMapper, AtualizarJogoManual atualizarJogoManual,
-            DesativarJogo desativarJogo, AtualizarDesenvolvedora atualizarDesenvolvedora,
+            RemoverJogo removerJogo, AtualizarDesenvolvedora atualizarDesenvolvedora,
             DesativarDesenvolvedora desativarDesenvolvedora, ImportarJogoSteam importarJogoSteam) {
         this.consultarCatalogo = consultarCatalogo;
         this.cadastrarJogoManual = cadastrarJogoManual;
@@ -62,7 +62,7 @@ public class CatalogoController {
         this.cadastrarGenero = cadastrarGenero;
         this.objectMapper = objectMapper;
         this.atualizarJogoManual = atualizarJogoManual;
-        this.desativarJogo = desativarJogo;
+        this.removerJogo = removerJogo;
         this.atualizarDesenvolvedora = atualizarDesenvolvedora;
         this.desativarDesenvolvedora = desativarDesenvolvedora;
         this.importarJogoSteam = importarJogoSteam;
@@ -110,9 +110,15 @@ public class CatalogoController {
                 request.capaUrl(), request.trailerUrl(), serializarMetadados(request.metadados())));
     }
 
+    /** F-01 RN 3: definitiva sem vínculos, lógica com vínculos; a resposta diz qual das duas aconteceu. */
     @DeleteMapping("/jogos/{id}")
-    public JogoResponse excluir(@PathVariable UUID id) {
-        return JogoResponse.de(desativarJogo.executar(id));
+    public RemocaoJogoResponse excluir(@PathVariable UUID id) {
+        RemoverJogo.Resultado resultado = removerJogo.executar(id);
+        return new RemocaoJogoResponse(resultado.jogo().id(), resultado.jogo().titulo(),
+                resultado.definitiva() ? "DEFINITIVA" : "LOGICA");
+    }
+
+    public record RemocaoJogoResponse(UUID id, String titulo, String exclusao) {
     }
 
     private String serializarMetadados(java.util.Map<String, Object> metadados) {

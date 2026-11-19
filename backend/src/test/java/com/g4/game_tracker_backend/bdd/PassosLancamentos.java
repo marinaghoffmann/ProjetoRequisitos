@@ -7,7 +7,7 @@ import java.util.*;
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.aplicacao.catalogo.AtualizarJogoManual;
 import com.g4.game_tracker_backend.aplicacao.catalogo.ImportarJogo;
-import com.g4.game_tracker_backend.aplicacao.catalogo.DesativarJogo;
+import com.g4.game_tracker_backend.aplicacao.catalogo.RemoverJogo;
 import com.g4.game_tracker_backend.dominio.catalogo.Jogo;
 import com.g4.game_tracker_backend.dominio.identidade.Papel;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
@@ -36,7 +36,7 @@ public class PassosLancamentos {
     private final AtualizarJogoManual atualizarCatalogo;
     private final ImportarJogo importarJogo;
     private final UsuarioRepositorio usuarios;
-    private final DesativarJogo desativarJogo;
+    private final RemoverJogo removerJogo;
     private final Map<String,UUID> ids=new HashMap<>();
     private LancamentoFuturo atual;
     private List<ConsultarLancamentos.Visao> listados;
@@ -51,12 +51,12 @@ public class PassosLancamentos {
             NotificacaoRepositorio notificacoes, GerenciarLancamentos gestao,
             GerenciarInteresseLancamento gestaoInteresse, ConsultarLancamentos consulta,
             ProcessarLancamentos rotina, AtualizarJogoManual atualizarCatalogo,
-            ImportarJogo importarJogo, UsuarioRepositorio usuarios, DesativarJogo desativarJogo) {
+            ImportarJogo importarJogo, UsuarioRepositorio usuarios, RemoverJogo removerJogo) {
         this.dados=dados;this.contexto=contexto;this.acesso=acesso;this.jogos=jogos;
         this.lancamentos=lancamentos;this.interesses=interesses;this.alertas=alertas;
         this.notificacoes=notificacoes;this.gestao=gestao;this.gestaoInteresse=gestaoInteresse;
         this.consulta=consulta;this.rotina=rotina;this.atualizarCatalogo=atualizarCatalogo;
-        this.importarJogo=importarJogo;this.usuarios=usuarios;this.desativarJogo=desativarJogo;
+        this.importarJogo=importarJogo;this.usuarios=usuarios;this.removerJogo=removerJogo;
     }
     private LocalDate hoje() { return DatasLancamentos.hoje(Instant.now()); }
     private LancamentoFuturo fixture(String titulo,LocalDate data) {
@@ -277,7 +277,7 @@ public class PassosLancamentos {
         assertTrue(lancamentos.buscar(atual.id()).isEmpty());
     }
     @Quando("o catálogo desativa o jogo {string}")
-    public void desativarJogo(String titulo) { desativarJogo.executar(ids.get(titulo)); }
+    public void desativarJogo(String titulo) { removerJogo.executar(ids.get(titulo)); }
     @Entao("o lançamento de {string} não deve aparecer na agenda pública")
     public void naoApareceNaAgenda(String titulo) {
         assertTrue(consulta.listar(null).stream().noneMatch(l->l.jogoId().equals(ids.get(titulo))));

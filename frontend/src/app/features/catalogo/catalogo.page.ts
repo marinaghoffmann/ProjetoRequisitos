@@ -45,7 +45,7 @@ export class CatalogoPage {
   }
 
   protected excluir(jogo: Jogo): void {
-    if (!confirm(`Desativar "${jogo.titulo}" do catálogo?`)) return;
+    if (!confirm(`Remover "${jogo.titulo}" do catálogo? Se houver reviews, listas ou outros vínculos, ele só fica inativo.`)) return;
     this.catalogo.excluirJogo(jogo.id).subscribe({
       next: () => this.pesquisar(),
       error: (e: ErroApi) => this.erro.set(e.mensagem),

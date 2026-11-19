@@ -49,6 +49,12 @@ export interface Jogo {
 export interface Captura { miniatura: string; completa: string; }
 
 
+export interface RemocaoJogo {
+  id: string;
+  titulo: string;
+  exclusao: 'DEFINITIVA' | 'LOGICA';
+}
+
 @Injectable({ providedIn: 'root' })
 export class CatalogoService {
   private readonly http = inject(HttpClient);
@@ -73,8 +79,9 @@ export class CatalogoService {
     return this.http.put<Jogo>(`/api/catalogo/jogos/${id}`, dados);
   }
 
-  excluirJogo(id: string): Observable<Jogo> {
-    return this.http.delete<Jogo>(`/api/catalogo/jogos/${id}`);
+  /** F-01 RN 3: DEFINITIVA quando o jogo não tem vínculos; LOGICA (fica INATIVO) quando tem. */
+  excluirJogo(id: string): Observable<RemocaoJogo> {
+    return this.http.delete<RemocaoJogo>(`/api/catalogo/jogos/${id}`);
   }
 
   importarSteam(termo: string): Observable<Jogo> {

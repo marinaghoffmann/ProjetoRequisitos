@@ -54,6 +54,10 @@ class PerfilJogoDoCatalogoTest {
             public List<Jogo> consultar(FiltroCatalogo filtro) {
                 return List.of(jogos);
             }
+
+            @Override
+            public void excluir(UUID id) {
+            }
         };
         return new PerfilJogoDoCatalogo(repositorio, JsonMapper.builder().build());
     }

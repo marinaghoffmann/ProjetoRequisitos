@@ -1,6 +1,7 @@
 package com.g4.game_tracker_backend.bdd;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -13,8 +14,15 @@ import com.g4.game_tracker_backend.aplicacao.catalogo.AtualizarDesenvolvedora;
 import com.g4.game_tracker_backend.aplicacao.catalogo.AtualizarJogoManual;
 import com.g4.game_tracker_backend.aplicacao.catalogo.CadastrarJogoManual;
 import com.g4.game_tracker_backend.aplicacao.catalogo.ConsultarCatalogo;
-import com.g4.game_tracker_backend.aplicacao.catalogo.DesativarJogo;
+import com.g4.game_tracker_backend.aplicacao.catalogo.RemoverJogo;
 import com.g4.game_tracker_backend.aplicacao.catalogo.ImportarJogo;
+import com.g4.game_tracker_backend.aplicacao.avaliacao.reviews.PublicarReview;
+import com.g4.game_tracker_backend.aplicacao.biblioteca.listas.GerenciarItensDaLista;
+import com.g4.game_tracker_backend.aplicacao.biblioteca.listas.GerenciarListas;
+import com.g4.game_tracker_backend.dominio.avaliacao.reviews.ReviewRepositorio;
+import com.g4.game_tracker_backend.dominio.biblioteca.listas.ListaPersonalizada;
+import com.g4.game_tracker_backend.dominio.biblioteca.listas.ListaRepositorio;
+import com.g4.game_tracker_backend.dominio.catalogo.VinculosDoJogo;
 import com.g4.game_tracker_backend.aplicacao.identidade.CodificadorDeSenha;
 import com.g4.game_tracker_backend.dominio.catalogo.Desenvolvedora;
 import com.g4.game_tracker_backend.dominio.catalogo.DesenvolvedoraRepositorio;
@@ -42,35 +50,52 @@ public class PassosCatalogo {
     private final CadastrarJogoManual cadastrarJogoManual;
     private final AtualizarJogoManual atualizarJogoManual;
     private final AtualizarDesenvolvedora atualizarDesenvolvedora;
-    private final DesativarJogo desativarJogo;
+    private final RemoverJogo removerJogo;
     private final ConsultarCatalogo consultarCatalogo;
     private final JogoRepositorio jogos;
     private final DesenvolvedoraRepositorio desenvolvedoras;
     private final UsuarioRepositorio usuarios;
     private final CodificadorDeSenha codificadorDeSenha;
     private final ContextoDoCenario contexto;
+    private final PublicarReview publicarReview;
+    private final ReviewRepositorio reviews;
+    private final GerenciarListas gerenciarListas;
+    private final GerenciarItensDaLista gerenciarItens;
+    private final ListaRepositorio listas;
+    private final VinculosDoJogo vinculos;
+    private final DadosDoCenario dados;
 
     private Usuario usuarioAtual;
+    private UUID listaDoJogador;
     private Jogo jogoAtual;
     private UUID desenvolvedoraDoFiltro;
     private List<Jogo> resultadoDaConsulta;
 
     public PassosCatalogo(ImportarJogo importarJogo, CadastrarJogoManual cadastrarJogoManual,
             AtualizarJogoManual atualizarJogoManual, AtualizarDesenvolvedora atualizarDesenvolvedora,
-            DesativarJogo desativarJogo, ConsultarCatalogo consultarCatalogo, JogoRepositorio jogos,
+            RemoverJogo removerJogo, ConsultarCatalogo consultarCatalogo, JogoRepositorio jogos,
             DesenvolvedoraRepositorio desenvolvedoras, UsuarioRepositorio usuarios,
-            CodificadorDeSenha codificadorDeSenha, ContextoDoCenario contexto) {
+            CodificadorDeSenha codificadorDeSenha, ContextoDoCenario contexto, PublicarReview publicarReview,
+            ReviewRepositorio reviews, GerenciarListas gerenciarListas, GerenciarItensDaLista gerenciarItens,
+            ListaRepositorio listas, VinculosDoJogo vinculos, DadosDoCenario dados) {
         this.importarJogo = importarJogo;
         this.cadastrarJogoManual = cadastrarJogoManual;
         this.atualizarJogoManual = atualizarJogoManual;
         this.atualizarDesenvolvedora = atualizarDesenvolvedora;
-        this.desativarJogo = desativarJogo;
+        this.removerJogo = removerJogo;
         this.consultarCatalogo = consultarCatalogo;
         this.jogos = jogos;
         this.desenvolvedoras = desenvolvedoras;
         this.usuarios = usuarios;
         this.codificadorDeSenha = codificadorDeSenha;
         this.contexto = contexto;
+        this.publicarReview = publicarReview;
+        this.reviews = reviews;
+        this.gerenciarListas = gerenciarListas;
+        this.gerenciarItens = gerenciarItens;
+        this.listas = listas;
+        this.vinculos = vinculos;
+        this.dados = dados;
     }
 
     // ---- Usuários e desenvolvedoras ----
@@ -176,12 +201,55 @@ public class PassosCatalogo {
 
     @Quando("o administrador remove o jogo {string}")
     public void administradorRemoveJogo(String titulo) {
-        contexto.obter(() -> desativarJogo.executar(jogoDeApoio(titulo).id()));
+        contexto.obter(() -> removerJogo.executar(jogoDeApoio(titulo).id()));
     }
 
     @Quando("o usuário tenta remover o jogo {string}")
     public void usuarioTentaRemoverJogo(String titulo) {
-        contexto.obter(() -> desativarJogo.executar(jogoDeApoio(titulo).id()));
+        contexto.obter(() -> removerJogo.executar(jogoDeApoio(titulo).id()));
+    }
+
+    /** Cada review é de um jogador diferente (F-02 RN 1). O administrador volta a ser o autenticado. */
+    @Dado("que o jogo {string} possui {int} reviews")
+    public void jogoPossuiReviews(String titulo, int quantidade) {
+        jogoAtual = jogoDeApoio(titulo);
+        for (int i = 0; i < quantidade; i++) {
+            SessaoDeTeste.autenticarComo(dados.jogador("revisor " + UUID.randomUUID()));
+            publicarReview.executar(jogoAtual.id(), 4, List.of(), null);
+        }
+        SessaoDeTeste.autenticarComo(usuarioAtual);
+    }
+
+    @Dado("que o jogo {string} não possui reviews, entradas de journal nem itens de lista")
+    public void jogoNaoPossuiVinculos(String titulo) {
+        jogoAtual = jogoDeApoio(titulo);
+        assertFalse(vinculos.possuiVinculos(jogoAtual.id()), "O jogo de apoio já tem vínculos");
+    }
+
+    @Dado("que o jogo {string} está na lista de um jogador")
+    public void jogoEstaNaListaDeUmJogador(String titulo) {
+        jogoAtual = jogoDeApoio(titulo);
+        SessaoDeTeste.autenticarComo(dados.jogador("dono da lista " + UUID.randomUUID()));
+        ListaPersonalizada lista = gerenciarListas.criar("Lista " + UUID.randomUUID(), null);
+        gerenciarItens.adicionar(lista.id(), jogoAtual.id(), null);
+        listaDoJogador = lista.id();
+        SessaoDeTeste.autenticarComo(usuarioAtual);
+    }
+
+    @Entao("as {int} reviews do jogo devem ser preservadas")
+    public void reviewsDevemSerPreservadas(int quantidade) {
+        assertEquals(quantidade, reviews.listarPorJogo(jogoAtual.id(), 1, 50).totalItens());
+    }
+
+    @Entao("o jogo {string} não deve mais existir no catálogo")
+    public void jogoNaoDeveMaisExistir(String titulo) {
+        assertTrue(jogos.buscarPorId(jogoAtual.id()).isEmpty(), "O jogo " + titulo + " continua no banco");
+    }
+
+    @Entao("a lista do jogador deve continuar com o jogo {string}")
+    public void listaDeveContinuarComJogo(String titulo) {
+        ListaPersonalizada lista = listas.buscarPorId(listaDoJogador).orElseThrow();
+        assertTrue(lista.itens().stream().anyMatch(i -> i.jogoId().equals(jogoAtual.id())));
     }
 
     @Entao("o jogo {string} deve continuar no banco com status {string}")
