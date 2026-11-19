@@ -504,12 +504,11 @@ casos de uso com um instante fixo. Frontend: a seção “Em breve” de `/inici
 - Cenários BDD em `f13_forum.feature`, com steps em `PassosForum`. Jogadores e jogos de apoio ficam em `DadosDoCenario`,
   compartilhado entre as classes de steps; o step `o jogador "<nome>" autenticado` agora fica em `PassosComuns`.
 
-Pendências conhecidas da F-13 (escopo da F-14):
+Pendências conhecidas da F-13:
 
-- Moderadores e administradores ainda não têm poderes no fórum: encerrar, reabrir, ocultar e remover conteúdo de
-  outros usuários fica para a central de moderação (F-14), que pode reaproveitar os campos `removido` e `removida`.
-- Denúncias e a ação “Denunciar” não aparecem até a F-14 oferecer uma fila funcional. A listagem mostra
-  o nome do jogo procurando no catálogo carregado pela tela; não há busca por título do tópico.
+- Ocultar, remover, encerrar, mover e denunciar tópicos e respostas ficam na central de moderação (F-14), descrita
+  no README. A listagem mostra o nome do jogo procurando no catálogo carregado pela tela; não há busca por
+  título do tópico.
 
 ## Listas personalizadas (F-04)
 
