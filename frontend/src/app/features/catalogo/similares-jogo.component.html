@@ -22,8 +22,14 @@
     <ul class="cards">
       @for (s of similares(); track s.similaridadeId) {
         <li class="card-similar" [class.card-similar--rebaixada]="s.rebaixada">
-          <a class="capa" [routerLink]="['/catalogo', s.jogoId]" [attr.aria-label]="'Abrir ' + s.titulo">
-            @if (s.capaUrl) { <img [src]="s.capaUrl" alt="" loading="lazy" /> } @else { <span>{{ s.titulo.slice(0, 1) }}</span> }
+          <a class="capa" [class.capa--ajustada]="ajustada(s)" [routerLink]="['/catalogo', s.jogoId]" [attr.aria-label]="'Abrir ' + s.titulo">
+            @if (capaSrc(s); as src) {
+              @if (ajustada(s)) { <img class="capa__fundo" [src]="src" alt="" aria-hidden="true" /> }
+              <img class="capa__img" [src]="src" alt="" loading="lazy" decoding="async" (load)="aoCarregar($event, s.jogoId)" />
+            } @else {
+              <span class="capa__inicial">{{ s.titulo.slice(0, 1) }}</span>
+            }
+            <span class="capa__grau">{{ percentual(s.grau) }}</span>
           </a>
           <div class="dados">
             <a class="titulo" [routerLink]="['/catalogo', s.jogoId]">{{ s.titulo }}</a>

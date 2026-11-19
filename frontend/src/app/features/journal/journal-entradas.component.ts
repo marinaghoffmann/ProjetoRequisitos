@@ -16,6 +16,8 @@ import { AvisosService } from '../../shared/ui/avisos.service';
 import { CabecalhoPaginaComponent } from '../../shared/ui/cabecalho-pagina.component';
 import { CarregandoComponent, EstadoVazioComponent } from '../../shared/ui/estados.component';
 
+const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
+
 @Component({
   selector: 'app-journal-entradas',
   imports: [DatePipe, ReactiveFormsModule, RouterLink, JournalEditorComponent, ConteudoModeravelComponent,
@@ -42,6 +44,9 @@ export class JournalEntradasComponent {
   protected readonly erroTags = signal<string | null>(null);
   protected readonly ocupada = signal<string | null>(null);
   protected readonly reveladas = signal(new Map<string, EntradaJournal>());
+  /** Wallpapers HD da Steam já validados (carregaram de verdade), por jogo. */
+  private readonly wallpapers = signal<Record<string, string>>({});
+  private readonly wallpapersTentados = new Set<string>();
   protected readonly filtros = this.builder.group({ jogoId: [''], tag: [''], inicio: [''], fim: [''], origem: [''] });
 
   constructor() {
@@ -50,6 +55,8 @@ export class JournalEntradasComponent {
       untracked(() => { this.carregar(1); this.carregarTags(); });
     });
     this.carregarJogos();
+    // Busca o wallpaper dos jogos que aparecem na página atual.
+    effect(() => { for (const entrada of this.pagina()?.itens ?? []) this.resolverWallpaper(entrada); });
     // Filtros aplicados na hora, sem botão "Filtrar".
     this.filtros.valueChanges.pipe(debounceTime(250), takeUntilDestroyed()).subscribe(() => this.carregar(1));
   }
@@ -70,6 +77,32 @@ export class JournalEntradasComponent {
     const capa = imagemSegura(entrada.jogoCapaUrl);
     if (capa) return capa;
     return entrada.anexos.length && !entrada.mascarada ? this.imagem(entrada, entrada.anexos[0].id) : null;
+  }
+
+  /** Fundo do card: wallpaper do jogo (ou a capa dele) sob um degradê escuro que mantém o texto legível. */
+  protected fundoDe(entrada: EntradaJournal): string | null {
+    const imagem = (entrada.jogoId && this.wallpapers()[entrada.jogoId]) || imagemSegura(entrada.jogoCapaUrl);
+    if (!imagem) return null;
+    return 'linear-gradient(90deg, rgb(11 14 19 / 94%) 0%, rgb(11 14 19 / 80%) 50%, rgb(11 14 19 / 52%) 100%), '
+      + `url("${imagem}") center / cover no-repeat`;
+  }
+
+  private resolverWallpaper(entrada: EntradaJournal): void {
+    const jogoId = entrada.jogoId;
+    if (!jogoId || this.wallpapersTentados.has(jogoId)) return;
+    this.wallpapersTentados.add(jogoId);
+    const m = entrada.jogoCapaUrl ? /\/apps\/(\d+)\//.exec(entrada.jogoCapaUrl) : null;
+    if (!m) return;
+    const base = `${STEAM_CDN}/${m[1]}`;
+    const candidatas = [`${base}/library_hero.jpg`, `${base}/page_bg_generated_v6b.jpg`];
+    const tentar = (i: number): void => {
+      if (i >= candidatas.length) return;
+      const img = new Image();
+      img.onload = () => this.wallpapers.update((mapa) => ({ ...mapa, [jogoId]: candidatas[i] }));
+      img.onerror = () => tentar(i + 1);
+      img.src = candidatas[i];
+    };
+    tentar(0);
   }
 
   protected gradiente(entrada: EntradaJournal): string {

@@ -2,3 +2,10 @@
 .gestao { display: flex; gap: 4px; margin-top: 2px; }
 .gestao .botao-texto { min-height: 26px; padding: 0 4px; font-size: 11px; font-weight: 700; }
 .gestao .gestao__remover:hover { color: var(--danger); }
+
+// Capas horizontais (16:9): colunas mais largas que a grade de pôsteres retrato
+.grade-posters--horizontal {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 26px 20px;
+}

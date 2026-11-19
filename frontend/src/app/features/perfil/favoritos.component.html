@@ -9,9 +9,11 @@
   @for (slot of slots; track slot) {
     <li>
       @if (favoritos()[slot - 1]; as favorito) {
-        <a class="capa" [routerLink]="['/catalogo', favorito.jogoId]">
-          @if (favorito.capaUrl) {
-            <img #imagem [src]="favorito.capaUrl" [alt]="favorito.titulo" (error)="imagem.hidden = true" />
+        <a class="capa" [class.capa--ajustada]="ajustada(favorito)" [routerLink]="['/catalogo', favorito.jogoId]">
+          @if (capaSrc(favorito); as src) {
+            @if (ajustada(favorito)) { <img class="capa__fundo" [src]="src" alt="" aria-hidden="true" /> }
+            <img #imagem class="capa__img" [src]="src" [alt]="favorito.titulo" decoding="async"
+              (load)="imagem.hidden = false; aoCarregar($event, favorito.jogoId)" (error)="imagem.hidden = true" />
           }
           <span class="posicao">#{{ slot }}</span>
         </a>

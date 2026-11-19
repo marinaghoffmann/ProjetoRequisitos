@@ -1,10 +1,12 @@
-import { Component, OnInit, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
 import { JogoSimilar, SimilaridadeService, TipoFeedback } from '../../core/api/similaridade.service';
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
+
+const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
 
 /**
  * "Jogos similares" da página do jogo (F-10): cards com capa, título e grau de relevância. Quem está logado
@@ -16,6 +18,7 @@ import { ErroApi } from '../../core/http/erro-api';
   imports: [RouterLink],
   templateUrl: './similares-jogo.component.html',
   styleUrl: './similares-jogo.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SimilaresJogoComponent implements OnInit {
   private readonly servico = inject(SimilaridadeService);
@@ -28,6 +31,12 @@ export class SimilaresJogoComponent implements OnInit {
   protected readonly carregando = signal(true);
   protected readonly erro = signal<string | null>(null);
   protected readonly notaMinima = signal<number | null>(null);
+
+  /** Capas HD da Steam (retrato 600x900) já validadas, por id do jogo. */
+  private readonly capasHd = signal<Record<string, string>>({});
+  private readonly capasTentadas = new Set<string>();
+  /** true = capa em retrato (preenche o quadro); false = quadrada/horizontal (ajustada, com fundo desfocado). */
+  private readonly formas = signal<Record<string, boolean>>({});
 
   // Administração
   protected readonly jogosDoCatalogo = signal<Jogo[]>([]);
@@ -50,6 +59,23 @@ export class SimilaresJogoComponent implements OnInit {
 
   protected percentual(grau: number): string {
     return `${Math.round(grau * 100)}%`;
+  }
+
+  /** Capa HD da Steam quando existir; senão a capaUrl do cadastro; senão vazio (placeholder). */
+  protected capaSrc(s: JogoSimilar): string {
+    return this.capasHd()[s.jogoId] || this.imagemUrl(s.capaUrl);
+  }
+
+  /** Capa que não é retrato (ex.: arte quadrada) é mostrada inteira, sobre um fundo desfocado, sem cortar. */
+  protected ajustada(s: JogoSimilar): boolean {
+    return this.formas()[s.jogoId] === false;
+  }
+
+  protected aoCarregar(evento: Event, jogoId: string): void {
+    const img = evento.target as HTMLImageElement;
+    if (!img.naturalWidth || !img.naturalHeight) return;
+    const retrato = img.naturalWidth / img.naturalHeight <= 0.8;
+    if (this.formas()[jogoId] !== retrato) this.formas.update((m) => ({ ...m, [jogoId]: retrato }));
   }
 
   protected filtrar(valor: string): void {
@@ -103,11 +129,46 @@ export class SimilaresJogoComponent implements OnInit {
       next: (similares) => {
         this.similares.set(similares);
         this.carregando.set(false);
+        similares.forEach((s) => this.resolverCapa(s));
       },
       error: (e: ErroApi) => {
         this.erro.set(e.mensagem);
         this.carregando.set(false);
       },
     });
+  }
+
+  // ===== Capas HD da Steam =====
+
+  private resolverCapa(s: JogoSimilar): void {
+    if (this.capasTentadas.has(s.jogoId)) return;
+    this.capasTentadas.add(s.jogoId);
+    const appId = this.steamAppId(s.capaUrl);
+    if (!appId) return;
+    const base = `${STEAM_CDN}/${appId}`;
+    this.testar(s.jogoId, [`${base}/library_600x900_2x.jpg`, `${base}/library_600x900.jpg`]);
+  }
+
+  /** Testa as candidatas em ordem; a primeira que carregar vira a capa. Se nenhuma, mantém a capaUrl. */
+  private testar(chave: string, candidatas: string[]): void {
+    const tentar = (i: number): void => {
+      if (i >= candidatas.length) return;
+      const img = new Image();
+      img.onload = () => this.capasHd.update((m) => ({ ...m, [chave]: candidatas[i] }));
+      img.onerror = () => tentar(i + 1);
+      img.src = candidatas[i];
+    };
+    tentar(0);
+  }
+
+  private steamAppId(url?: string | null): number | null {
+    const m = url ? /\/apps\/(\d+)\//.exec(url) : null;
+    return m ? Number(m[1]) : null;
+  }
+
+  /** Mesma regra do catálogo: só aceita /uploads/ ou http(s). */
+  private imagemUrl(caminho?: string | null): string {
+    if (!caminho) return '';
+    return caminho.startsWith('/uploads/') || /^https?:\/\//.test(caminho) ? caminho : '';
   }
 }

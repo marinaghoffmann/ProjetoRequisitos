@@ -33,7 +33,7 @@
             @for (original of grupo.entradas; track original.id) {
               @let entrada = reveladas().get(original.id) ?? original;
               <li>
-                <article class="entrada">
+                <article class="entrada" [class.entrada--fundo]="!!fundoDe(entrada)" [style.background]="fundoDe(entrada)">
                   <div class="entrada__imagem" [style.background]="capaDe(entrada) ? null : gradiente(entrada)">
                     @if (capaDe(entrada); as capa) { <img [src]="capa" alt="" loading="lazy" /> }
                   </div>

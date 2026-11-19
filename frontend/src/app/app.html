@@ -70,11 +70,48 @@
 
   <div class="principal">
     <header class="topo">
-      <form class="topo__busca" role="search" (submit)="$event.preventDefault(); buscar(campoBusca.value)">
-        <gt-icone nome="busca" [tamanho]="16" />
-        <input #campoBusca type="search" placeholder="Buscar jogos, pessoas e listas..." aria-label="Buscar no GameTrack" />
-        <kbd aria-hidden="true">⌘ K</kbd>
-      </form>
+      <div class="busca">
+        <form class="topo__busca" role="search" (submit)="$event.preventDefault(); submeter(campoBusca.value)">
+          <gt-icone nome="busca" [tamanho]="16" />
+          <input #campoBusca type="search" placeholder="Buscar jogos, pessoas e listas..." aria-label="Buscar no GameTrack"
+            role="combobox" autocomplete="off" aria-autocomplete="list" [attr.aria-expanded]="aberta() && termoAtual().length >= 2"
+            (input)="aoDigitar(campoBusca.value)" (focus)="aberta.set(true)" (keydown)="teclado($event)" />
+          <kbd aria-hidden="true">⌘ K</kbd>
+        </form>
+
+        @if (aberta() && termoAtual().length >= 2) {
+          <div class="busca__fundo" (click)="aberta.set(false)"></div>
+          <ul class="busca__lista" role="listbox" aria-label="Jogos encontrados">
+            @if (buscando()) {
+              <li class="busca__estado">Buscando…</li>
+            } @else {
+              @for (jogo of resultados(); track jogo.id; let i = $index) {
+                <li role="option" [attr.aria-selected]="i === indice()">
+                  <a class="busca__item" [class.busca__item--ativo]="i === indice()" [routerLink]="['/catalogo', jogo.id]"
+                    (click)="selecionar()" (mouseenter)="indice.set(i)">
+                    @if (capaVertical(jogo); as capa) {
+                      <img class="busca__capa" [src]="capa" alt="" loading="lazy" (error)="semVertical(jogo.id)" />
+                    } @else {
+                      <span class="busca__capa busca__capa--vazia" aria-hidden="true">{{ jogo.titulo.charAt(0) }}</span>
+                    }
+                    <span class="busca__texto">
+                      <strong>{{ jogo.titulo }}</strong>
+                      @if (ano(jogo)) { <small>{{ ano(jogo) }}</small> }
+                    </span>
+                  </a>
+                </li>
+              } @empty {
+                <li class="busca__estado">Nenhum jogo encontrado</li>
+              }
+            }
+            <li>
+              <a class="busca__todos" routerLink="/busca" [queryParams]="{ termo: termoAtual() }" (click)="selecionar()">
+                Ver todos os resultados
+              </a>
+            </li>
+          </ul>
+        }
+      </div>
 
       <div class="topo__acoes">
         @if (autenticacao.usuarioAtual()) {
