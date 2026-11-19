@@ -16,6 +16,8 @@ import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForumRepositorio;
 import com.g4.game_tracker_backend.dominio.forum.CurtidaForum;
 import com.g4.game_tracker_backend.dominio.forum.CurtidaForumRepositorio;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 /** Curtidas idempotentes. O bloqueio da raiz serializa escritas e mantém a contagem em alta correta. */
 @Service
@@ -23,10 +25,10 @@ public class CurtidasForum {
     private final TopicoDeForumRepositorio topicos;
     private final CurtidaForumRepositorio curtidas;
     private final VerificadorDeAcesso acesso;
-    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
+    private final EstadoPublico moderacao;
 
     public CurtidasForum(TopicoDeForumRepositorio topicos, CurtidaForumRepositorio curtidas, VerificadorDeAcesso acesso,
-            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
+            EstadoPublico moderacao) {
         this.topicos = topicos;
         this.curtidas = curtidas;
         this.acesso = acesso;
@@ -41,8 +43,8 @@ public class CurtidasForum {
         if (respostaId != null && topico.resposta(respostaId).removida()) {
             throw new RecursoNaoEncontradoException("Resposta removida");
         }
-        moderacao.exigirAtivo(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.TOPICO,topicoId);
-        if (respostaId != null) moderacao.exigirAtivo(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.RESPOSTA,respostaId);
+        moderacao.exigirAtivo(TipoConteudo.TOPICO,topicoId);
+        if (respostaId != null) moderacao.exigirAtivo(TipoConteudo.RESPOSTA,respostaId);
         UUID usuarioId = acesso.usuarioAtualId();
         String tipo = respostaId == null ? "TOPICO" : "RESPOSTA";
         UUID conteudoId = respostaId == null ? topicoId : respostaId;
@@ -64,9 +66,9 @@ public class CurtidasForum {
         Set<UUID> minhas = new HashSet<>();
         int totalTopico = 0;
         for (CurtidaForum curtida : itens) {
-            com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo tipoModerado = curtida.tipo().equals("TOPICO")
-                    ? com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.TOPICO
-                    : com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.RESPOSTA;
+            TipoConteudo tipoModerado = curtida.tipo().equals("TOPICO")
+                    ? TipoConteudo.TOPICO
+                    : TipoConteudo.RESPOSTA;
             if (moderacao.oculto(tipoModerado,curtida.conteudoId()) || moderacao.removido(tipoModerado,curtida.conteudoId())) continue;
             if (curtida.tipo().equals("TOPICO")) totalTopico++;
             else porResposta.merge(curtida.conteudoId(), 1, Integer::sum);

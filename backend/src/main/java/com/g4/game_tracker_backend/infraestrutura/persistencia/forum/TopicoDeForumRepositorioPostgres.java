@@ -12,6 +12,7 @@ import com.g4.game_tracker_backend.dominio.forum.FiltroTopicos;
 import com.g4.game_tracker_backend.dominio.forum.ResumoTopico;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForumRepositorio;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 @Repository
 public class TopicoDeForumRepositorioPostgres implements TopicoDeForumRepositorio {
@@ -30,8 +31,8 @@ public class TopicoDeForumRepositorioPostgres implements TopicoDeForumRepositori
         int curtidas = springData.findById(topico.id()).map(TopicoForumJpa::totalCurtidas).orElse(0);
         java.util.List<UUID> ativas = topico.respostas().stream().filter(r -> !r.removida()).map(r -> r.id()).toList();
         int removidasPelaModeracao = ativas.isEmpty() ? 0 : Math.toIntExact(estados.countByTipoAndConteudoIdInAndOcultoTrueOrTipoAndConteudoIdInAndRemovidoTrue(
-                com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.RESPOSTA, ativas,
-                com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.RESPOSTA, ativas));
+                TipoConteudo.RESPOSTA, ativas,
+                TipoConteudo.RESPOSTA, ativas));
         springData.save(TopicoForumJpa.deDominio(topico, curtidas, topico.totalRespostas() - removidasPelaModeracao));
         return topico;
     }

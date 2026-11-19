@@ -21,6 +21,8 @@ import com.g4.game_tracker_backend.aplicacao.biblioteca.listas.ConsultarListas.J
 import com.g4.game_tracker_backend.aplicacao.biblioteca.listas.GerenciarItensDaLista;
 import com.g4.game_tracker_backend.aplicacao.biblioteca.listas.GerenciarListas;
 import com.g4.game_tracker_backend.dominio.biblioteca.listas.ListaPersonalizada;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 
 /** F-04: listas personalizadas e os seus itens. */
@@ -44,10 +46,10 @@ public class ListaController {
     private final GerenciarListas gerenciarListas;
     private final GerenciarItensDaLista gerenciarItens;
     private final ConsultarListas consultarListas;
-    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
+    private final EstadoPublico moderacao;
 
     public ListaController(GerenciarListas gerenciarListas, GerenciarItensDaLista gerenciarItens,
-            ConsultarListas consultarListas, com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
+            ConsultarListas consultarListas, EstadoPublico moderacao) {
         this.gerenciarListas = gerenciarListas;
         this.gerenciarItens = gerenciarItens;
         this.consultarListas = consultarListas;
@@ -61,12 +63,12 @@ public class ListaController {
 
     @GetMapping("/usuarios/{usuarioId}/listas")
     public List<ListaResponse> doUsuario(@PathVariable UUID usuarioId) {
-        return detalhar(consultarListas.doUsuario(usuarioId).stream().filter(l -> moderacao.visivel(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.LISTA,l.id())).toList());
+        return detalhar(consultarListas.doUsuario(usuarioId).stream().filter(l -> moderacao.visivel(TipoConteudo.LISTA,l.id())).toList());
     }
 
     @GetMapping("/listas/{id}")
     public ListaResponse consultar(@PathVariable UUID id) {
-        moderacao.exigirVisivel(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.LISTA,id);
+        moderacao.exigirVisivel(TipoConteudo.LISTA,id);
         return detalhar(consultarListas.buscar(id));
     }
 

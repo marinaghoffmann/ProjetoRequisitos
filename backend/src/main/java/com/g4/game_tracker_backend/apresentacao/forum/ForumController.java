@@ -35,6 +35,7 @@ import com.g4.game_tracker_backend.dominio.identidade.Usuario;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 
 import jakarta.validation.Valid;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
 
 @RestController
 @RequestMapping("/api/forum")
@@ -45,11 +46,11 @@ public class ForumController {
     private final GerenciarRespostas gerenciarRespostas;
     private final ConsultarForum consultarForum;
     private final CurtidasForum curtidas;
-    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
+    private final EstadoPublico moderacao;
 
     public ForumController(CriarTopico criarTopico, EditarTopico editarTopico,
             GerenciarRespostas gerenciarRespostas, ConsultarForum consultarForum, CurtidasForum curtidas,
-            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
+            EstadoPublico moderacao) {
         this.criarTopico = criarTopico;
         this.editarTopico = editarTopico;
         this.gerenciarRespostas = gerenciarRespostas;

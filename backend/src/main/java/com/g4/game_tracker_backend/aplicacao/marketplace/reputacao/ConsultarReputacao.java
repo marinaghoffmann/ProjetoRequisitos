@@ -16,6 +16,8 @@ import com.g4.game_tracker_backend.dominio.marketplace.reputacao.AvaliacaoMarket
 import com.g4.game_tracker_backend.dominio.marketplace.reputacao.AvaliacaoMarketplaceRepositorio;
 import com.g4.game_tracker_backend.dominio.marketplace.reputacao.ReputacaoUsuario;
 import com.g4.game_tracker_backend.dominio.marketplace.reputacao.ReputacaoUsuarioRepositorio;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 /** Consulta pública da F-21: o perfil de vendedor, com a reputação e as avaliações recebidas. */
 @Service
@@ -24,10 +26,10 @@ public class ConsultarReputacao {
     private final ReputacaoUsuarioRepositorio reputacoes;
     private final AvaliacaoMarketplaceRepositorio avaliacoes;
     private final UsuarioRepositorio usuarios;
-    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
+    private final EstadoPublico moderacao;
 
     public ConsultarReputacao(ReputacaoUsuarioRepositorio reputacoes, AvaliacaoMarketplaceRepositorio avaliacoes,
-            UsuarioRepositorio usuarios, com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
+            UsuarioRepositorio usuarios, EstadoPublico moderacao) {
         this.reputacoes = reputacoes;
         this.avaliacoes = avaliacoes;
         this.usuarios = usuarios;
@@ -43,14 +45,16 @@ public class ConsultarReputacao {
         List<AvaliacaoMarketplace> recebidas = avaliacoes.listarRecebidas(usuarioId);
         reputacao = ReputacaoUsuario.reconstituir(usuarioId, recebidas.stream().mapToInt(AvaliacaoMarketplace::estrelas).sum(),
                 recebidas.size(), reputacao.negociacoesBemSucedidas(), reputacao.atualizadaEm());
-        return new PerfilDeVendedor(usuario.id(), moderacao.visivel(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.PERFIL,usuarioId) ? usuario.nome() : "Perfil indisponível", reputacao, recebidas,
+        String nome = moderacao.visivel(TipoConteudo.PERFIL, usuarioId) ? usuario.nome() : "Perfil indisponível";
+        return new PerfilDeVendedor(usuario.id(), nome, reputacao, recebidas,
                 nomes(recebidas.stream().map(AvaliacaoMarketplace::avaliadorId).toList()));
     }
 
     private Map<UUID, String> nomes(List<UUID> ids) {
         Map<UUID, String> nomes = new HashMap<>();
         for (UUID id : new HashSet<>(ids)) {
-            usuarios.buscarPorId(id).ifPresent(usuario -> nomes.put(id, moderacao.visivel(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.PERFIL,id) ? usuario.nome() : "Perfil indisponível"));
+            usuarios.buscarPorId(id).ifPresent(usuario -> nomes.put(id,
+                    moderacao.visivel(TipoConteudo.PERFIL, id) ? usuario.nome() : "Perfil indisponível"));
         }
         return nomes;
     }

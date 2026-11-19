@@ -11,6 +11,8 @@ import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.forum.StatusTopico;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForumRepositorio;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 /**
  * F-13 RN 1 e RN 2: o autor edita (em até 48 horas), muda o status ou exclui o seu tópico,
@@ -21,10 +23,10 @@ public class EditarTopico {
 
     private final TopicoDeForumRepositorio topicos;
     private final VerificadorDeAcesso verificadorDeAcesso;
-    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
+    private final EstadoPublico moderacao;
 
     public EditarTopico(TopicoDeForumRepositorio topicos, VerificadorDeAcesso verificadorDeAcesso,
-            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
+            EstadoPublico moderacao) {
         this.topicos = topicos;
         this.verificadorDeAcesso = verificadorDeAcesso;
         this.moderacao = moderacao;
@@ -39,7 +41,7 @@ public class EditarTopico {
     public TopicoDeForum executar(UUID id, String titulo, String conteudo, String categoria,
             List<String> imagens) {
         TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, id);
-        moderacao.exigirAtivo(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.TOPICO,id);
+        moderacao.exigirAtivo(TipoConteudo.TOPICO,id);
         return topicos.salvar(atual.editar(verificadorDeAcesso.usuarioAtualId(), titulo, conteudo, categoria,
                 imagens, Instant.now()));
     }
@@ -47,14 +49,14 @@ public class EditarTopico {
     @Transactional
     public TopicoDeForum alterarStatus(UUID id, StatusTopico status) {
         TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, id);
-        moderacao.exigirAtivo(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.TOPICO,id);
+        moderacao.exigirAtivo(TipoConteudo.TOPICO,id);
         return topicos.salvar(atual.alterarStatus(verificadorDeAcesso.usuarioAtualId(), status, Instant.now()));
     }
 
     @Transactional
     public void excluir(UUID id) {
         TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, id);
-        moderacao.exigirAtivo(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.TOPICO,id);
+        moderacao.exigirAtivo(TipoConteudo.TOPICO,id);
         topicos.salvar(atual.remover(verificadorDeAcesso.usuarioAtualId()));
     }
 }

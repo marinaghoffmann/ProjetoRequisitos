@@ -36,7 +36,7 @@
 //  - Template Method : F-14 (FluxoAcaoModerativa: validar, aplicar, registrar, notificar)           [codigo]
 //  - Template Method : F-01 (CadastroJogoTemplate: origem API x origem Manual/Criador)            [previsto]
 //  - Proxy           : F-01 (ProxyBaseExternaJogos sobre IBaseExternaJogosGateway)                [previsto]
-//  - Decorator       : F-15 (IConteudoExibivel, ConteudoOriginal, SpoilerMascaradoDecorator) [codigo]; F-14 [previsto]
+//  - Decorator       : F-15 (SpoilerMascaradoDecorator) e F-14 (ConteudoRemovidoDecorator) sobre IConteudoExibivel [codigo]
 //  - Iterator        : F-13 e F-16 (paginacao de topicos e navegacao da timeline)                 [previsto]
 // =============================================================================
 
@@ -1010,7 +1010,7 @@ BoundedContext ContextoDiarioJogatina implements DiarioJogatinaSubdomain {
 
         // Padrao Decorator (GoF): IConteudoExibivel define exibir(). ConteudoOriginal devolve o texto;
         // SpoilerMascaradoDecorator oculta o texto ate a confirmacao do leitor (F-15 RN 3).
-        // O mesmo contrato e reutilizado no forum por RemovidoPelaModeracaoDecorator (F-14 RN 3).
+        // O mesmo contrato e reutilizado pela moderacao no ConteudoRemovidoDecorator (F-14 RN 3).
         Service IConteudoExibivel {
             String exibir(@UsuarioId leitor);
         }
@@ -1155,7 +1155,7 @@ BoundedContext ContextoModeracao implements ComunidadeForumSubdomain {
         }
 
         // Conteúdo público criado por usuários; catálogo e lançamentos têm gestão própria.
-        enum TipoConteudo   { TOPICO, RESPOSTA, REVIEW, LISTA, AVALIACAO_MARKETPLACE, ANUNCIO, PERFIL }
+        enum TipoConteudo   { TOPICO, RESPOSTA, REVIEW, LISTA, AVALIACAO_MARKETPLACE, ANUNCIO, PERFIL, JOURNAL }
         enum StatusDenuncia { PENDENTE, PROCEDENTE, IMPROCEDENTE }
         ValueObject DenunciaId { String id }
 

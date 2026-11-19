@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import com.g4.game_tracker_backend.aplicacao.compartilhado.ExecutorDeTransacao;
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.StatusCatalogo;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
@@ -17,6 +18,7 @@ import com.g4.game_tracker_backend.dominio.journal.AnexoJournalRepositorio;
 import com.g4.game_tracker_backend.dominio.journal.EntradaDeJournal;
 import com.g4.game_tracker_backend.dominio.journal.EntradaDeJournalRepositorio;
 import com.g4.game_tracker_backend.dominio.journal.ImagemDoJournal;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 /** Casos de uso do diário manual. Entrada e imagens são gravadas ou desfeitas juntas. */
 public class GerenciarJournal {
@@ -29,15 +31,18 @@ public class GerenciarJournal {
     private final VerificadorDeAcesso acesso;
     private final ExecutorDeTransacao transacao;
     private final Clock relogio;
+    private final EstadoPublico moderacao;
 
     public GerenciarJournal(EntradaDeJournalRepositorio entradas, AnexoJournalRepositorio anexos,
-            JogoRepositorio jogos, VerificadorDeAcesso acesso, ExecutorDeTransacao transacao, Clock relogio) {
+            JogoRepositorio jogos, VerificadorDeAcesso acesso, ExecutorDeTransacao transacao, Clock relogio,
+            EstadoPublico moderacao) {
         this.entradas = entradas;
         this.anexos = anexos;
         this.jogos = jogos;
         this.acesso = acesso;
         this.transacao = transacao;
         this.relogio = relogio;
+        this.moderacao = moderacao;
     }
 
     public EntradaDeJournal criar(DadosEntrada dados, List<ImagemDoJournal> imagens) {
@@ -59,6 +64,8 @@ public class GerenciarJournal {
         return transacao.executar(() -> {
             UUID dono = acesso.usuarioAtualId();
             var anterior = buscarParaAlterar(id);
+            // F-14: entrada oculta ou removida pela moderação não pode ser editada.
+            moderacao.exigirAtivo(TipoConteudo.JOURNAL, id);
             anterior.exigirEdicaoManual(dono);
             validarDados(dados, dados != null && !Objects.equals(anterior.jogoId(), dados.jogoId()));
             var editada = anterior.editar(dono, dados.jogoId(),
@@ -82,6 +89,8 @@ public class GerenciarJournal {
         return transacao.executar(() -> {
             UUID dono = acesso.usuarioAtualId();
             var anterior = buscarParaAlterar(id);
+            // F-14: entrada oculta ou removida pela moderação não pode ser editada.
+            moderacao.exigirAtivo(TipoConteudo.JOURNAL, id);
             var completa = prepararImagens(anterior, List.of(imagem), dono);
             gravarImagens(anterior, completa, List.of(imagem));
             entradas.salvar(completa);

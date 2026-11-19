@@ -37,7 +37,7 @@ Atualizado em 17/11/2026, na branch `chore/elevar-entrega`. Legenda: ✅ cumprid
 | F-11 | Registros de "zerado" | Bruno | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 13/13 |
 | F-12 | Lançamentos futuros | Henrique | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 22/22 |
 | F-13 | Fórum | Henrique | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 14/14 |
-| F-14 | Moderação | Henrique | 🟡 só enums; regras em `ModeracaoServiceJpa` | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ | 10/10 |
+| F-14 | Moderação | Henrique | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 13/13 |
 | F-15 | Journal manual | Bruno | ✅ | ✅ (sem Spring) | ✅ | ✅ | ✅ | ✅ | ✅ | 20/20 |
 | F-16 | Timeline automática | Davi | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 5/5 |
 | F-17 | Estatísticas | Davi | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 8/8 |
@@ -59,7 +59,7 @@ O que falta em cada parcial está em [diagnostico.md](diagnostico.md) (seção 3
 | Proxy | F-19 `ConversasDoParticipante` | Marina | ✅ | ✅ `ConversasDoParticipanteTest`, `f19_chat_negociacao.feature` (RN 3) |
 | Template Method | F-19/F-20 `RotinaDePrazo` | Marina | ✅ | ✅ `RotinaDePrazoTest`, cenários da RN 10 (F-19) e das RN 7 e 9 (F-20) |
 | Template Method | F-14 `FluxoAcaoModerativa` | Henrique | ✅ | ✅ `f14_moderacao.feature`, `ModeracaoIntegracaoTest` |
-| Decorator | F-15 `SpoilerMascaradoDecorator`; F-14 continua prevista | Bruno | ✅ | ✅ `JournalRegrasTest`, `f15_journal.feature` (RN 3) |
+| Decorator | F-15 `SpoilerMascaradoDecorator`; F-14 `ConteudoRemovidoDecorator` | Bruno, Henrique | ✅ | ✅ `JournalRegrasTest`, `ModeracaoDominioTest`, `f15_journal.feature` (RN 3), `f14_moderacao.feature` |
 | Iterator | previsto no CML para F-13/F-16 | `TODO(grupo)` | ❌ | ❌ |
 
 ## 4. Arquitetura e repositório

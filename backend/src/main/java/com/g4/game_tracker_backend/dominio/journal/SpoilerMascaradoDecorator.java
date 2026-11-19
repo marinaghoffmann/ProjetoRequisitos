@@ -2,6 +2,8 @@ package com.g4.game_tracker_backend.dominio.journal;
 
 import java.util.Objects;
 
+import com.g4.game_tracker_backend.dominio.compartilhado.IConteudoExibivel;
+
 public final class SpoilerMascaradoDecorator implements IConteudoExibivel {
     private final IConteudoExibivel original;
     private final boolean revelado;

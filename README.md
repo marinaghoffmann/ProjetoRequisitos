@@ -173,8 +173,9 @@ forma consistente em todos os agregados.
 | **Strategy** | Cobrar e reembolsar por forma de pagamento sem `if` por tipo; uma forma nova é um `@Bean` a mais | [`EstrategiaDePagamento`](backend/src/main/java/com/g4/game_tracker_backend/dominio/marketplace/pedidos/EstrategiaDePagamento.java), `PagamentoCartao`, `PagamentoPix`, `PagamentoSaldoCarteira` e `FormasDePagamento` | F-20 | Marina |
 | **Observer** | Gerar a timeline do journal e recalcular estatísticas quando outras funcionalidades agem, sem que elas conheçam quem reage | [`ObservadorEventosPlataforma`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/journal/ObservadorEventosPlataforma.java), [`ObservadorEstatisticaJogo`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/avaliacao/estatisticas/ObservadorEstatisticaJogo.java) e a porta [`PublicadorDeEventos`](backend/src/main/java/com/g4/game_tracker_backend/dominio/compartilhado/PublicadorDeEventos.java) | F-16, F-17 | Davi |
 | **Proxy** (de proteção) | Garantir em um só lugar que a conversa só chega ao comprador e ao vendedor (RN 3), sem repetir a checagem em cada caso de uso | [`ConversasDoParticipante`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/marketplace/negociacao/ConversasDoParticipante.java), com a mesma interface de `ConversaChatRepositorio` | F-19 | Marina |
+| **Template Method** | Toda ação moderativa segue a mesma sequência: validar, aplicar, registrar o log e notificar o autor | [`FluxoAcaoModerativa`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/moderacao/FluxoAcaoModerativa.java), estendida por `GerenciarModeracao` | F-14 | Henrique |
 | **Template Method** | Três rotinas de prazo repetiam o mesmo laço (buscar os vencidos, uma transação por item, registrar a falha sem parar as outras) | [`RotinaDePrazo`](backend/src/main/java/com/g4/game_tracker_backend/aplicacao/compartilhado/RotinaDePrazo.java), com as subclasses `ExpirarReservasVencidas`, `CancelarPedidosSemEnvio` e `LiberarCustodiaPorTolerancia` | F-19, F-20 | Marina |
-| **Decorator** | Oculta o conteúdo do Journal até o clique explícito do leitor | `IConteudoExibivel`, `ConteudoOriginal`, `SpoilerMascaradoDecorator` | F-15 (F12 do grupo); moderação ainda prevista | Bruno |
+| **Decorator** | Muda o texto exibido sem mexer na entidade: oculta o spoiler do Journal até o clique do leitor e troca o conteúdo removido pela moderação pela mensagem de sistema | `IConteudoExibivel` e `ConteudoOriginal` (em `dominio.compartilhado`), `SpoilerMascaradoDecorator`, `ConteudoRemovidoDecorator` | F-15 (F12 do grupo), F-14 | Bruno, Henrique |
 | **Iterator** | `TODO(grupo)`. O CML prevê a paginação de tópicos e a navegação da timeline | — | F-13 / F-16 | `TODO(grupo)` |
 
 Testes dos padrões: `SimilaridadeTest`, os cenários de pagamento da F-20, `ConversasDoParticipanteTest`,
@@ -285,7 +286,7 @@ A moderação do fórum, as denúncias e os avisos 18+ são descritos na F-14 ab
 
 ## Moderação da plataforma (F-14)
 
-A moderação cobre `TOPICO`, `RESPOSTA`, `REVIEW`, `LISTA`, `AVALIACAO_MARKETPLACE`, `ANUNCIO` e `PERFIL`.
+A moderação cobre `TOPICO`, `RESPOSTA`, `REVIEW`, `LISTA`, `AVALIACAO_MARKETPLACE`, `ANUNCIO`, `PERFIL` e `JOURNAL`.
 Jogos do catálogo e lançamentos futuros seguem os fluxos de gestão próprios. Denúncias **não** ocultam conteúdo:
 a postagem permanece pública até um moderador decidir.
 
@@ -319,4 +320,14 @@ continuam registrados. O estado de moderação é separado dos dados editáveis 
 item na sessão atual, sem verificação de idade e sem restrição de acesso à API. Na interface, “Denunciar”
 aparece nas áreas públicas cobertas e `/moderacao` oferece fila, prévia, decisão, histórico e contagem de
 advertências somente para moderadores e administradores. Os cenários BDD estão em
-`f14_moderacao.feature` e os testes de integração em `ModeracaoIntegracaoTest`.
+`f14_moderacao.feature`, os testes de integração em `ModeracaoIntegracaoTest` e os das regras dos agregados em
+`ModeracaoDominioTest`.
+
+Entradas do journal (F-15) oculta ou removida saem do journal público do autor (inclusive da paginação) e
+deixam de aceitar edição e de servir imagens. O dono continua vendo a entrada, marcada como moderada; a removida
+mostra a mensagem de sistema pelo `ConteudoRemovidoDecorator`.
+
+Organização em camadas: os agregados `DenunciaConteudo` e `EstadoConteudo`, o `LogDeModeracao`, a `Advertencia`
+e as portas dos repositórios ficam em `dominio.moderacao`, sem framework. O caso de uso `GerenciarModeracao`
+(aplicação) aplica as regras pelos agregados e acessa o conteúdo dos outros contextos pela porta
+`ConteudosModeraveis`, implementada em SQL por `ConteudosModeraveisJdbc` (infraestrutura).

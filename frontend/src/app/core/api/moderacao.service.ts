@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 
-export type TipoConteudo = 'TOPICO' | 'RESPOSTA' | 'REVIEW' | 'LISTA' | 'AVALIACAO_MARKETPLACE' | 'ANUNCIO' | 'PERFIL';
+export type TipoConteudo = 'TOPICO' | 'RESPOSTA' | 'REVIEW' | 'LISTA' | 'AVALIACAO_MARKETPLACE' | 'ANUNCIO' | 'PERFIL' | 'JOURNAL';
 export type AcaoModeracao = 'OCULTAR' | 'EXCLUIR' | 'EDITAR' | 'MOVER' | 'ENCERRAR_TOPICO' | 'MARCAR_18' | 'RETIRAR_18' | 'REVERTER_OCULTACAO' | 'REVERTER_EXCLUSAO';
 export interface EstadoModeracao { aviso18: boolean; oculto: boolean; removido: boolean; }
 export interface DenunciaModeracao {

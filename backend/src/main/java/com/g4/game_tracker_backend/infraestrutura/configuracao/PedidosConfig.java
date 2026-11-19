@@ -28,6 +28,7 @@ import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketpla
 import com.g4.game_tracker_backend.dominio.marketplace.pedidos.CarteiraRepositorio;
 import com.g4.game_tracker_backend.dominio.marketplace.pedidos.EstrategiaDePagamento;
 import com.g4.game_tracker_backend.dominio.marketplace.pedidos.PedidoMarketplaceRepositorio;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
 
 /**
  * Wiring do contexto de pedidos (F-20). Os casos de uso são Java puro; aqui viram beans do Spring.
@@ -60,7 +61,7 @@ public class PedidosConfig {
     @Bean
     OrigemDoPedido origemDoPedido(CicloDoAnuncioNoPedido anuncios, ReservasDaNegociacao reservas,
             PedidoMarketplaceRepositorio pedidos,
-            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
+            EstadoPublico moderacao) {
         return new OrigemDoPedido(anuncios, reservas, pedidos, moderacao);
     }
 

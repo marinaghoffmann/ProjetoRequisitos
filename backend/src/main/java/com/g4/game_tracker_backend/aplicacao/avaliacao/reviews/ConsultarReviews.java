@@ -18,6 +18,8 @@ import com.g4.game_tracker_backend.dominio.avaliacao.reviews.ReviewRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 /**
  * Consultas da F-02: as reviews de um jogo, paginadas e com as médias geral e por categoria de todas
@@ -36,10 +38,10 @@ public class ConsultarReviews {
     private final JogoRepositorio jogos;
     private final UsuarioRepositorio usuarios;
     private final VerificadorDeAcesso verificadorDeAcesso;
-    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
+    private final EstadoPublico moderacao;
 
     public ConsultarReviews(ReviewRepositorio reviews, JogoRepositorio jogos, UsuarioRepositorio usuarios,
-            VerificadorDeAcesso verificadorDeAcesso, com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
+            VerificadorDeAcesso verificadorDeAcesso, EstadoPublico moderacao) {
         this.reviews = reviews;
         this.jogos = jogos;
         this.usuarios = usuarios;
@@ -76,7 +78,8 @@ public class ConsultarReviews {
     public Map<UUID, String> nomesDosAutores(Collection<UUID> autorIds) {
         Map<UUID, String> nomes = new HashMap<>();
         for (UUID autorId : new HashSet<>(autorIds)) {
-            usuarios.buscarPorId(autorId).ifPresent(usuario -> nomes.put(autorId, moderacao.visivel(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.PERFIL,autorId) ? usuario.nome() : "Perfil indisponível"));
+            usuarios.buscarPorId(autorId).ifPresent(usuario -> nomes.put(autorId,
+                    moderacao.visivel(TipoConteudo.PERFIL, autorId) ? usuario.nome() : "Perfil indisponível"));
         }
         return nomes;
     }

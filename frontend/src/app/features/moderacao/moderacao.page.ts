@@ -37,7 +37,7 @@ export class ModeracaoPage {
   protected motivoAdvertencia = '';
   protected readonly rotulos: Record<TipoConteudo, string> = {
     TOPICO: 'Tópico', RESPOSTA: 'Resposta', REVIEW: 'Review', LISTA: 'Lista',
-    AVALIACAO_MARKETPLACE: 'Avaliação de vendedor', ANUNCIO: 'Anúncio', PERFIL: 'Perfil',
+    AVALIACAO_MARKETPLACE: 'Avaliação de vendedor', ANUNCIO: 'Anúncio', PERFIL: 'Perfil', JOURNAL: 'Entrada do journal',
   };
   protected readonly acoesGerais: AcaoModeracao[] = ['OCULTAR', 'EXCLUIR', 'MARCAR_18', 'RETIRAR_18', 'REVERTER_OCULTACAO', 'REVERTER_EXCLUSAO'];
 

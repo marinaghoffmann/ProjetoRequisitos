@@ -47,6 +47,8 @@ export interface EntradaJournal {
   mascarada: boolean;
   tipoOrigem: TipoOrigem;
   editavel: boolean;
+  /** Oculta ou removida pela moderação (F-14); só o dono ainda a vê. */
+  moderada: boolean;
 }
 
 export interface DadosEntradaJournal {

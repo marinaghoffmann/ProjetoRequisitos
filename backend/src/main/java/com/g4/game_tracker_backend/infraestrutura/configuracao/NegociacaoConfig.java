@@ -18,6 +18,7 @@ import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplaceRepositorio;
 import com.g4.game_tracker_backend.dominio.marketplace.negociacao.AnunciosDaNegociacao;
 import com.g4.game_tracker_backend.dominio.marketplace.negociacao.ConversaChatRepositorio;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
 
 /**
  * Wiring do contexto de negociação (F-19). Os casos de uso são Java puro; aqui viram beans do Spring.
@@ -37,7 +38,7 @@ public class NegociacaoConfig {
     @Bean
     IniciarConversa iniciarConversa(ConversaChatRepositorio conversas, AnunciosDaNegociacao anuncios,
             VerificadorDeAcesso verificadorDeAcesso, ExecutorDeTransacao transacao,
-            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
+            EstadoPublico moderacao) {
         return new IniciarConversa(doParticipante(conversas, verificadorDeAcesso),
                 anuncios, verificadorDeAcesso, transacao, moderacao);
     }
@@ -52,7 +53,7 @@ public class NegociacaoConfig {
     @Bean
     GerenciarPropostas gerenciarPropostas(ConversaChatRepositorio conversas, AnunciosDaNegociacao anuncios,
             VerificadorDeAcesso verificadorDeAcesso, ExecutorDeTransacao transacao,
-            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
+            EstadoPublico moderacao) {
         return new GerenciarPropostas(doParticipante(conversas, verificadorDeAcesso),
                 anuncios, verificadorDeAcesso, transacao, moderacao);
     }

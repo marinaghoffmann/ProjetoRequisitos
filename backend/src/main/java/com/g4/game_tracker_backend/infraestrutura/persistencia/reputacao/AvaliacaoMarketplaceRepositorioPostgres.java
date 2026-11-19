@@ -7,15 +7,17 @@ import org.springframework.stereotype.Repository;
 
 import com.g4.game_tracker_backend.dominio.marketplace.reputacao.AvaliacaoMarketplace;
 import com.g4.game_tracker_backend.dominio.marketplace.reputacao.AvaliacaoMarketplaceRepositorio;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 @Repository
 public class AvaliacaoMarketplaceRepositorioPostgres implements AvaliacaoMarketplaceRepositorio {
 
     private final AvaliacaoMarketplaceSpringDataRepository springData;
-    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
+    private final EstadoPublico moderacao;
 
     public AvaliacaoMarketplaceRepositorioPostgres(AvaliacaoMarketplaceSpringDataRepository springData,
-            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
+            EstadoPublico moderacao) {
         this.springData = springData;
         this.moderacao = moderacao;
     }
@@ -40,7 +42,7 @@ public class AvaliacaoMarketplaceRepositorioPostgres implements AvaliacaoMarketp
     public List<AvaliacaoMarketplace> listarRecebidas(UUID avaliadoId) {
         return springData.findByAvaliadoIdOrderByCriadaEmDesc(avaliadoId).stream()
                 .map(AvaliacaoMarketplaceJpa::paraDominio)
-                .filter(a -> moderacao.visivel(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.AVALIACAO_MARKETPLACE,a.id()))
+                .filter(a -> moderacao.visivel(TipoConteudo.AVALIACAO_MARKETPLACE,a.id()))
                 .toList();
     }
 }

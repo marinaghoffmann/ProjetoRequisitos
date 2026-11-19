@@ -26,7 +26,8 @@ public class OrigemDoPedido {
     private final PedidoMarketplaceRepositorio pedidos;
     private final EstadoPublico moderacao;
 
-    public OrigemDoPedido(CicloDoAnuncioNoPedido anuncios, ReservasDaNegociacao reservas, PedidoMarketplaceRepositorio pedidos, EstadoPublico moderacao) {
+    public OrigemDoPedido(CicloDoAnuncioNoPedido anuncios, ReservasDaNegociacao reservas,
+            PedidoMarketplaceRepositorio pedidos, EstadoPublico moderacao) {
         this.anuncios = anuncios;
         this.reservas = reservas;
         this.pedidos = pedidos;

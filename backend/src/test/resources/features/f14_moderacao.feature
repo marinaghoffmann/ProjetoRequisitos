@@ -17,6 +17,7 @@ Funcionalidade: F-14 Central de moderação, auditoria e denúncias
       | AVALIACAO_MARKETPLACE  |
       | ANUNCIO                 |
       | PERFIL                  |
+      | JOURNAL                 |
 
   Cenário: Denúncia repetida mantém uma só pendência
     Dado que há um jogador autenticado para moderação
@@ -79,3 +80,18 @@ Funcionalidade: F-14 Central de moderação, auditoria e denúncias
     E que existe conteúdo moderável do tipo "PERFIL"
     Quando adverte o autor por "Reincidência"
     Então a contagem de advertências é 1 e o autor é notificado
+
+  # Entradas do journal (F-15) são públicas no perfil e também podem ser moderadas.
+  Cenário: Entrada do journal oculta sai do perfil público e não pode ser editada
+    Dado que há um jogador autenticado para moderação
+    E que existe conteúdo moderável do tipo "JOURNAL"
+    Quando um moderador oculta o conteúdo com justificativa "Exposição de dados pessoais"
+    Então a entrada não aparece no journal público do autor
+    E o autor não consegue mais editar a entrada
+
+  Cenário: Entrada do journal removida mostra a mensagem de sistema ao autor
+    Dado que há um moderador autenticado para moderação
+    E que existe conteúdo moderável do tipo "JOURNAL"
+    Quando o moderador remove o conteúdo com justificativa "Spam"
+    Então o autor vê a entrada com a mensagem de sistema
+    E a entrada não aparece no journal público do autor

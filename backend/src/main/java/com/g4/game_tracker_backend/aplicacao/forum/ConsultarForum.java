@@ -17,6 +17,8 @@ import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForumRepositorio;
 import com.g4.game_tracker_backend.dominio.identidade.Usuario;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 /** Consultas públicas da F-13: tópicos paginados por jogo ou categoria e um tópico com as suas respostas. */
 @Service
@@ -26,10 +28,10 @@ public class ConsultarForum {
 
     private final TopicoDeForumRepositorio topicos;
     private final UsuarioRepositorio usuarios;
-    private final com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao;
+    private final EstadoPublico moderacao;
 
     public ConsultarForum(TopicoDeForumRepositorio topicos, UsuarioRepositorio usuarios,
-            com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico moderacao) {
+            EstadoPublico moderacao) {
         this.topicos = topicos;
         this.usuarios = usuarios;
         this.moderacao = moderacao;
@@ -50,7 +52,7 @@ public class ConsultarForum {
     @Transactional(readOnly = true)
     public TopicoDeForum buscarPorId(UUID id) {
         TopicoDeForum topico = TopicosDoForum.visivel(topicos, id);
-        moderacao.exigirVisivel(com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.TOPICO, id);
+        moderacao.exigirVisivel(TipoConteudo.TOPICO, id);
         return topico;
     }
 

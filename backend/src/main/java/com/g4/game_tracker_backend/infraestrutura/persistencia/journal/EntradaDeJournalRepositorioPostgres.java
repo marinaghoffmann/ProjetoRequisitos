@@ -19,8 +19,11 @@ import com.g4.game_tracker_backend.dominio.journal.EntradaDeJournal;
 import com.g4.game_tracker_backend.dominio.journal.EntradaDeJournalRepositorio;
 import com.g4.game_tracker_backend.dominio.journal.TipoEventoPlataforma;
 import com.g4.game_tracker_backend.dominio.journal.FiltroJournal;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
+import com.g4.game_tracker_backend.infraestrutura.persistencia.moderacao.EstadoConteudoJpa;
 
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Subquery;
 
 @Repository
 @Transactional(readOnly = true)
@@ -54,6 +57,16 @@ public class EntradaDeJournalRepositorioPostgres implements EntradaDeJournalRepo
 
     @Override
     public Pagina<EntradaDeJournal> filtrar(UUID donoId, FiltroJournal filtro, int pagina, int tamanho) {
+        return filtrar(donoId, filtro, pagina, tamanho, false);
+    }
+
+    @Override
+    public Pagina<EntradaDeJournal> filtrarPublicas(UUID donoId, FiltroJournal filtro, int pagina, int tamanho) {
+        return filtrar(donoId, filtro, pagina, tamanho, true);
+    }
+
+    private Pagina<EntradaDeJournal> filtrar(UUID donoId, FiltroJournal filtro, int pagina, int tamanho,
+            boolean semModeradas) {
         Specification<EntradaDeJournalJpa> especificacao = (raiz, consulta, cb) -> {
             var condicoes = new ArrayList<Predicate>();
             condicoes.add(cb.equal(raiz.get("donoId"), donoId));
@@ -65,6 +78,16 @@ public class EntradaDeJournalRepositorioPostgres implements EntradaDeJournalRepo
             if (filtro.fim() != null && !filtro.fim().equals(LocalDate.MAX)) {
                 condicoes.add(cb.lessThan(raiz.get("dataSessao"),
                         filtro.fim().plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant()));
+            }
+            if (semModeradas) {
+                // Filtra no banco, para a paginação continuar certa.
+                Subquery<Integer> moderada = consulta.subquery(Integer.class);
+                var estado = moderada.from(EstadoConteudoJpa.class);
+                moderada.select(cb.literal(1)).where(
+                        cb.equal(estado.get("tipo"), TipoConteudo.JOURNAL),
+                        cb.equal(estado.get("conteudoId"), raiz.get("id")),
+                        cb.or(cb.isTrue(estado.get("oculto")), cb.isTrue(estado.get("removido"))));
+                condicoes.add(cb.not(cb.exists(moderada)));
             }
             return cb.and(condicoes.toArray(Predicate[]::new));
         };
