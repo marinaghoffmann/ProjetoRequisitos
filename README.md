@@ -17,7 +17,7 @@ com **Domain-Driven Design** nos quatro níveis e **arquitetura limpa**, com **J
 - [Integrantes](#integrantes)
 
 Endpoints e regras de cada funcionalidade: [docs/api.md](docs/api.md). Como contribuir (onde fica cada classe, steps
-do Cucumber, branches e commits): [CONTRIBUTING.md](CONTRIBUTING.md). Situação da entrega: [docs/checklist-entrega.md](docs/checklist-entrega.md).
+do Cucumber, branches e commits): [CONTRIBUTING.md](CONTRIBUTING.md). Situação da entrega: [docs/checklist-entrega.md](docs/checklist-entrega.md). Paridade do frontend com o protótipo: [docs/front-paridade.md](docs/front-paridade.md).
 
 ## Entregáveis
 
