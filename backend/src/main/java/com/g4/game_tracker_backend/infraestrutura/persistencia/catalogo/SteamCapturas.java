@@ -3,19 +3,20 @@ package com.g4.game_tracker_backend.infraestrutura.persistencia.catalogo;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import com.g4.game_tracker_backend.aplicacao.catalogo.BuscadorDeCapturas;
 
-@Component
+/**
+ * Capturas de tela da loja Steam (F-01). Não é bean: o CatalogoConfig o envolve no proxy de cache
+ * {@code CapturasEmCache}, que trata as falhas lançadas aqui.
+ */
 public class SteamCapturas implements BuscadorDeCapturas {
 
     private final RestClient cliente;
 
-    public SteamCapturas(@Value("${app.catalogo.steam-url:https://store.steampowered.com}") String url) {
+    public SteamCapturas(String url) {
         this.cliente = RestClient.builder().baseUrl(url).build();
     }
 
@@ -37,7 +38,8 @@ public class SteamCapturas implements BuscadorDeCapturas {
                     .limit(8)
                     .toList();
         } catch (RestClientException e) {
-            return List.of();
+            // A falha sobe para o proxy, que devolve a entrada vencida (se houver) em vez de guardar a lista vazia.
+            throw new IllegalStateException("Não foi possível consultar as capturas da Steam", e);
         }
     }
 }
