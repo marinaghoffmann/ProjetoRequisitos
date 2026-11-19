@@ -277,7 +277,7 @@ $pad: 64px;
 }
 .hm-jogo__capa {
   position: relative;
-  aspect-ratio: 178 / 150;
+  aspect-ratio: 616 / 353;
   margin-bottom: 12px;
   border-radius: 12px;
   overflow: hidden;
@@ -502,3 +502,60 @@ $pad: 64px;
 .hm-jogo__capa { background-position: center; }
 .hm-jogo__rodape .hm-jogo__genero:empty { display: none; }
 .hm-jogo__nota { margin-left: auto; }
+
+.hm-busca-caixa {
+  position: relative;
+  width: min(500px, 100%);
+}
+.hm-busca-caixa .hm-busca { width: 100%; }
+
+.hm-busca__lista {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 380px;
+  padding: 6px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 18px 40px rgb(0 0 0 / 50%);
+}
+.hm-busca__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+  &:hover,
+  &--ativo { background: var(--surface-2); }
+}
+.hm-busca__capa {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 36px;
+  border-radius: 6px;
+  background: var(--surface-3) center / cover no-repeat;
+}
+.hm-busca__texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+  strong {
+    overflow: hidden;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  span { color: var(--muted); font-size: 10px; }
+}
+.hm-busca__vazio {
+  padding: 14px 10px;
+  color: var(--muted);
+  font-size: 12px;
+}

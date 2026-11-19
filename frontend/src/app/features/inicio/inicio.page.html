@@ -1,9 +1,47 @@
 <header class="hm-topo">
-  <label class="hm-busca">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-    <input type="search" placeholder="Buscar jogos, pessoas e listas..." aria-label="Buscar" />
-    <kbd>⌘ K</kbd>
-  </label>
+  <div class="hm-busca-caixa">
+    <label class="hm-busca">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input
+        #busca
+        type="search"
+        placeholder="Buscar jogos, pessoas e listas..."
+        aria-label="Buscar"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-controls="lista-busca"
+        [attr.aria-expanded]="buscaAberta() && termo().length > 0"
+        autocomplete="off"
+        (input)="digitar(busca.value)"
+        (focus)="buscaAberta.set(true)"
+        (keydown)="tecladoBusca($event)"
+      />
+      <kbd>⌘ K</kbd>
+    </label>
+
+    @if (buscaAberta() && termo().trim()) {
+      <ul class="hm-busca__lista" id="lista-busca" role="listbox" aria-label="Resultados da busca">
+        @for (r of resultadosBusca(); track r.id; let i = $index) {
+          <li role="option" [attr.aria-selected]="i === selecionadoBusca()">
+            <a
+              class="hm-busca__item"
+              [class.hm-busca__item--ativo]="i === selecionadoBusca()"
+              [routerLink]="['/catalogo', r.id]"
+              (click)="fecharBusca(true)"
+            >
+              <span class="hm-busca__capa" [style.background-image]="r.capa ? 'url(&quot;' + r.capa + '&quot;)' : null"></span>
+              <span class="hm-busca__texto">
+                <strong>{{ r.titulo }}</strong>
+                @if (r.ano) { <span>{{ r.ano }}</span> }
+              </span>
+            </a>
+          </li>
+        } @empty {
+          <li class="hm-busca__vazio">Nenhum jogo encontrado para “{{ termo() }}”.</li>
+        }
+      </ul>
+    }
+  </div>
 
   <div class="hm-topo__acoes">
     @if (autenticacao.usuarioAtual(); as usuario) {

@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, OnDestroy, OnInit, computed, inject, signal, viewChild } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 
 import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
 import { Lancamento, LancamentosService } from '../../core/api/lancamentos.service';
@@ -26,6 +26,13 @@ interface JogoEmAlta {
   steamAppId: number | null;
 }
 
+interface ResultadoBusca {
+  id: Jogo['id'];
+  titulo: string;
+  ano: string | null;
+  capa: string | null;
+}
+
 const GRADIENTES = [
   'linear-gradient(160deg, #1b1445, #0f2b4a 55%, #3b1d5c)',
   'linear-gradient(170deg, #5a6a7a, #a45a3a 60%, #3a2418)',
@@ -45,6 +52,7 @@ const GRADIENTES = [
 export class InicioPage implements OnInit, OnDestroy {
   private readonly catalogo = inject(CatalogoService);
   private readonly lancamentosApi = inject(LancamentosService);
+  private readonly router = inject(Router);
   protected readonly autenticacao = inject(AutenticacaoService);
 
   // ===== Dados vindos da API (mesmo CatalogoService do catálogo) =====
@@ -80,6 +88,34 @@ export class InicioPage implements OnInit, OnDestroy {
   protected readonly miniaturasLista = GRADIENTES.slice(0, 4);
   protected readonly gradienteResenha = GRADIENTES[0];
 
+  // ===== Busca =====
+  private readonly campoBusca = viewChild<ElementRef<HTMLInputElement>>('busca');
+
+  protected readonly buscaAberta = signal(false);
+  protected readonly termo = signal('');
+  protected readonly selecionadoBusca = signal(0);
+
+  /** Jogos ativos filtrados pelo termo (sem diferenciar acentos/maiúsculas), até 6 resultados. */
+  protected readonly resultadosBusca = computed<ResultadoBusca[]>(() => {
+    const t = this.normalizar(this.termo());
+    if (!t) return [];
+    return this.ativos()
+      .filter((j) => this.normalizar(j.titulo).includes(t))
+      .slice(0, 6)
+      .map((j) => {
+        const appId = this.steamAppId(j);
+        return {
+          id: j.id,
+          titulo: j.titulo,
+          ano: this.ano(j.dataLancamento),
+          capa:
+            this.imagensHd()[`card:${j.id}`] ||
+            this.imagemUrl(j.capaUrl) ||
+            (appId ? `${STEAM_CDN}/${appId}/header.jpg` : null),
+        };
+      });
+  });
+
   ngOnInit(): void {
     this.catalogo.listarJogos().subscribe({
       next: (jogos) => {
@@ -108,6 +144,72 @@ export class InicioPage implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     clearInterval(this.temporizador);
   }
+
+  // ===== Busca: métodos =====
+
+  protected digitar(valor: string): void {
+    this.termo.set(valor);
+    this.selecionadoBusca.set(0);
+    this.buscaAberta.set(true);
+  }
+
+  protected tecladoBusca(e: KeyboardEvent): void {
+    const total = this.resultadosBusca().length;
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        if (total) this.selecionadoBusca.update((i) => (i + 1) % total);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        if (total) this.selecionadoBusca.update((i) => (i - 1 + total) % total);
+        break;
+      case 'Enter': {
+        const r = this.resultadosBusca()[this.selecionadoBusca()];
+        if (r) {
+          e.preventDefault();
+          this.router.navigate(['/catalogo', r.id]);
+          this.fecharBusca(true);
+        }
+        break;
+      }
+      case 'Escape':
+        this.fecharBusca();
+        this.campoBusca()?.nativeElement.blur();
+        break;
+    }
+  }
+
+  protected fecharBusca(limpar = false): void {
+    this.buscaAberta.set(false);
+    if (limpar) {
+      this.termo.set('');
+      this.selecionadoBusca.set(0);
+      const campo = this.campoBusca()?.nativeElement;
+      if (campo) campo.value = '';
+    }
+  }
+
+  /** Fecha a lista ao clicar fora da caixa de busca. */
+  @HostListener('document:click', ['$event'])
+  protected cliqueFora(e: MouseEvent): void {
+    if (!(e.target as HTMLElement | null)?.closest('.hm-busca-caixa')) this.fecharBusca();
+  }
+
+  /** Atalho ⌘K / Ctrl+K foca a busca. */
+  @HostListener('document:keydown', ['$event'])
+  protected atalhoBusca(e: KeyboardEvent): void {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      this.campoBusca()?.nativeElement.focus();
+    }
+  }
+
+  private normalizar(s: string): string {
+    return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  }
+
+  // ===== Lançamentos =====
 
   protected diaLancamento(data: string): string { return data.slice(8, 10); }
   protected mesLancamento(data: string): string {
@@ -171,9 +273,10 @@ export class InicioPage implements OnInit, OnDestroy {
   private resolverCard(c: JogoEmAlta): void {
     if (!c.steamAppId) return;
     const base = `${STEAM_CDN}/${c.steamAppId}`;
+    // Cards horizontais: capsule 616x353 (melhor resolução) e header.jpg como alternativa.
     this.resolverImagem(`card:${c.id}`, [
-      `${base}/library_600x900.jpg`,
-      `${base}/library_600x900_2x.jpg`,
+      `${base}/capsule_616x353.jpg`,
+      `${base}/header.jpg`,
     ]);
   }
 

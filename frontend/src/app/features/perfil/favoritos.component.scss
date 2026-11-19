@@ -5,7 +5,7 @@ h2 { margin: 0; font-size: 1.2rem; }
 .favoritos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); list-style: none; padding: 0; gap: 1rem; }
 li { min-width: 0; }
 .capa, .vazio { position: relative; display: grid; place-items: center; aspect-ratio: 2 / 3; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
-.capa img { width: 100%; height: 100%; object-fit: cover; }
+.capa img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .capa img[hidden] { display: none; }
 .posicao { position: absolute; bottom: .5rem; left: .5rem; background: var(--bg); padding: .2rem .5rem; border-radius: 4px; }
 .titulo { display: block; color: var(--text); margin: .5rem 0; font-weight: 700; overflow-wrap: anywhere; }

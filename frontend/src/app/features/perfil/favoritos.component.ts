@@ -7,6 +7,8 @@ import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
 import { Favorito, PerfilPublicoService } from '../../core/api/perfil-publico.service';
 import { ErroApi } from '../../core/http/erro-api';
 
+const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
+
 @Component({
   selector: 'app-favoritos',
   imports: [RouterLink],
@@ -55,6 +57,27 @@ export class FavoritosComponent {
       next: (jogos) => this.jogos.set(jogos),
       error: (erro: ErroApi) => this.erroCatalogo.set(erro.mensagem),
     });
+  }
+
+  /** Capa vertical da Steam (mesma da página do jogo), com o capaUrl como plano B. */
+  protected candidatas(favorito: Favorito): string[] {
+    const appId = favorito.capaUrl ? /\/apps\/(\d+)\//.exec(favorito.capaUrl)?.[1] : null;
+    const steam = appId
+      ? [`${STEAM_CDN}/${appId}/library_600x900_2x.jpg`, `${STEAM_CDN}/${appId}/library_600x900.jpg`]
+      : [];
+    return [...steam, ...(favorito.capaUrl ? [favorito.capaUrl] : [])];
+  }
+
+  /** Tenta a próxima candidata; se acabarem, esconde a imagem. */
+  protected falhar(imagem: HTMLImageElement, favorito: Favorito): void {
+    const lista = this.candidatas(favorito);
+    const proxima = Number(imagem.dataset['i'] ?? 0) + 1;
+    if (proxima < lista.length) {
+      imagem.dataset['i'] = String(proxima);
+      imagem.src = lista[proxima];
+    } else {
+      imagem.hidden = true;
+    }
   }
 
   protected jaFavorito(id: string): boolean {

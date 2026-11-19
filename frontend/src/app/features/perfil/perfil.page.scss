@@ -69,7 +69,8 @@ svg { flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; strok
 }
 
 .pf-banner {
-  height: 240px;
+  position: relative;
+  height: clamp(180px, 20vw, 260px);
   background:
     radial-gradient(1.5px 1.5px at 12% 28%, #fff, transparent),
     radial-gradient(1px 1px at 24% 62%, #cfd8ff, transparent),
@@ -81,6 +82,16 @@ svg { flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; strok
     radial-gradient(ellipse at 30% 40%, rgb(150 120 220 / 45%), transparent 60%),
     radial-gradient(ellipse at 75% 70%, rgb(80 120 230 / 35%), transparent 55%),
     linear-gradient(120deg, #131a3d, #2b2a63 50%, #1a2250);
+
+  // esmaece a base do banner na cor da página (vale também para a imagem enviada)
+  &::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 55%;
+    background: linear-gradient(to bottom, transparent, var(--bg));
+    pointer-events: none;
+  }
 }
 
 // ===== Miolo =====

@@ -11,7 +11,7 @@
       @if (favoritos()[slot - 1]; as favorito) {
         <a class="capa" [routerLink]="['/catalogo', favorito.jogoId]">
           @if (favorito.capaUrl) {
-            <img #imagem [src]="favorito.capaUrl" [alt]="favorito.titulo" (error)="imagem.hidden = true" />
+            <img #imagem [src]="candidatas(favorito)[0]" [alt]="favorito.titulo" (error)="falhar(imagem, favorito)" />
           }
           <span class="posicao">#{{ slot }}</span>
         </a>
