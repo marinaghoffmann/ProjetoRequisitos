@@ -37,6 +37,7 @@
 //  - Template Method : F-01 (CadastroJogoTemplate: origem API x origem Manual/Criador)            [previsto]
 //  - Proxy           : F-01 (ProxyBaseExternaJogos sobre IBaseExternaJogosGateway)                [previsto]
 //  - Decorator       : F-15 (SpoilerMascaradoDecorator) e F-14 (ConteudoRemovidoDecorator) sobre IConteudoExibivel [codigo]
+//  - Iterator        : F-13 (IteradorDeRespostas: respostas encadeadas em profundidade)          [codigo]
 //  - Iterator        : F-13 e F-16 (paginacao de topicos e navegacao da timeline)                 [previsto]
 // =============================================================================
 
@@ -1119,6 +1120,13 @@ BoundedContext ContextoForum implements ComunidadeForumSubdomain {
             List<@ResumoTopico> consultarPorCategoria(String categoria, Integer pagina, Integer tamanho);
         }
 
+        // Padrao Iterator (GoF), implementado: percorre as respostas encadeadas em profundidade
+        // (pai antes das filhas, irmas por publicacao) sem expor a lista interna do TopicoDeForum.
+        Service IteradorDeRespostas {
+            Boolean hasNext();
+            @RespostaForum next();
+        }
+
         // Padrao Iterator (GoF): percorre a listagem paginada de topicos.
         Service TopicosPaginadosIterator {
             Boolean hasNext();
@@ -1152,6 +1160,12 @@ BoundedContext ContextoModeracao implements ComunidadeForumSubdomain {
             DateTime                    registradaEm
             DateTime                    analisadaEm
             String                      chavePendente  // único por denunciante e alvo enquanto pendente
+
+            Repository IDenunciaRepository {
+                @DenunciaConteudo salvar(@DenunciaConteudo denuncia);
+                Optional<@DenunciaConteudo> buscarPorId(@DenunciaId denunciaId);
+                List<@DenunciaConteudo> listarPorStatus(@StatusDenuncia status);
+            }
         }
 
         // Conteúdo público criado por usuários; catálogo e lançamentos têm gestão própria.
@@ -1162,12 +1176,6 @@ BoundedContext ContextoModeracao implements ComunidadeForumSubdomain {
         Service DenunciaService {
             @DenunciaConteudo denunciar(@UsuarioId denuncianteId, @TipoConteudo tipo, String conteudoId, String motivo);
             List<@DenunciaConteudo> consultarFilaPendente();
-        }
-
-        Repository IDenunciaRepositorio {
-            @DenunciaConteudo salvar(@DenunciaConteudo denuncia);
-            Optional<@DenunciaConteudo> buscarPorId(@DenunciaId denunciaId);
-            List<@DenunciaConteudo> listarPorStatus(@StatusDenuncia status);
         }
     }
 
@@ -1196,6 +1204,11 @@ BoundedContext ContextoModeracao implements ComunidadeForumSubdomain {
             String                  conteudoId
             String                  justificativa                 // RN 1: obrigatoria para OCULTAR e EXCLUIR
             DateTime                registradoEm
+
+            Repository ILogModeracaoRepository {
+                @LogDeModeracao salvar(@LogDeModeracao log);
+                List<@LogDeModeracao> listarPorData(Integer pagina, Integer tamanho);
+            }
         }
 
         enum TipoAcaoModeracao { OCULTAR, EDITAR, MOVER, EXCLUIR, ENCERRAR_TOPICO, ADVERTIR_USUARIO, MARCAR_18, RETIRAR_18, REVERTER_OCULTACAO, REVERTER_EXCLUSAO, ARQUIVAR_DENUNCIA }
@@ -1236,11 +1249,6 @@ BoundedContext ContextoModeracao implements ComunidadeForumSubdomain {
             - @TipoAcaoModeracao    acao
             String                  conteudoId
         }
-
-        Repository ILogModeracaoRepositorio {
-            @LogDeModeracao salvar(@LogDeModeracao log);
-            List<@LogDeModeracao> listarPorData(Integer pagina, Integer tamanho);
-        }
     }
 
     Aggregate Advertencia {
@@ -1252,14 +1260,14 @@ BoundedContext ContextoModeracao implements ComunidadeForumSubdomain {
             - @UsuarioId        moderadorId
             String              motivo
             DateTime            registradaEm
+
+            Repository IAdvertenciaRepository {
+                @Advertencia salvar(@Advertencia advertencia);
+                List<@Advertencia> listarPorUsuario(@UsuarioId usuarioId);
+            }
         }
 
         ValueObject AdvertenciaId { String id }
-
-        Repository IAdvertenciaRepositorio {
-            @Advertencia salvar(@Advertencia advertencia);
-            List<@Advertencia> listarPorUsuario(@UsuarioId usuarioId);
-        }
     }
 }
 

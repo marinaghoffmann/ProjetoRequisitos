@@ -1,6 +1,7 @@
 package com.g4.game_tracker_backend.apresentacao.forum;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -8,6 +9,7 @@ import java.util.UUID;
 import com.g4.game_tracker_backend.aplicacao.forum.CurtidasForum;
 import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
 import com.g4.game_tracker_backend.dominio.compartilhado.ConteudoOriginal;
+import com.g4.game_tracker_backend.dominio.forum.IteradorDeRespostas.RespostaNaArvore;
 import com.g4.game_tracker_backend.dominio.forum.RespostaForum;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
 import com.g4.game_tracker_backend.dominio.identidade.Usuario;
@@ -15,8 +17,9 @@ import com.g4.game_tracker_backend.dominio.moderacao.ConteudoRemovidoDecorator;
 import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 /**
- * Tópico com as respostas em ordem de publicação. O encadeamento vem em respostaPaiId; a tela monta
- * a árvore. Respostas removidas continuam na lista (sem conteúdo) para as respostas filhas não sumirem.
+ * Tópico com as respostas na ordem da conversa, percorridas pelo IteradorDeRespostas (padrão Iterator): cada
+ * resposta vem antes das suas filhas, as irmãs por ordem de publicação, e nivel diz o recuo. O encadeamento
+ * continua em respostaPaiId. Respostas removidas continuam na lista (sem conteúdo) para as respostas filhas não sumirem.
  * editavelAte indica até quando o autor ainda pode editar (RN 2: 48 horas).
  * F-14: tópico e resposta removidos pela moderação mostram a mensagem de sistema; a resposta oculta, um aviso.
  */
@@ -31,10 +34,11 @@ public record TopicoResponse(UUID id, UUID autorId, String nomeAutor, UUID jogoI
     public record Resposta(UUID id, UUID autorId, String nomeAutor, String papelAutor, String avatarAutorUrl,
             UUID respostaPaiId, String conteudo, List<String> imagens, boolean removida, boolean removidaPelaModeracao,
             int totalCurtidas, boolean curtidaPeloUsuario, Instant publicadaEm, Instant editadaEm,
-            Instant editavelAte) {
+            Instant editavelAte, int nivel) {
 
-        static Resposta de(RespostaForum resposta, Map<UUID, Usuario> autores, CurtidasForum.Resumo curtidas,
+        static Resposta de(RespostaNaArvore naArvore, Map<UUID, Usuario> autores, CurtidasForum.Resumo curtidas,
                 EstadoPublico moderacao) {
+            RespostaForum resposta = naArvore.resposta();
             Usuario autor = autores.get(resposta.autorId());
             boolean removidaPelaModeracao = moderacao.removido(TipoConteudo.RESPOSTA, resposta.id());
             boolean oculta = moderacao.oculto(TipoConteudo.RESPOSTA, resposta.id());
@@ -55,7 +59,8 @@ public record TopicoResponse(UUID id, UUID autorId, String nomeAutor, UUID jogoI
                     resposta.removida() || moderada, moderada,
                     curtidas.porResposta().getOrDefault(resposta.id(), 0),
                     curtidas.curtidasDoUsuario().contains(resposta.id()),
-                    resposta.publicadaEm(), resposta.editadaEm(), TopicoDeForum.editavelAte(resposta.publicadaEm()));
+                    resposta.publicadaEm(), resposta.editadaEm(), TopicoDeForum.editavelAte(resposta.publicadaEm()),
+                    naArvore.nivel());
         }
     }
 
@@ -63,10 +68,16 @@ public record TopicoResponse(UUID id, UUID autorId, String nomeAutor, UUID jogoI
             EstadoPublico moderacao) {
         Usuario autor = autores.get(topico.autorId());
         boolean removido = moderacao.removido(TipoConteudo.TOPICO, topico.id());
-        int respostasVisiveis = (int) topico.respostas().stream()
-                .filter(r -> !r.removida() && !moderacao.removido(TipoConteudo.RESPOSTA, r.id())
-                        && !moderacao.oculto(TipoConteudo.RESPOSTA, r.id()))
-                .count();
+        List<Resposta> respostas = new ArrayList<>();
+        int respostasVisiveis = 0;
+        for (RespostaNaArvore naArvore : topico.arvoreDeRespostas()) {
+            RespostaForum r = naArvore.resposta();
+            respostas.add(Resposta.de(naArvore, autores, curtidas, moderacao));
+            if (!r.removida() && !moderacao.removido(TipoConteudo.RESPOSTA, r.id())
+                    && !moderacao.oculto(TipoConteudo.RESPOSTA, r.id())) {
+                respostasVisiveis++;
+            }
+        }
         return new TopicoResponse(topico.id(), topico.autorId(), nomeDoAutor(autor, moderacao), topico.jogoId(),
                 topico.categoria(),
                 new ConteudoRemovidoDecorator(new ConteudoOriginal(topico.titulo()), removido).exibir(),
@@ -77,7 +88,7 @@ public record TopicoResponse(UUID id, UUID autorId, String nomeAutor, UUID jogoI
                 autor == null ? null : autor.papel().name(), avatarDoAutor(autor, moderacao),
                 topico.publicadoEm(), topico.editadoEm(),
                 TopicoDeForum.editavelAte(topico.publicadoEm()), topico.dataUltimaAtividade(),
-                topico.respostas().stream().map(resposta -> Resposta.de(resposta, autores, curtidas, moderacao)).toList());
+                respostas);
     }
 
     /** Perfil oculto ou removido pela moderação não expõe nome nem avatar. */

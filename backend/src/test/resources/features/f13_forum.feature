@@ -81,3 +81,21 @@ Funcionalidade: F-13 Gerenciamento completo do fórum de discussões
     Dado um tópico aberto com 2 respostas
     Quando o jogador curte o tópico duas vezes
     Então o tópico deve ter 1 curtida
+
+  # Consulta - respostas encadeadas, percorridas pelo IteradorDeRespostas (padrão Iterator)
+  Cenário: Respostas encadeadas aparecem na ordem da conversa
+    Dado um tópico aberto com as respostas encadeadas:
+      | resposta | responde a |
+      | A        |            |
+      | B        |            |
+      | A.1      | A          |
+      | B.1      | B          |
+      | A.1.a    | A.1        |
+    Quando o usuário abre o tópico
+    Então as respostas devem aparecer nesta ordem:
+      | resposta | nível |
+      | A        | 0     |
+      | A.1      | 1     |
+      | A.1.a    | 2     |
+      | B        | 0     |
+      | B.1      | 1     |

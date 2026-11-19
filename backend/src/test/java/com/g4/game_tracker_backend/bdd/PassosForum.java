@@ -8,11 +8,14 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 
 import com.g4.game_tracker_backend.aplicacao.forum.ConsultarForum;
 import com.g4.game_tracker_backend.aplicacao.forum.CurtidasForum;
 import com.g4.game_tracker_backend.aplicacao.forum.CriarTopico;
+import com.g4.game_tracker_backend.apresentacao.forum.ForumController;
+import com.g4.game_tracker_backend.apresentacao.forum.TopicoResponse;
 import com.g4.game_tracker_backend.aplicacao.forum.GerenciarRespostas;
 import com.g4.game_tracker_backend.dominio.catalogo.Jogo;
 import com.g4.game_tracker_backend.dominio.compartilhado.Pagina;
@@ -51,9 +54,14 @@ public class PassosForum {
     private UUID replicaDeApoio;
     private RespostaForum novaResposta;
     private Pagina<ResumoTopico> paginaConsultada;
+    private TopicoResponse topicoAberto;
+
+    private final ForumController forum;
 
     public PassosForum(CriarTopico criarTopico, GerenciarRespostas gerenciarRespostas, ConsultarForum consultarForum,
-            CurtidasForum curtidas, TopicoDeForumRepositorio topicos, DadosDoCenario dados, ContextoDoCenario contexto) {
+            CurtidasForum curtidas, TopicoDeForumRepositorio topicos, DadosDoCenario dados, ContextoDoCenario contexto,
+            ForumController forum) {
+        this.forum = forum;
         this.criarTopico = criarTopico;
         this.gerenciarRespostas = gerenciarRespostas;
         this.consultarForum = consultarForum;
@@ -162,6 +170,33 @@ public class PassosForum {
                 "Réplica de apoio", Instant.now().minus(Duration.ofHours(1)));
         replicaDeApoio = topicoAtual.ultimaResposta().id();
         salvar();
+    }
+
+    /** Cada resposta é publicada um segundo depois da anterior, na ordem da tabela. */
+    @Dado("um tópico aberto com as respostas encadeadas:")
+    public void topicoComRespostasEncadeadas(List<Map<String, String>> linhas) {
+        topicoAtual = novoTopico();
+        Map<String, UUID> ids = new HashMap<>();
+        Instant publicadaEm = Instant.now().minus(Duration.ofHours(2));
+        for (Map<String, String> linha : linhas) {
+            String pai = linha.get("responde a");
+            publicadaEm = publicadaEm.plusSeconds(1);
+            topicoAtual = topicoAtual.responder(dados.jogador("joao").id(),
+                    pai == null || pai.isBlank() ? null : ids.get(pai), linha.get("resposta"), publicadaEm);
+            ids.put(linha.get("resposta"), topicoAtual.ultimaResposta().id());
+        }
+        salvar();
+    }
+
+    @Quando("o usuário abre o tópico")
+    public void usuarioAbreTopico() {
+        topicoAberto = contexto.obter(() -> forum.consultar(topicoAtual.id()));
+    }
+
+    @Entao("as respostas devem aparecer nesta ordem:")
+    public void respostasDevemAparecerNaOrdem(List<Map<String, String>> esperadas) {
+        assertEquals(esperadas.stream().map(e -> e.get("resposta") + "@" + e.get("nível")).toList(),
+                topicoAberto.respostas().stream().map(r -> r.conteudo() + "@" + r.nivel()).toList());
     }
 
     // ---- Ações ----
