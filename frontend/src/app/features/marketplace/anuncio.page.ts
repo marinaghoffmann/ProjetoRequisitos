@@ -17,13 +17,15 @@ import { ErroApi } from '../../core/http/erro-api';
 import { PropostaDialogComponent } from './proposta-dialog.component';
 import { urlDaImagem } from './imagem';
 
+import { ConteudoModeravelComponent } from '../moderacao/conteudo-moderavel.component';
+
 /**
  * Página do anúncio (pendência da F-18 resolvida pela F-19): fotos e dados do item e, para quem não é o
  * dono, os botões Conversar, Fazer proposta e Comprar.
  */
 @Component({
   selector: 'app-anuncio',
-  imports: [CurrencyPipe, RouterLink, PropostaDialogComponent],
+  imports: [ConteudoModeravelComponent, CurrencyPipe, RouterLink, PropostaDialogComponent],
   templateUrl: './anuncio.page.html',
   styleUrl: './anuncio.page.scss',
 })

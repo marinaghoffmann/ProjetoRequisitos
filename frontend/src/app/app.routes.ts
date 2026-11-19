@@ -31,6 +31,8 @@ export const routes: Routes = [
   { path: 'catalogo/:id', loadComponent: () => import('./features/catalogo/detalhe-jogo.page').then((m) => m.DetalheJogoPage) },
   { path: 'catalogo', loadComponent: () => import('./features/catalogo/catalogo.page').then((m) => m.CatalogoPage) },
   { path: 'marketplace', loadChildren: () => import('./features/marketplace/marketplace.routes') },
+  { path: 'moderacao', canActivate: [papelGuard('MODERADOR', 'ADMINISTRADOR')],
+    loadComponent: () => import('./features/moderacao/moderacao.page').then((m) => m.ModeracaoPage) },
   { path: 'forum', loadChildren: () => import('./features/forum/forum.routes') },
   { path: 'lancamentos', loadComponent: () => import('./features/lancamentos/lancamentos.page').then(m => m.LancamentosPage) },
   { path: 'lancamentos/novo', canActivate: [papelGuard('ADMINISTRADOR', 'DESENVOLVEDOR')],

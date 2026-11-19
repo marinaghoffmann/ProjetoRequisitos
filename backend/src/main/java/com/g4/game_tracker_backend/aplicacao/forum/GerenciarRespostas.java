@@ -14,6 +14,8 @@ import com.g4.game_tracker_backend.dominio.forum.RespostaForum;
 import com.g4.game_tracker_backend.dominio.forum.RespostaPublicada;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForumRepositorio;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 /**
  * F-13: publicar, editar e excluir respostas. As regras (tópico encerrado, autor, prazo de 48 horas,
@@ -25,15 +27,18 @@ public class GerenciarRespostas {
 
     private final TopicoDeForumRepositorio topicos;
     private final VerificadorDeAcesso verificadorDeAcesso;
+    private final EstadoPublico moderacao;
     private final ApplicationEventPublisher eventos;
     private final CurtidaForumRepositorio curtidas;
 
     public GerenciarRespostas(TopicoDeForumRepositorio topicos, VerificadorDeAcesso verificadorDeAcesso,
-            ApplicationEventPublisher eventos, CurtidaForumRepositorio curtidas) {
+            ApplicationEventPublisher eventos, CurtidaForumRepositorio curtidas,
+            EstadoPublico moderacao) {
         this.topicos = topicos;
         this.verificadorDeAcesso = verificadorDeAcesso;
         this.eventos = eventos;
         this.curtidas = curtidas;
+        this.moderacao = moderacao;
     }
 
     @Transactional
@@ -44,6 +49,10 @@ public class GerenciarRespostas {
     @Transactional
     public RespostaForum responder(UUID topicoId, UUID respostaPaiId, String conteudo, List<String> imagens) {
         TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, topicoId);
+        moderacao.exigirAtivo(TipoConteudo.TOPICO,topicoId);
+        if (respostaPaiId != null) {
+            moderacao.exigirAtivo(TipoConteudo.RESPOSTA, respostaPaiId);
+        }
         TopicoDeForum atualizado = atual.responder(verificadorDeAcesso.usuarioAtualId(), respostaPaiId, conteudo,
                 imagens, Instant.now());
         topicos.salvar(atualizado);
@@ -55,6 +64,8 @@ public class GerenciarRespostas {
     @Transactional
     public RespostaForum editar(UUID topicoId, UUID respostaId, String conteudo) {
         TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, topicoId);
+        moderacao.exigirAtivo(TipoConteudo.TOPICO,topicoId);
+        moderacao.exigirAtivo(TipoConteudo.RESPOSTA,respostaId);
         TopicoDeForum atualizado = atual.editarResposta(respostaId, verificadorDeAcesso.usuarioAtualId(), conteudo,
                 Instant.now());
         return topicos.salvar(atualizado).resposta(respostaId);
@@ -63,6 +74,8 @@ public class GerenciarRespostas {
     @Transactional
     public void excluir(UUID topicoId, UUID respostaId) {
         TopicoDeForum atual = TopicosDoForum.visivelParaAlteracao(topicos, topicoId);
+        moderacao.exigirAtivo(TipoConteudo.TOPICO,topicoId);
+        moderacao.exigirAtivo(TipoConteudo.RESPOSTA,respostaId);
         topicos.salvar(atual.excluirResposta(respostaId, verificadorDeAcesso.usuarioAtualId(), Instant.now()));
         curtidas.removerDaResposta(respostaId);
         curtidas.sincronizarTotal(topicoId);

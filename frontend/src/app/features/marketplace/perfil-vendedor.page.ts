@@ -5,10 +5,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PerfilVendedor, ReputacaoService, TAGS_COMPORTAMENTO } from '../../core/api/reputacao.service';
 import { ErroApi } from '../../core/http/erro-api';
 
+import { ConteudoModeravelComponent } from '../moderacao/conteudo-moderavel.component';
+
 /** Perfil público de vendedor (F-21): reputação e avaliações recebidas. */
 @Component({
   selector: 'app-perfil-vendedor',
-  imports: [DatePipe, DecimalPipe, RouterLink],
+  imports: [ConteudoModeravelComponent, DatePipe, DecimalPipe, RouterLink],
   templateUrl: './perfil-vendedor.page.html',
   styleUrl: './perfil-vendedor.page.scss',
 })

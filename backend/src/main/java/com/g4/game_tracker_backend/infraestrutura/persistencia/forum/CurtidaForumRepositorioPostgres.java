@@ -7,16 +7,21 @@ import org.springframework.stereotype.Repository;
 
 import com.g4.game_tracker_backend.dominio.forum.CurtidaForum;
 import com.g4.game_tracker_backend.dominio.forum.CurtidaForumRepositorio;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 @Repository
 public class CurtidaForumRepositorioPostgres implements CurtidaForumRepositorio {
     private final CurtidaForumSpringDataRepository curtidas;
     private final TopicoForumSpringDataRepository topicos;
+    private final EstadoPublico moderacao;
 
     public CurtidaForumRepositorioPostgres(CurtidaForumSpringDataRepository curtidas,
-            TopicoForumSpringDataRepository topicos) {
+            TopicoForumSpringDataRepository topicos,
+            EstadoPublico moderacao) {
         this.curtidas = curtidas;
         this.topicos = topicos;
+        this.moderacao = moderacao;
     }
 
     @Override
@@ -51,6 +56,10 @@ public class CurtidaForumRepositorioPostgres implements CurtidaForumRepositorio 
 
     @Override
     public void sincronizarTotal(UUID topicoId) {
-        topicos.atualizarCurtidas(topicoId, Math.toIntExact(curtidas.countByTopicoId(topicoId)));
+        topicos.atualizarCurtidas(topicoId, (int) curtidas.findAllByTopicoId(topicoId).stream().filter(c -> {
+            var tipo = c.tipo().equals("TOPICO") ? TipoConteudo.TOPICO
+                    : TipoConteudo.RESPOSTA;
+            return !moderacao.oculto(tipo,c.conteudoId()) && !moderacao.removido(tipo,c.conteudoId());
+        }).count());
     }
 }

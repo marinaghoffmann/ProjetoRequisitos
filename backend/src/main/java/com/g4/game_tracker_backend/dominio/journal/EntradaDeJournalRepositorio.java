@@ -11,6 +11,8 @@ public interface EntradaDeJournalRepositorio {
     Optional<EntradaDeJournal> buscarPorId(UUID id);
     Optional<EntradaDeJournal> buscarParaAlterar(UUID id);
     Pagina<EntradaDeJournal> filtrar(UUID donoId, FiltroJournal filtro, int pagina, int tamanho);
+    /** Como filtrar, sem as entradas ocultas ou removidas pela moderação (F-14): o que o público vê. */
+    Pagina<EntradaDeJournal> filtrarPublicas(UUID donoId, FiltroJournal filtro, int pagina, int tamanho);
     List<String> listarTags(UUID donoId);
     /** A entrada automática gerada por uma ação de origem (F-16 RN 2). */
     Optional<EntradaDeJournal> buscarPorOrigem(TipoEventoPlataforma evento, String origemId);

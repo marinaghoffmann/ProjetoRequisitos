@@ -12,20 +12,28 @@ import com.g4.game_tracker_backend.dominio.forum.FiltroTopicos;
 import com.g4.game_tracker_backend.dominio.forum.ResumoTopico;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForumRepositorio;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 @Repository
 public class TopicoDeForumRepositorioPostgres implements TopicoDeForumRepositorio {
 
     private final TopicoForumSpringDataRepository springData;
+    private final com.g4.game_tracker_backend.infraestrutura.persistencia.moderacao.EstadoConteudoRepository estados;
 
-    public TopicoDeForumRepositorioPostgres(TopicoForumSpringDataRepository springData) {
+    public TopicoDeForumRepositorioPostgres(TopicoForumSpringDataRepository springData,
+            com.g4.game_tracker_backend.infraestrutura.persistencia.moderacao.EstadoConteudoRepository estados) {
         this.springData = springData;
+        this.estados = estados;
     }
 
     @Override
     public TopicoDeForum salvar(TopicoDeForum topico) {
         int curtidas = springData.findById(topico.id()).map(TopicoForumJpa::totalCurtidas).orElse(0);
-        springData.save(TopicoForumJpa.deDominio(topico, curtidas));
+        java.util.List<UUID> ativas = topico.respostas().stream().filter(r -> !r.removida()).map(r -> r.id()).toList();
+        int removidasPelaModeracao = ativas.isEmpty() ? 0 : Math.toIntExact(estados.countByTipoAndConteudoIdInAndOcultoTrueOrTipoAndConteudoIdInAndRemovidoTrue(
+                TipoConteudo.RESPOSTA, ativas,
+                TipoConteudo.RESPOSTA, ativas));
+        springData.save(TopicoForumJpa.deDominio(topico, curtidas, topico.totalRespostas() - removidasPelaModeracao));
         return topico;
     }
 

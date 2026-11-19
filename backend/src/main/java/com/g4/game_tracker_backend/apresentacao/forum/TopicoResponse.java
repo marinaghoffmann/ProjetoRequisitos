@@ -5,46 +5,90 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.g4.game_tracker_backend.aplicacao.forum.CurtidasForum;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.compartilhado.ConteudoOriginal;
 import com.g4.game_tracker_backend.dominio.forum.RespostaForum;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
 import com.g4.game_tracker_backend.dominio.identidade.Usuario;
-import com.g4.game_tracker_backend.aplicacao.forum.CurtidasForum;
+import com.g4.game_tracker_backend.dominio.moderacao.ConteudoRemovidoDecorator;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 /**
  * Tópico com as respostas em ordem de publicação. O encadeamento vem em respostaPaiId; a tela monta
  * a árvore. Respostas removidas continuam na lista (sem conteúdo) para as respostas filhas não sumirem.
  * editavelAte indica até quando o autor ainda pode editar (RN 2: 48 horas).
+ * F-14: tópico e resposta removidos pela moderação mostram a mensagem de sistema; a resposta oculta, um aviso.
  */
 public record TopicoResponse(UUID id, UUID autorId, String nomeAutor, UUID jogoId, String categoria, String titulo,
         String conteudo, List<String> imagens, String status, int totalRespostas, int totalCurtidas,
         int totalInteracoes, boolean curtidoPeloUsuario, String papelAutor, String avatarAutorUrl,
         Instant publicadoEm, Instant editadoEm, Instant editavelAte, Instant dataUltimaAtividade, List<Resposta> respostas) {
 
-    public record Resposta(UUID id, UUID autorId, String nomeAutor, String papelAutor, String avatarAutorUrl,
-            UUID respostaPaiId, String conteudo, List<String> imagens, boolean removida, int totalCurtidas,
-            boolean curtidaPeloUsuario, Instant publicadaEm, Instant editadaEm, Instant editavelAte) {
+    static final String RESPOSTA_OCULTA = "Resposta oculta pela moderação";
+    static final String PERFIL_INDISPONIVEL = "Perfil indisponível";
 
-        static Resposta de(RespostaForum resposta, Map<UUID, Usuario> autores, CurtidasForum.Resumo curtidas) {
+    public record Resposta(UUID id, UUID autorId, String nomeAutor, String papelAutor, String avatarAutorUrl,
+            UUID respostaPaiId, String conteudo, List<String> imagens, boolean removida, boolean removidaPelaModeracao,
+            int totalCurtidas, boolean curtidaPeloUsuario, Instant publicadaEm, Instant editadaEm,
+            Instant editavelAte) {
+
+        static Resposta de(RespostaForum resposta, Map<UUID, Usuario> autores, CurtidasForum.Resumo curtidas,
+                EstadoPublico moderacao) {
             Usuario autor = autores.get(resposta.autorId());
-            return new Resposta(resposta.id(), resposta.autorId(), autor == null ? null : autor.nome(),
-                    autor == null ? null : autor.papel().name(), autor == null ? null : autor.avatarUrl(),
-                    resposta.respostaPaiId(), resposta.removida() ? null : resposta.conteudo(),
-                    resposta.removida() ? List.of() : resposta.imagens(), resposta.removida(),
+            boolean removidaPelaModeracao = moderacao.removido(TipoConteudo.RESPOSTA, resposta.id());
+            boolean oculta = moderacao.oculto(TipoConteudo.RESPOSTA, resposta.id());
+            boolean moderada = removidaPelaModeracao || oculta;
+            String conteudo;
+            if (resposta.removida()) {
+                conteudo = null;
+            } else if (oculta && !removidaPelaModeracao) {
+                conteudo = RESPOSTA_OCULTA;
+            } else {
+                conteudo = new ConteudoRemovidoDecorator(new ConteudoOriginal(resposta.conteudo()),
+                        removidaPelaModeracao).exibir();
+            }
+            return new Resposta(resposta.id(), resposta.autorId(), nomeDoAutor(autor, moderacao),
+                    autor == null ? null : autor.papel().name(), avatarDoAutor(autor, moderacao),
+                    resposta.respostaPaiId(), conteudo,
+                    resposta.removida() || moderada ? List.of() : resposta.imagens(),
+                    resposta.removida() || moderada, moderada,
                     curtidas.porResposta().getOrDefault(resposta.id(), 0),
                     curtidas.curtidasDoUsuario().contains(resposta.id()),
                     resposta.publicadaEm(), resposta.editadaEm(), TopicoDeForum.editavelAte(resposta.publicadaEm()));
         }
     }
 
-    static TopicoResponse de(TopicoDeForum topico, Map<UUID, Usuario> autores, CurtidasForum.Resumo curtidas) {
+    static TopicoResponse de(TopicoDeForum topico, Map<UUID, Usuario> autores, CurtidasForum.Resumo curtidas,
+            EstadoPublico moderacao) {
         Usuario autor = autores.get(topico.autorId());
-        return new TopicoResponse(topico.id(), topico.autorId(), autor == null ? null : autor.nome(), topico.jogoId(),
-                topico.categoria(), topico.titulo(), topico.conteudo(), topico.imagens(), topico.status().name(),
-                topico.totalRespostas(), curtidas.totalTopico(), topico.totalRespostas() + curtidas.total(),
+        boolean removido = moderacao.removido(TipoConteudo.TOPICO, topico.id());
+        int respostasVisiveis = (int) topico.respostas().stream()
+                .filter(r -> !r.removida() && !moderacao.removido(TipoConteudo.RESPOSTA, r.id())
+                        && !moderacao.oculto(TipoConteudo.RESPOSTA, r.id()))
+                .count();
+        return new TopicoResponse(topico.id(), topico.autorId(), nomeDoAutor(autor, moderacao), topico.jogoId(),
+                topico.categoria(),
+                new ConteudoRemovidoDecorator(new ConteudoOriginal(topico.titulo()), removido).exibir(),
+                new ConteudoRemovidoDecorator(new ConteudoOriginal(topico.conteudo()), removido).exibir(),
+                removido ? List.of() : topico.imagens(), topico.status().name(),
+                respostasVisiveis, curtidas.totalTopico(), respostasVisiveis + curtidas.total(),
                 curtidas.curtidasDoUsuario().contains(topico.id()),
-                autor == null ? null : autor.papel().name(), autor == null ? null : autor.avatarUrl(),
+                autor == null ? null : autor.papel().name(), avatarDoAutor(autor, moderacao),
                 topico.publicadoEm(), topico.editadoEm(),
                 TopicoDeForum.editavelAte(topico.publicadoEm()), topico.dataUltimaAtividade(),
-                topico.respostas().stream().map(resposta -> Resposta.de(resposta, autores, curtidas)).toList());
+                topico.respostas().stream().map(resposta -> Resposta.de(resposta, autores, curtidas, moderacao)).toList());
+    }
+
+    /** Perfil oculto ou removido pela moderação não expõe nome nem avatar. */
+    static String nomeDoAutor(Usuario autor, EstadoPublico moderacao) {
+        if (autor == null) {
+            return null;
+        }
+        return moderacao.visivel(TipoConteudo.PERFIL, autor.id()) ? autor.nome() : PERFIL_INDISPONIVEL;
+    }
+
+    static String avatarDoAutor(Usuario autor, EstadoPublico moderacao) {
+        return autor == null || !moderacao.visivel(TipoConteudo.PERFIL, autor.id()) ? null : autor.avatarUrl();
     }
 }

@@ -23,6 +23,7 @@ public interface AnuncioMarketplaceSpringDataRepository extends JpaRepository<An
             select a from AnuncioMarketplaceJpa a
             where a.status in :status
               and a.tipoNegociacao in :tipos
+              and not exists (select 1 from EstadoConteudoJpa m where m.tipo = com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.ANUNCIO and m.conteudoId = a.id and (m.oculto = true or m.removido = true))
               and (:jogoId is null or a.jogoId = :jogoId)
               and lower(a.titulo) like lower(concat('%', :titulo, '%'))
               and lower(a.localidade) like lower(concat('%', :regiao, '%'))

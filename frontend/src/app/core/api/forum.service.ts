@@ -55,6 +55,7 @@ export interface RespostaForum {
   /** URLs (/uploads/forum/...) das imagens anexadas; vazio quando a resposta foi removida. */
   imagens: string[];
   removida: boolean;
+  removidaPelaModeracao?: boolean;
   publicadaEm: string;
   editadaEm: string | null;
   editavelAte: string;

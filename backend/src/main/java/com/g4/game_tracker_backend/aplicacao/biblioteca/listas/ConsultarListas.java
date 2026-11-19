@@ -17,6 +17,8 @@ import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.identidade.Usuario;
 import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 /**
  * Consultas da F-04: as listas do usuário autenticado, as listas públicas de um usuário e uma lista com os
@@ -33,13 +35,15 @@ public class ConsultarListas {
     private final JogoRepositorio jogos;
     private final UsuarioRepositorio usuarios;
     private final VerificadorDeAcesso verificadorDeAcesso;
+    private final EstadoPublico moderacao;
 
     public ConsultarListas(ListaRepositorio listas, JogoRepositorio jogos, UsuarioRepositorio usuarios,
-            VerificadorDeAcesso verificadorDeAcesso) {
+            VerificadorDeAcesso verificadorDeAcesso, EstadoPublico moderacao) {
         this.listas = listas;
         this.jogos = jogos;
         this.usuarios = usuarios;
         this.verificadorDeAcesso = verificadorDeAcesso;
+        this.moderacao = moderacao;
     }
 
     @Transactional(readOnly = true)
@@ -76,7 +80,8 @@ public class ConsultarListas {
     public Map<UUID, String> nomesDosDonos(Collection<UUID> donoIds) {
         Map<UUID, String> nomes = new HashMap<>();
         for (UUID donoId : new HashSet<>(donoIds)) {
-            usuarios.buscarPorId(donoId).ifPresent(usuario -> nomes.put(donoId, usuario.nome()));
+            usuarios.buscarPorId(donoId).ifPresent(usuario -> nomes.put(donoId,
+                    moderacao.visivel(TipoConteudo.PERFIL, donoId) ? usuario.nome() : "Perfil indisponível"));
         }
         return nomes;
     }

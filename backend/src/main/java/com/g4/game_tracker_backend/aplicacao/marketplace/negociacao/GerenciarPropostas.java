@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import com.g4.game_tracker_backend.aplicacao.compartilhado.ExecutorDeTransacao;
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 import com.g4.game_tracker_backend.dominio.marketplace.negociacao.AnuncioNegociavel;
 import com.g4.game_tracker_backend.dominio.marketplace.negociacao.AnunciosDaNegociacao;
 import com.g4.game_tracker_backend.dominio.marketplace.negociacao.ConversaChat;
@@ -23,14 +25,16 @@ public class GerenciarPropostas {
     private final AnunciosDaNegociacao anuncios;
     private final VerificadorDeAcesso verificadorDeAcesso;
     private final ExecutorDeTransacao transacao;
+    private final EstadoPublico moderacao;
 
     public GerenciarPropostas(ConversaChatRepositorio conversas, AnunciosDaNegociacao anuncios,
             VerificadorDeAcesso verificadorDeAcesso,
-            ExecutorDeTransacao transacao) {
+            ExecutorDeTransacao transacao, EstadoPublico moderacao) {
         this.conversas = conversas;
         this.anuncios = anuncios;
         this.verificadorDeAcesso = verificadorDeAcesso;
         this.transacao = transacao;
+        this.moderacao = moderacao;
     }
 
     /** RN 6 e 7. A mensagem é opcional e entra no chat junto com a proposta. */
@@ -39,6 +43,7 @@ public class GerenciarPropostas {
         return transacao.executar(() -> {
             UUID usuarioId = verificadorDeAcesso.usuarioAtualId();
             ConversaChat conversa = AcessoAConversa.doParticipante(conversas, conversaId);
+            moderacao.exigirAtivo(TipoConteudo.ANUNCIO, conversa.anuncioId());
             AnuncioNegociavel anuncio = AcessoAConversa.anuncio(anuncios, conversa.anuncioId());
             ConversaChat atualizada = conversas.salvar(conversa.enviarProposta(usuarioId, tipo, valor, jogoOferecido,
                     mensagem, anuncio, Instant.now()));
@@ -52,6 +57,7 @@ public class GerenciarPropostas {
             UUID usuarioId = verificadorDeAcesso.usuarioAtualId();
             Instant agora = Instant.now();
             ConversaChat conversa = AcessoAConversa.doParticipante(conversas, conversaId);
+            moderacao.exigirAtivo(TipoConteudo.ANUNCIO, conversa.anuncioId());
             AnuncioNegociavel anuncio = AcessoAConversa.anuncio(anuncios, conversa.anuncioId());
             ConversaChat aceita = conversas.salvar(conversa.aceitarProposta(usuarioId, propostaId, anuncio, agora));
             anuncios.reservar(anuncio.anuncioId());

@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import com.g4.game_tracker_backend.aplicacao.marketplace.negociacao.ReservasDaNegociacao;
 import com.g4.game_tracker_backend.aplicacao.marketplace.negociacao.ReservasDaNegociacao.ReservaAceita;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.AnuncioMarketplace;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.StatusAnuncio;
@@ -22,11 +24,14 @@ public class OrigemDoPedido {
     private final CicloDoAnuncioNoPedido anuncios;
     private final ReservasDaNegociacao reservas;
     private final PedidoMarketplaceRepositorio pedidos;
+    private final EstadoPublico moderacao;
 
-    public OrigemDoPedido(CicloDoAnuncioNoPedido anuncios, ReservasDaNegociacao reservas, PedidoMarketplaceRepositorio pedidos) {
+    public OrigemDoPedido(CicloDoAnuncioNoPedido anuncios, ReservasDaNegociacao reservas,
+            PedidoMarketplaceRepositorio pedidos, EstadoPublico moderacao) {
         this.anuncios = anuncios;
         this.reservas = reservas;
         this.pedidos = pedidos;
+        this.moderacao = moderacao;
     }
 
     /**
@@ -59,6 +64,7 @@ public class OrigemDoPedido {
 
     /** Anúncio ATIVO de outra pessoa, pelo preço anunciado; anúncio só de troca não tem compra direta. */
     private Resolvida daCompraDireta(UUID anuncioId, UUID compradorId) {
+        moderacao.exigirAtivo(TipoConteudo.ANUNCIO, anuncioId);
         AnuncioMarketplace anuncio = anuncios.carregar(anuncioId);
         if (anuncio.pertenceA(compradorId)) {
             throw new RegraDeNegocioException("Você não pode comprar o próprio anúncio");

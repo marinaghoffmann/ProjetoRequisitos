@@ -50,6 +50,7 @@ export class App {
       contador: 3,
       icone: 'M16 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM21 20v-1a4 4 0 0 0-3-3.9M16 4.1a3.5 3.5 0 0 1 0 6.8',
     },
+    ...(this.autenticacao.temPapel('MODERADOR', 'ADMINISTRADOR') ? [{ rotulo: 'Moderação', rota: '/moderacao', icone: 'M12 2l8 4v5c0 5-3 8-8 11-5-3-8-6-8-11V6l8-4zM9 12l2 2 4-4' }] : []),
     { rotulo: 'Marketplace', rota: '/marketplace', exato: true, icone: 'M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2' },
     { rotulo: 'Notificações', rota: '/notificacoes', icone: 'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4' },
     {

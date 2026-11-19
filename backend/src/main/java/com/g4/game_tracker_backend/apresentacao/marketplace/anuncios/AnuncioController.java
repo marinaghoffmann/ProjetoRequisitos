@@ -33,6 +33,8 @@ import com.g4.game_tracker_backend.dominio.marketplace.anuncios.StatusAnuncio;
 import com.g4.game_tracker_backend.dominio.marketplace.anuncios.TipoNegociacao;
 
 import jakarta.validation.Valid;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 @RestController
 @RequestMapping("/api/marketplace")
@@ -43,15 +45,18 @@ public class AnuncioController {
     private final AlterarStatusAnuncio alterarStatusAnuncio;
     private final ConsultarAnuncios consultarAnuncios;
     private final ArmazenarFotoAnuncio armazenarFotoAnuncio;
+    private final EstadoPublico moderacao;
 
     public AnuncioController(CriarAnuncio criarAnuncio, EditarAnuncio editarAnuncio,
             AlterarStatusAnuncio alterarStatusAnuncio, ConsultarAnuncios consultarAnuncios,
-            ArmazenarFotoAnuncio armazenarFotoAnuncio) {
+            ArmazenarFotoAnuncio armazenarFotoAnuncio,
+            EstadoPublico moderacao) {
         this.criarAnuncio = criarAnuncio;
         this.editarAnuncio = editarAnuncio;
         this.alterarStatusAnuncio = alterarStatusAnuncio;
         this.consultarAnuncios = consultarAnuncios;
         this.armazenarFotoAnuncio = armazenarFotoAnuncio;
+        this.moderacao = moderacao;
     }
 
     @GetMapping("/anuncios")
@@ -74,6 +79,7 @@ public class AnuncioController {
 
     @GetMapping("/anuncios/{id}")
     public AnuncioResponse consultar(@PathVariable UUID id) {
+        moderacao.exigirVisivel(TipoConteudo.ANUNCIO,id);
         return AnuncioResponse.de(consultarAnuncios.buscarPorId(id));
     }
 

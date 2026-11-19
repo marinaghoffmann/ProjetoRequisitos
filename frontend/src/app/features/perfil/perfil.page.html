@@ -30,6 +30,16 @@
   @if (erro(); as mensagem) {
     <p class="pf-aviso" role="alert">{{ mensagem }}</p>
   }
+  @if (visualizacaoPublica() && usuario()) {
+    <app-conteudo-moderavel tipo="PERFIL" [conteudoId]="usuario()!.id">
+      <ng-container [ngTemplateOutlet]="conteudoPerfil" />
+    </app-conteudo-moderavel>
+  } @else {
+    <ng-container [ngTemplateOutlet]="conteudoPerfil" />
+  }
+</main>
+
+<ng-template #conteudoPerfil>
   <div class="pf-banner" aria-hidden="true" [style.background]="banner()"></div>
 
   @if (usuario(); as u) {
@@ -214,4 +224,4 @@
       }
     </div>
   }
-</main>
+</ng-template>

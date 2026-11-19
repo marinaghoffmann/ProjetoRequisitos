@@ -9,11 +9,12 @@ import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
 import { Pagina } from '../../core/api/forum.service';
 import { EntradaJournal, JournalService } from '../../core/api/journal.service';
 import { ErroApi } from '../../core/http/erro-api';
+import { ConteudoModeravelComponent } from '../moderacao/conteudo-moderavel.component';
 import { JournalEditorComponent } from './journal-editor.component';
 
 @Component({
   selector: 'app-journal-entradas',
-  imports: [DatePipe, ReactiveFormsModule, RouterLink, JournalEditorComponent],
+  imports: [DatePipe, ReactiveFormsModule, RouterLink, JournalEditorComponent, ConteudoModeravelComponent],
   templateUrl: './journal-entradas.component.html',
   styleUrl: './journal-entradas.component.scss',
 })

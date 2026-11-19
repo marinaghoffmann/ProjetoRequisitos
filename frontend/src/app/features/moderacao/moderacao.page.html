@@ -1,0 +1,72 @@
+<main class="central">
+  <a class="voltar" routerLink="/forum">← Comunidade</a>
+  <header class="cabecalho">
+    <div><span class="sobretitulo">Segurança da comunidade</span><h1>Central de moderação</h1>
+      <p>Analise denúncias, aplique ações e consulte o histórico. O conteúdo permanece público até sua decisão.</p></div>
+    <span class="contador">{{ totalFila() }} pendente(s)</span>
+  </header>
+  @if (erro()) { <p class="alerta" role="alert">{{ erro() }}</p> }
+  @if (mensagem()) { <p class="sucesso" role="status">{{ mensagem() }}</p> }
+  <div class="colunas">
+    <section class="painel fila" aria-labelledby="titulo-fila">
+      <div class="painel__cab"><h2 id="titulo-fila">Fila de denúncias</h2><button type="button" (click)="atualizar()">Atualizar</button></div>
+      @if (carregando()) { <p class="vazio">Carregando denúncias…</p> }
+      @else if (!fila().length) { <p class="vazio">Não há denúncias pendentes.</p> }
+      @else { <ul>
+        @for (d of fila(); track d.id) {
+          <li><button type="button" class="item" [class.ativo]="selecionado()?.denunciaId === d.id" (click)="selecionar(d.tipo,d.conteudoId,d.id)">
+            <span class="tipo">{{ rotulos[d.tipo] }}</span><strong>{{ d.motivo }}</strong>
+            <small>{{ d.registradaEm | date: 'dd/MM/yyyy HH:mm' }} · denunciante {{ d.denuncianteId.slice(0, 8) }}</small>
+          </button></li>
+        }
+      </ul> }
+      <nav class="paginacao" aria-label="Páginas da fila"><button type="button" [disabled]="paginaFila() <= 1" (click)="mudarPaginaFila(-1)">Anterior</button>
+        <span>Página {{ paginaFila() }}</span><button type="button" [disabled]="paginaFila() * 10 >= totalFila()" (click)="mudarPaginaFila(1)">Próxima</button></nav>
+    </section>
+
+    <section class="painel decisao" aria-labelledby="titulo-decisao">
+      <h2 id="titulo-decisao">Análise e decisão</h2>
+      @if (selecionado(); as alvo) {
+        <p class="identificador">{{ rotulos[alvo.tipo] }} · {{ alvo.id }}</p>
+        @if (previa(); as p) {
+          <div class="previa"><small>Prévia privada do conteúdo · autor {{ p.autorId.slice(0, 8) }}</small>
+            <p>{{ p.previa || '(sem texto)' }}</p><small>Advertências do autor: {{ avisos() ?? '…' }}</small></div>
+          <form (ngSubmit)="decidir()">
+            <label>Ação
+              <select name="acao" [(ngModel)]="acao">@for (a of acoes(alvo.tipo); track a) { <option [value]="a">{{ a.replaceAll('_', ' ') }}</option> }</select>
+            </label>
+            @if (acao === 'EDITAR') {
+              @if (alvo.tipo === 'TOPICO') { <label>Novo título<input name="novoTitulo" [(ngModel)]="novoTitulo" maxlength="150" /></label> }
+              <label>Novo conteúdo<textarea name="novoConteudo" [(ngModel)]="novoConteudo" rows="4"></textarea></label>
+            }
+            @if (acao === 'MOVER' && alvo.tipo === 'TOPICO') { <label>Nova categoria<input name="novaCategoria" [(ngModel)]="novaCategoria" maxlength="60" /></label> }
+            @if (acao === 'MOVER' && alvo.tipo === 'RESPOSTA') { <label>ID da nova resposta pai (vazio para resposta direta)<input name="novaRespostaPaiId" [(ngModel)]="novaRespostaPaiId" /></label> }
+            <label>Justificativa @if (acao === 'OCULTAR' || acao === 'EXCLUIR') { * }
+              <textarea name="justificativa" [(ngModel)]="justificativa" maxlength="2000" rows="3"></textarea>
+            </label>
+            <div class="acoes"><button type="submit" [disabled]="enviando() || ((acao === 'OCULTAR' || acao === 'EXCLUIR') && !justificativa.trim())">Registrar ação</button>
+              @if (alvo.denunciaId) { <button type="button" class="secundario" [disabled]="enviando()" (click)="arquivar()">Arquivar como improcedente</button> }
+            </div>
+          </form>
+          <form class="advertencia" (ngSubmit)="advertir()"><h3>Advertir autor</h3>
+            <label>Motivo<textarea name="motivoAdvertencia" [(ngModel)]="motivoAdvertencia" rows="2" maxlength="1000"></textarea></label>
+            <button type="submit" [disabled]="enviando() || !motivoAdvertencia.trim()">Registrar advertência</button>
+          </form>
+        } @else { <p class="vazio">Carregando prévia…</p> }
+      } @else { <p class="vazio">Selecione uma denúncia ou um item do histórico para analisar o conteúdo.</p> }
+    </section>
+  </div>
+
+  <section class="painel historico" aria-labelledby="titulo-historico">
+    <h2 id="titulo-historico">Histórico de moderação</h2>
+    @if (!logs().length) { <p class="vazio">Nenhuma ação registrada.</p> }
+    @else { <ul>@for (log of logs(); track log.id) {
+      <li><button type="button" (click)="selecionar(log.tipo,log.conteudoId)">
+        <strong>{{ log.acao.replaceAll('_', ' ') }}</strong><span>{{ rotulos[log.tipo] }} · {{ log.conteudoId.slice(0, 8) }}</span>
+        <small>{{ log.registradoEm | date: 'dd/MM/yyyy HH:mm' }} · {{ log.justificativa || 'Sem justificativa' }}</small>
+      </button></li>
+    }</ul> }
+    <nav class="paginacao" aria-label="Páginas do histórico"><button type="button" [disabled]="paginaLogs() <= 1" (click)="mudarPaginaLogs(-1)">Anterior</button>
+      <span>Página {{ paginaLogs() }}</span><button type="button" [disabled]="paginaLogs() * 10 >= totalLogs()" (click)="mudarPaginaLogs(1)">Próxima</button></nav>
+  </section>
+</main>

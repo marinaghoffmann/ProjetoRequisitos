@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 export interface Notificacao {
   id: string;
   destinatarioId: string;
-  tipo: 'LANCAMENTO_PROXIMO' | 'LANCAMENTO_ADIADO' | 'ADVERTENCIA';
+  tipo: 'LANCAMENTO_PROXIMO' | 'LANCAMENTO_ADIADO' | 'ADVERTENCIA' | 'MODERACAO';
   titulo: string;
   mensagem: string;
   contextoOrigem: string;

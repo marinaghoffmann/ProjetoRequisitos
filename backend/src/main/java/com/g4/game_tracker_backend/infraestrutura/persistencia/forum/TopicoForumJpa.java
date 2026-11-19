@@ -90,7 +90,7 @@ public class TopicoForumJpa {
     protected TopicoForumJpa() {
     }
 
-    private TopicoForumJpa(TopicoDeForum topico, int totalCurtidas) {
+    private TopicoForumJpa(TopicoDeForum topico, int totalCurtidas, int totalRespostas) {
         this.id = topico.id();
         this.autorId = topico.autorId();
         this.jogoId = topico.jogoId();
@@ -100,7 +100,7 @@ public class TopicoForumJpa {
         this.imagens = new ArrayList<>(topico.imagens());
         this.status = topico.status();
         this.removido = topico.removido();
-        this.totalRespostas = topico.totalRespostas();
+        this.totalRespostas = totalRespostas;
         this.totalCurtidas = totalCurtidas;
         this.publicadoEm = topico.publicadoEm();
         this.editadoEm = topico.editadoEm();
@@ -108,8 +108,8 @@ public class TopicoForumJpa {
         this.respostas = new ArrayList<>(topico.respostas().stream().map(RespostaForumJpa::deDominio).toList());
     }
 
-    static TopicoForumJpa deDominio(TopicoDeForum topico, int totalCurtidas) {
-        return new TopicoForumJpa(topico, totalCurtidas);
+    static TopicoForumJpa deDominio(TopicoDeForum topico, int totalCurtidas, int totalRespostas) {
+        return new TopicoForumJpa(topico, totalCurtidas, totalRespostas);
     }
 
     /** Exige as respostas carregadas (consulta com join fetch). */

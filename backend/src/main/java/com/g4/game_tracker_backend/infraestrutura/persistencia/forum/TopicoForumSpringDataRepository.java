@@ -31,6 +31,7 @@ public interface TopicoForumSpringDataRepository extends JpaRepository<TopicoFor
     @Query(value = """
             select t from TopicoForumJpa t
             where t.removido = false
+              and not exists (select 1 from EstadoConteudoJpa m where m.tipo = com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.TOPICO and m.conteudoId = t.id and m.oculto = true)
               and (:jogoId is null or t.jogoId = :jogoId)
               and (:apenasGerais = false or t.jogoId is null)
               and (:categoria = '' or lower(t.categoria) = lower(:categoria)
@@ -41,6 +42,7 @@ public interface TopicoForumSpringDataRepository extends JpaRepository<TopicoFor
             """, countQuery = """
             select count(t) from TopicoForumJpa t
             where t.removido = false
+              and not exists (select 1 from EstadoConteudoJpa m where m.tipo = com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo.TOPICO and m.conteudoId = t.id and m.oculto = true)
               and (:jogoId is null or t.jogoId = :jogoId)
               and (:apenasGerais = false or t.jogoId is null)
               and (:categoria = '' or lower(t.categoria) = lower(:categoria)

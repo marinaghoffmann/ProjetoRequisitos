@@ -16,6 +16,8 @@ function notasVazias(): NotasDoFormulario {
   return { GRAFICOS: null, SOM: null, JOGABILIDADE: null, DIVERSAO: null, INOVACAO: null };
 }
 
+import { ConteudoModeravelComponent } from '../moderacao/conteudo-moderavel.component';
+
 /**
  * Reviews do jogo (F-02): médias geral e por categoria, lista paginada e o modal para escrever ou editar
  * a review do usuário logado. RN 1: quem já avaliou o jogo abre o modal em modo de edição. RN 2: só o
@@ -23,7 +25,7 @@ function notasVazias(): NotasDoFormulario {
  */
 @Component({
   selector: 'app-reviews-jogo',
-  imports: [DatePipe, RouterLink],
+  imports: [ConteudoModeravelComponent, DatePipe, RouterLink],
   templateUrl: './reviews-jogo.component.html',
   styleUrl: './reviews-jogo.component.scss',
 })

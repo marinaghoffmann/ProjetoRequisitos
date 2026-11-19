@@ -18,7 +18,7 @@ Atualizado em 17/11/2026, na branch `chore/elevar-entrega`. Legenda: ✅ cumprid
 | 4 | DDD preliminar, estratégico, tático e operacional; arquitetura limpa | ✅ | Seção "DDD nos quatro níveis" do README; `ArquiteturaTest` com 5 regras |
 | 5 | 4 ou mais padrões de projeto (Iterator, Decorator, Observer, Proxy, Strategy, Template Method) | ✅ 5 de 6 | Strategy, Observer, Proxy, Template Method e Decorator em código e testados (seção 3). Para a meta de 6, falta Iterator. |
 | 6 | Persistência com mapeamento objeto-relacional | ✅ | `infraestrutura/persistencia/**` (`XxxJpa` + adapters), PostgreSQL no `docker-compose.yml` |
-| 7 | Camada de apresentação web | 🟡 | Angular em `frontend/`; F-06 e F-14 ainda sem tela |
+| 7 | Camada de apresentação web | 🟡 | Angular em `frontend/`; F-06 ainda sem tela de prioridade |
 | 8 | Declaração de uso de IA e interações | 🟡 `TODO(grupo)` | `entregaveis/ia/declaracao_uso_ia.md` e `entregaveis/ia/interacoes/`: cada integrante anexa as suas |
 
 ## 2. Matriz funcionalidade × camada
@@ -37,7 +37,7 @@ Atualizado em 17/11/2026, na branch `chore/elevar-entrega`. Legenda: ✅ cumprid
 | F-11 | Registros de "zerado" | Bruno | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 13/13 |
 | F-12 | Lançamentos futuros | Henrique | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 22/22 |
 | F-13 | Fórum | Henrique | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 14/14 |
-| F-14 | Moderação | Henrique | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | 0/9 |
+| F-14 | Moderação | Henrique | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 13/13 |
 | F-15 | Journal manual | Bruno | ✅ | ✅ (sem Spring) | ✅ | ✅ | ✅ | ✅ | ✅ | 20/20 |
 | F-16 | Timeline automática | Davi | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 5/5 |
 | F-17 | Estatísticas | Davi | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 8/8 |
@@ -58,7 +58,8 @@ O que falta em cada parcial está em [diagnostico.md](diagnostico.md) (seção 3
 | Observer | F-16 e F-17, observadores de eventos | Davi | ✅ | ✅ `f16_timeline_automatica.feature`, `f17_estatisticas.feature` |
 | Proxy | F-19 `ConversasDoParticipante` | Marina | ✅ | ✅ `ConversasDoParticipanteTest`, `f19_chat_negociacao.feature` (RN 3) |
 | Template Method | F-19/F-20 `RotinaDePrazo` | Marina | ✅ | ✅ `RotinaDePrazoTest`, cenários da RN 10 (F-19) e das RN 7 e 9 (F-20) |
-| Decorator | F-15 `SpoilerMascaradoDecorator`; F-14 continua prevista | Bruno | ✅ | ✅ `JournalRegrasTest`, `f15_journal.feature` (RN 3) |
+| Template Method | F-14 `FluxoAcaoModerativa` | Henrique | ✅ | ✅ `f14_moderacao.feature`, `ModeracaoIntegracaoTest` |
+| Decorator | F-15 `SpoilerMascaradoDecorator`; F-14 `ConteudoRemovidoDecorator` | Bruno, Henrique | ✅ | ✅ `JournalRegrasTest`, `ModeracaoDominioTest`, `f15_journal.feature` (RN 3), `f14_moderacao.feature` |
 | Iterator | previsto no CML para F-13/F-16 | `TODO(grupo)` | ❌ | ❌ |
 
 ## 4. Arquitetura e repositório
@@ -68,7 +69,7 @@ O que falta em cada parcial está em [diagnostico.md](diagnostico.md) (seção 3
 | Domínio sem framework | ✅ | `ArquiteturaTest.dominioNaoDependeDeFrameworks` |
 | Aplicação sem Spring | 🟡 | Negociação e pedidos migrados (`ArquiteturaTest.aplicacaoMigradaNaoDependeDoSpring`); os outros contextos ainda usam `@Service`/`@Transactional` |
 | Agregados ligados só por Id | 🟡 | No domínio, ✅. Na persistência, `JogoJpa` ainda usa `@ManyToOne`/`@ManyToMany` para desenvolvedora e gênero (F-01) |
-| Sem regra de negócio em controller | 🟡 | `ImagensDoForumController` valida tamanho e tipo de imagem (F-13) |
+| Sem regra de negócio em controller | ✅ | A validação de imagens do fórum (F-13) foi para `ImagensDoForum`, no domínio |
 | `docker compose up --build` sobe banco, API e frontend | ✅ | `docker-compose.yml`, `backend/Dockerfile`, `frontend/Dockerfile`, `frontend/nginx.conf` (testado em 17/11/2026) |
 | Segredos fora do Git | 🟡 `TODO(grupo)` | `.env.backup` removido e `.env*` ignorado, mas os valores continuam no histórico: **trocar** a chave JWT e a senha de admin |
 | Uploads de usuários fora do Git | ✅ | `backend/uploads/` só com `.gitkeep` |
@@ -83,5 +84,5 @@ O que falta em cada parcial está em [diagnostico.md](diagnostico.md) (seção 3
 - [ ] Cada integrante anexa as suas interações de IA em `entregaveis/ia/interacoes/` e completa a declaração.
 - [ ] Regerar `entregaveis/dominio/descricao_do_dominio.pdf` a partir do `.md` atualizado.
 - [ ] Exportar os slides para `entregaveis/apresentacao/`.
-- [ ] Remover os `@pendente` restantes (F-01, F-06, F-07, F-14) com os cenários passando.
+- [ ] Remover os `@pendente` restantes (F-01, F-06, F-07) com os cenários passando.
 - [ ] Implementar Iterator para chegar a 6 padrões (um por integrante).

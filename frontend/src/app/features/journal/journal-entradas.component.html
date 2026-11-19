@@ -56,6 +56,7 @@
               <div class="journal__tags">
                 @if (entrada.tipoOrigem === 'AUTOMATICO') { <span class="journal__origem">Automática</span> }
                 @if (entrada.contemSpoiler) { <span class="journal__aviso">Spoiler</span> }
+                @if (entrada.moderada) { <span class="journal__aviso">Moderada</span> }
                 @for (tag of entrada.tags; track tag) { <span>#{{ tag }}</span> }
               </div>
               @if (!publico() && entrada.editavel) {
@@ -63,6 +64,7 @@
                   <button type="button" class="acao acao--perigo" [disabled]="!!ocupada()" (click)="excluir(entrada)">{{ ocupada() === entrada.id ? 'Excluindo…' : 'Excluir' }}</button></div>
               }
             </footer>
+            @if (publico()) { <app-conteudo-moderavel tipo="JOURNAL" [conteudoId]="entrada.id" /> }
           </article>
         </li>
       }

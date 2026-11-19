@@ -8,6 +8,7 @@
   @if (erro(); as mensagem) {
     <p class="erro" role="alert">{{ mensagem }}</p>
   } @else if (lista(); as l) {
+    <app-conteudo-moderavel tipo="LISTA" [conteudoId]="l.id">
     <header class="cabecalho">
       <div>
         <h1>{{ l.titulo }}</h1>
@@ -61,6 +62,7 @@
         </p>
       }
     </ol>
+    </app-conteudo-moderavel>
   } @else {
     <p class="estado">Carregando…</p>
   }

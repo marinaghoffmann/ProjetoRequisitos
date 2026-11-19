@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { NgTemplateOutlet } from '@angular/common';
+import { ConteudoModeravelComponent } from '../moderacao/conteudo-moderavel.component';
 import { DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -32,7 +34,7 @@ const GRADIENTES = [
 
 @Component({
   selector: 'app-perfil-page',
-  imports: [RouterLink, PerfilReviewsComponent, PerfilListasComponent, FavoritosComponent, JournalEntradasComponent],
+  imports: [RouterLink, NgTemplateOutlet, ConteudoModeravelComponent, PerfilReviewsComponent, PerfilListasComponent, FavoritosComponent, JournalEntradasComponent],
   templateUrl: './perfil.page.html',
   styleUrl: './perfil.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

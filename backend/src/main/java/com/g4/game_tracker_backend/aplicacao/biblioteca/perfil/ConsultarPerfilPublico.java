@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.g4.game_tracker_backend.dominio.biblioteca.perfil.PerfilFavoritosRepositorio;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
 import com.g4.game_tracker_backend.dominio.identidade.Usuario;
@@ -25,11 +27,14 @@ public class ConsultarPerfilPublico {
     private final UsuarioRepositorio usuarios;
     private final PerfilFavoritosRepositorio favoritos;
     private final JogoRepositorio jogos;
+    private final EstadoPublico moderacao;
 
-    public ConsultarPerfilPublico(UsuarioRepositorio usuarios, PerfilFavoritosRepositorio favoritos, JogoRepositorio jogos) {
+    public ConsultarPerfilPublico(UsuarioRepositorio usuarios, PerfilFavoritosRepositorio favoritos, JogoRepositorio jogos,
+            EstadoPublico moderacao) {
         this.usuarios = usuarios;
         this.favoritos = favoritos;
         this.jogos = jogos;
+        this.moderacao = moderacao;
     }
 
     @Transactional(readOnly = true)
@@ -43,6 +48,9 @@ public class ConsultarPerfilPublico {
             var jogo = jogos.buscarPorId(jogoId);
             resultado.add(new Favorito(i + 1, jogoId, jogo.map(j -> j.titulo()).orElse("Jogo indisponível"),
                     jogo.map(j -> j.capaUrl()).orElse(null)));
+        }
+        if (!moderacao.visivel(TipoConteudo.PERFIL, usuarioId)) {
+            return new PerfilPublico(usuario.id(), "Perfil indisponível", null, null, null, null, List.copyOf(resultado));
         }
         return new PerfilPublico(usuario.id(), usuario.nome(), usuario.bio(), usuario.localizacao(),
                 usuario.avatarUrl(), usuario.bannerUrl(), List.copyOf(resultado));

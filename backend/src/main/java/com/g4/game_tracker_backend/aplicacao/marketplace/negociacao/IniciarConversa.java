@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import com.g4.game_tracker_backend.aplicacao.compartilhado.ExecutorDeTransacao;
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 import com.g4.game_tracker_backend.dominio.marketplace.negociacao.AnuncioNegociavel;
 import com.g4.game_tracker_backend.dominio.marketplace.negociacao.AnunciosDaNegociacao;
 import com.g4.game_tracker_backend.dominio.marketplace.negociacao.ConversaChat;
@@ -20,14 +22,16 @@ public class IniciarConversa {
     private final AnunciosDaNegociacao anuncios;
     private final VerificadorDeAcesso verificadorDeAcesso;
     private final ExecutorDeTransacao transacao;
+    private final EstadoPublico moderacao;
 
     public IniciarConversa(ConversaChatRepositorio conversas, AnunciosDaNegociacao anuncios,
             VerificadorDeAcesso verificadorDeAcesso,
-            ExecutorDeTransacao transacao) {
+            ExecutorDeTransacao transacao, EstadoPublico moderacao) {
         this.conversas = conversas;
         this.anuncios = anuncios;
         this.verificadorDeAcesso = verificadorDeAcesso;
         this.transacao = transacao;
+        this.moderacao = moderacao;
     }
 
     public ConversaChat executar(UUID anuncioId) {
@@ -35,7 +39,10 @@ public class IniciarConversa {
             UUID compradorId = verificadorDeAcesso.usuarioAtualId();
             AnuncioNegociavel anuncio = AcessoAConversa.anuncio(anuncios, anuncioId);
             return conversas.buscarPorAnuncioEComprador(anuncioId, compradorId)
-                    .orElseGet(() -> conversas.salvar(ConversaChat.iniciar(anuncio, compradorId, Instant.now())));
+                    .orElseGet(() -> {
+                        moderacao.exigirAtivo(TipoConteudo.ANUNCIO, anuncioId);
+                        return conversas.salvar(ConversaChat.iniciar(anuncio, compradorId, Instant.now()));
+                    });
         });
     }
 }

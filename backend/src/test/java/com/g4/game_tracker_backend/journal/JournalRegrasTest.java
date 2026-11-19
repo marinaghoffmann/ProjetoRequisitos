@@ -12,7 +12,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
-import com.g4.game_tracker_backend.dominio.journal.ConteudoOriginal;
+import com.g4.game_tracker_backend.dominio.compartilhado.ConteudoOriginal;
 import com.g4.game_tracker_backend.dominio.journal.EntradaDeJournal;
 import com.g4.game_tracker_backend.dominio.journal.ImagemDoJournal;
 import com.g4.game_tracker_backend.dominio.journal.SpoilerMascaradoDecorator;

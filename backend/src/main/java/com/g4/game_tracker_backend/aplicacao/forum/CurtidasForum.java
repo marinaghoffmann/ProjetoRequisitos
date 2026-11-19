@@ -16,6 +16,8 @@ import com.g4.game_tracker_backend.dominio.forum.TopicoDeForum;
 import com.g4.game_tracker_backend.dominio.forum.TopicoDeForumRepositorio;
 import com.g4.game_tracker_backend.dominio.forum.CurtidaForum;
 import com.g4.game_tracker_backend.dominio.forum.CurtidaForumRepositorio;
+import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.moderacao.TipoConteudo;
 
 /** Curtidas idempotentes. O bloqueio da raiz serializa escritas e mantém a contagem em alta correta. */
 @Service
@@ -23,11 +25,14 @@ public class CurtidasForum {
     private final TopicoDeForumRepositorio topicos;
     private final CurtidaForumRepositorio curtidas;
     private final VerificadorDeAcesso acesso;
+    private final EstadoPublico moderacao;
 
-    public CurtidasForum(TopicoDeForumRepositorio topicos, CurtidaForumRepositorio curtidas, VerificadorDeAcesso acesso) {
+    public CurtidasForum(TopicoDeForumRepositorio topicos, CurtidaForumRepositorio curtidas, VerificadorDeAcesso acesso,
+            EstadoPublico moderacao) {
         this.topicos = topicos;
         this.curtidas = curtidas;
         this.acesso = acesso;
+        this.moderacao = moderacao;
     }
 
     @Transactional
@@ -38,6 +43,8 @@ public class CurtidasForum {
         if (respostaId != null && topico.resposta(respostaId).removida()) {
             throw new RecursoNaoEncontradoException("Resposta removida");
         }
+        moderacao.exigirAtivo(TipoConteudo.TOPICO,topicoId);
+        if (respostaId != null) moderacao.exigirAtivo(TipoConteudo.RESPOSTA,respostaId);
         UUID usuarioId = acesso.usuarioAtualId();
         String tipo = respostaId == null ? "TOPICO" : "RESPOSTA";
         UUID conteudoId = respostaId == null ? topicoId : respostaId;
@@ -59,11 +66,16 @@ public class CurtidasForum {
         Set<UUID> minhas = new HashSet<>();
         int totalTopico = 0;
         for (CurtidaForum curtida : itens) {
+            TipoConteudo tipoModerado = curtida.tipo().equals("TOPICO")
+                    ? TipoConteudo.TOPICO
+                    : TipoConteudo.RESPOSTA;
+            if (moderacao.oculto(tipoModerado,curtida.conteudoId()) || moderacao.removido(tipoModerado,curtida.conteudoId())) continue;
             if (curtida.tipo().equals("TOPICO")) totalTopico++;
             else porResposta.merge(curtida.conteudoId(), 1, Integer::sum);
             if (usuarioId != null && usuarioId.equals(curtida.usuarioId())) minhas.add(curtida.conteudoId());
         }
-        return new Resumo(totalTopico, Map.copyOf(porResposta), Set.copyOf(minhas), itens.size());
+        return new Resumo(totalTopico, Map.copyOf(porResposta), Set.copyOf(minhas),
+                totalTopico + porResposta.values().stream().mapToInt(Integer::intValue).sum());
     }
 
     public record Resumo(int totalTopico, Map<UUID, Integer> porResposta,
