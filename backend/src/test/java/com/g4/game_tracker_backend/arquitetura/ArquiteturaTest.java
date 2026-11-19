@@ -76,6 +76,20 @@ class ArquiteturaTest {
                 .check(CLASSES);
     }
 
+    /**
+     * F-01 RN 3: o catálogo decide entre exclusão lógica e definitiva sem conhecer quem guarda o Id do jogo.
+     * Os vínculos chegam pela porta {@code VinculosDoJogo}, implementada na infraestrutura.
+     */
+    @Test
+    void catalogoNaoDependeDosContextosQueOReferenciam() {
+        noClasses().that().resideInAnyPackage("..dominio.catalogo..", "..aplicacao.catalogo..")
+                .should().dependOnClassesThat()
+                .resideInAnyPackage("..avaliacao..", "..biblioteca..", "..wishlist..", "..journal..", "..forum..",
+                        "..marketplace..", "..descoberta..", "..moderacao..", "..lancamentos..")
+                .because("o catálogo é upstream no Context Map; os vínculos chegam pela porta VinculosDoJogo")
+                .check(CLASSES);
+    }
+
     @Test
     void apresentacaoNaoAcessaInfraestrutura() {
         noClasses().that().resideInAPackage("..apresentacao..")
