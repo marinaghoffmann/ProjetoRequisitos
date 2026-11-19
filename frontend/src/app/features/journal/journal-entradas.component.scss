@@ -7,7 +7,12 @@
   background: var(--accent); box-shadow: 0 0 0 4px var(--bg); }
 .grupo__data { display: block; margin-bottom: 12px; color: var(--muted); font-size: 12px; font-weight: 800; }
 .grupo__entradas { display: grid; gap: 12px; }
-.entrada { display: flex; gap: 16px; padding: 14px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--surface); }
+.entrada { position: relative; display: flex; gap: 16px; padding: 14px; overflow: hidden; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--surface); }
+// card com wallpaper do jogo ao fundo (o degradê de leitura vem junto do background, pelo [style.background])
+.entrada--fundo { border-color: rgb(255 255 255 / 10%); box-shadow: 0 10px 28px rgb(0 0 0 / 35%); }
+.entrada--fundo .entrada__imagem { box-shadow: 0 6px 18px rgb(0 0 0 / 55%); }
+.entrada--fundo .entrada__texto { color: #dbe1e9; }
+.entrada--fundo h2, .entrada--fundo .entrada__texto { text-shadow: 0 1px 8px rgb(0 0 0 / 60%); }
 .entrada__imagem { flex: 0 0 auto; width: 92px; aspect-ratio: 3 / 4; overflow: hidden; border-radius: 9px; background: var(--surface-2);
   img { width: 100%; height: 100%; object-fit: cover; } }
 .entrada__corpo { display: flex; flex: 1; flex-direction: column; gap: 6px; min-width: 0; }

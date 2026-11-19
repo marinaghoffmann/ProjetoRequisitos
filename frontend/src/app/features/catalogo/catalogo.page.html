@@ -44,9 +44,9 @@
   } @else if (!visiveis().length) {
     <gt-estado-vazio icone="jogos" titulo="Nenhum jogo encontrado" texto="Ajuste os filtros para ver outros jogos." />
   } @else {
-    <section class="grade-posters" aria-label="Jogos do catálogo">
+    <section class="grade-posters grade-posters--horizontal" aria-label="Jogos do catálogo">
       @for (jogo of visiveis(); track jogo.id) {
-        <gt-card-poster [jogo]="jogo" [inativo]="jogo.jogo.status !== 'ATIVO'"
+        <gt-card-poster formato="horizontal" [jogo]="jogo" [inativo]="jogo.jogo.status !== 'ATIVO'"
           [selo]="jogo.jogo.status !== 'ATIVO' ? 'Inativo' : null" (alternarWishlist)="alternarWishlist($event)">
           @if (podeEditar(jogo)) {
             <div class="gestao">

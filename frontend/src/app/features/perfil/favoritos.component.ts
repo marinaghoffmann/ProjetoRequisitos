@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, effect, inject, input, output, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { finalize, Observable } from 'rxjs';
@@ -7,11 +7,14 @@ import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
 import { Favorito, PerfilPublicoService } from '../../core/api/perfil-publico.service';
 import { ErroApi } from '../../core/http/erro-api';
 
+const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
+
 @Component({
   selector: 'app-favoritos',
   imports: [RouterLink],
   templateUrl: './favoritos.component.html',
   styleUrl: './favoritos.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FavoritosComponent {
   private readonly api = inject(PerfilPublicoService);
@@ -31,6 +34,31 @@ export class FavoritosComponent {
   protected readonly carregando = signal(false);
   protected readonly substituindo = signal<number | null>(null);
   protected readonly selecionado = signal('');
+
+  /** Artes verticais HD da Steam já validadas, por jogo. */
+  private readonly capasHd = signal<Record<string, string>>({});
+  private readonly capasTentadas = new Set<string>();
+  /** true = capa em retrato (preenche o quadro); false = quadrada/horizontal (inteira, sobre fundo desfocado). */
+  private readonly formas = signal<Record<string, boolean>>({});
+
+  constructor() {
+    effect(() => this.favoritos().forEach((f) => this.resolverCapa(f)));
+  }
+
+  protected capaSrc(f: Favorito): string {
+    return this.capasHd()[f.jogoId] || f.capaUrl || '';
+  }
+
+  protected ajustada(f: Favorito): boolean {
+    return this.formas()[f.jogoId] === false;
+  }
+
+  protected aoCarregar(evento: Event, jogoId: string): void {
+    const img = evento.target as HTMLImageElement;
+    if (!img.naturalWidth || !img.naturalHeight) return;
+    const retrato = img.naturalWidth / img.naturalHeight <= 0.8;
+    if (this.formas()[jogoId] !== retrato) this.formas.update((m) => ({ ...m, [jogoId]: retrato }));
+  }
 
   protected abrir(slot?: number): void {
     this.substituindo.set(slot ?? null);
@@ -90,5 +118,25 @@ export class FavoritosComponent {
       },
       error: (erro: ErroApi) => this.erro.set(erro.mensagem),
     });
+  }
+
+  // ===== Arte vertical da Steam =====
+
+  private resolverCapa(f: Favorito): void {
+    const chave = `${f.jogoId}|${f.capaUrl ?? ''}`;
+    if (this.capasTentadas.has(chave)) return;
+    this.capasTentadas.add(chave);
+    const m = f.capaUrl ? /\/apps\/(\d+)\//.exec(f.capaUrl) : null;
+    if (!m) return;
+    const base = `${STEAM_CDN}/${m[1]}`;
+    const candidatas = [`${base}/library_600x900_2x.jpg`, `${base}/library_600x900.jpg`];
+    const tentar = (i: number): void => {
+      if (i >= candidatas.length) return;
+      const img = new Image();
+      img.onload = () => this.capasHd.update((mapa) => ({ ...mapa, [f.jogoId]: candidatas[i] }));
+      img.onerror = () => tentar(i + 1);
+      img.src = candidatas[i];
+    };
+    tentar(0);
   }
 }

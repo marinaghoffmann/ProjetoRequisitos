@@ -1,8 +1,9 @@
 import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { catchError, filter, map, merge, of, timer } from 'rxjs';
+import { Subject, catchError, debounceTime, distinctUntilChanged, filter, map, merge, of, switchMap, timer } from 'rxjs';
 
+import { CatalogoService, Jogo } from './core/api/catalogo.service';
 import { NaoLidasService } from './core/api/nao-lidas.service';
 import { NotificacoesService } from './core/api/notificacoes.service';
 import { ResumoBibliotecaService } from './core/api/resumo-biblioteca.service';
@@ -13,6 +14,8 @@ import { AvisosComponent } from './shared/ui/avisos.component';
 import { AvisosService } from './shared/ui/avisos.service';
 import { IconeComponent } from './shared/ui/icone.component';
 import { NomeIcone } from './shared/ui/icones';
+
+const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
 
 /** Intervalo das contagens do menu e do sino (F-19 RN 11 e notificações). */
 const ATUALIZAR_CONTADORES_A_CADA_MS = 30000;
@@ -41,12 +44,23 @@ export class App {
   private readonly notificacoes = inject(NotificacoesService);
   private readonly biblioteca = inject(ResumoBibliotecaService);
   private readonly avisos = inject(AvisosService);
+  private readonly catalogo = inject(CatalogoService);
+  private readonly termos = new Subject<string>();
 
   private readonly campoBusca = viewChild<ElementRef<HTMLInputElement>>('campoBusca');
   private readonly editorJournal = viewChild(JournalEditorComponent);
 
   protected readonly menuConta = signal(false);
   protected readonly notificacoesNaoLidas = signal(0);
+
+  /** Busca com sugestões (capa vertical + nome do jogo) enquanto digita. */
+  protected readonly aberta = signal(false);
+  protected readonly termoAtual = signal('');
+  protected readonly buscando = signal(false);
+  protected readonly resultados = signal<Jogo[]>([]);
+  protected readonly indice = signal(-1);
+  /** Jogos sem capa vertical na Steam: usam a capa do cadastro. */
+  protected readonly verticaisAusentes = signal<Set<string>>(new Set());
 
   /**
    * Ordem do protótipo. Lançamentos fica em "Em breve → Todos" na Início e Notificações no sino: as rotas
@@ -98,6 +112,81 @@ export class App {
     merge(timer(0, ATUALIZAR_CONTADORES_A_CADA_MS), navegacoes)
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.atualizarContadores());
+
+    this.termos
+      .pipe(
+        debounceTime(250),
+        distinctUntilChanged(),
+        switchMap((termo) => {
+          if (termo.length < 2) { this.buscando.set(false); return of<Jogo[]>([]); }
+          this.buscando.set(true);
+          return this.catalogo.listarJogos(termo).pipe(catchError(() => of<Jogo[]>([])));
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe((jogos) => {
+        this.resultados.set(jogos.slice(0, 6));
+        this.buscando.set(false);
+        this.indice.set(-1);
+      });
+  }
+
+  protected aoDigitar(valor: string): void {
+    const termo = valor.trim();
+    this.termoAtual.set(termo);
+    this.aberta.set(true);
+    if (termo.length >= 2) this.buscando.set(true);
+    this.termos.next(termo);
+  }
+
+  /** Setas escolhem a sugestão, Enter abre o jogo escolhido e Esc fecha a lista. */
+  protected teclado(evento: KeyboardEvent): void {
+    const total = this.resultados().length;
+    if (evento.key === 'Escape') { this.aberta.set(false); return; }
+    if (!this.aberta() || !total) return;
+    if (evento.key === 'ArrowDown') {
+      evento.preventDefault();
+      this.indice.update((i) => (i + 1) % total);
+    } else if (evento.key === 'ArrowUp') {
+      evento.preventDefault();
+      this.indice.update((i) => (i <= 0 ? total - 1 : i - 1));
+    }
+  }
+
+  /** Enter/lupa: abre o jogo destacado; sem destaque, vai para a página de busca completa. */
+  protected submeter(termo: string): void {
+    const jogo = this.resultados()[this.indice()];
+    if (this.aberta() && jogo) {
+      this.router.navigate(['/catalogo', jogo.id]);
+      this.selecionar();
+    } else {
+      this.aberta.set(false);
+      this.buscar(termo);
+    }
+  }
+
+  /** Depois de abrir um resultado, fecha a lista e limpa o campo. */
+  protected selecionar(): void {
+    this.aberta.set(false);
+    this.termoAtual.set('');
+    this.indice.set(-1);
+    const campo = this.campoBusca()?.nativeElement;
+    if (campo) campo.value = '';
+  }
+
+  /** Capa vertical HD da Steam; sem ela (ou sem appid), a capa do cadastro. */
+  protected capaVertical(jogo: Jogo): string {
+    const m = jogo.capaUrl ? /\/apps\/(\d+)\//.exec(jogo.capaUrl) : null;
+    if (m && !this.verticaisAusentes().has(jogo.id)) return `${STEAM_CDN}/${m[1]}/library_600x900.jpg`;
+    return this.imagemUrl(jogo.capaUrl);
+  }
+
+  protected semVertical(jogoId: string): void {
+    this.verticaisAusentes.update((atual) => new Set(atual).add(jogoId));
+  }
+
+  protected ano(jogo: Jogo): string {
+    return jogo.dataLancamento?.slice(0, 4) ?? '';
   }
 
   /** Ctrl/⌘+K foca a busca de qualquer tela. */

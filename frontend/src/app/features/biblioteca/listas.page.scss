@@ -2,7 +2,7 @@
 @media (max-width: 900px) { .grade-listas { grid-template-columns: 1fr; } }
 .lista { display: flex; gap: 20px; padding: 18px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--surface); }
 .leque { position: relative; flex: 0 0 auto; width: 150px; height: 112px; }
-.leque__capa { position: absolute; top: 0; left: calc(var(--i, 0) * 28px); width: 72px; aspect-ratio: 3 / 4; overflow: hidden;
+.leque__capa { position: absolute; top: 0; left: calc(var(--i, 0) * 28px); width: 200px; aspect-ratio: 3 / 4; overflow: hidden;
   border: 2px solid var(--surface); border-radius: 8px; background: var(--surface-2); box-shadow: 4px 0 14px rgb(0 0 0 / 45%);
   z-index: calc(10 - var(--i, 0)); img { width: 100%; height: 100%; object-fit: cover; } }
 .leque__capa--vazia { display: grid; place-items: center; color: var(--accent); font: 700 28px var(--font-title); }
@@ -18,3 +18,11 @@
 .formulario-modal { margin: 0; }
 .formulario-modal__botoes { display: flex; justify-content: flex-end; gap: 8px; }
 @media (max-width: 700px) { .lista { flex-direction: column; } }
+// card com wallpaper do primeiro jogo ao fundo (o degradê de leitura vem junto do background, pelo [style.background])
+.lista--fundo {
+  border-color: rgb(255 255 255 / 10%);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 35%);
+  .leque { filter: drop-shadow(0 6px 18px rgb(0 0 0 / 55%)); }
+  .lista__autor, .lista__descricao { color: #dbe1e9; }
+  .lista__titulo, .lista__descricao { text-shadow: 0 1px 8px rgb(0 0 0 / 60%); }
+}

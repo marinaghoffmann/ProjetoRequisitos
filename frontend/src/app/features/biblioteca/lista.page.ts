@@ -8,6 +8,8 @@ import { ErroApi } from '../../core/http/erro-api';
 
 import { ConteudoModeravelComponent } from '../moderacao/conteudo-moderavel.component';
 
+const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
+
 /**
  * Uma lista (F-04): os jogos com capa, a nota explicativa e a data de inclusão, mais o contador "N/100".
  * Qualquer um pode ver; só o dono edita as notas e remove itens (o backend confere de novo).
@@ -31,6 +33,10 @@ export class ListaPage {
   protected readonly rascunhos = signal<Record<string, string>>({});
   protected readonly salvo = signal<string | null>(null);
 
+  /** Capas verticais HD da Steam já validadas (carregaram de verdade), por jogo. */
+  private readonly capasHd = signal<Record<string, string>>({});
+  private readonly tentadas = new Set<string>();
+
   protected readonly ehDono = computed(() => this.lista()?.donoId === this.autenticacao.usuarioAtual()?.id);
 
   constructor() {
@@ -38,6 +44,11 @@ export class ListaPage {
       next: (lista) => this.atualizar(lista),
       error: (e: ErroApi) => this.erro.set(e.status === 404 ? 'Lista não encontrada.' : e.mensagem),
     });
+  }
+
+  /** Capa vertical HD do jogo; enquanto não carrega (ou se não existir), a capa do cadastro. */
+  protected capaDe(item: ItemDaLista): string {
+    return this.capasHd()[item.jogoId] || item.jogoCapaUrl || '';
   }
 
   protected nota(item: ItemDaLista): string {
@@ -76,5 +87,24 @@ export class ListaPage {
   private atualizar(lista: ListaPersonalizada): void {
     this.lista.set(lista);
     this.rascunhos.set({});
+    lista.itens.forEach((item) => this.resolverCapa(item));
+  }
+
+  /** O appid vem da capa (.../apps/{appid}/...); testa as verticais em ordem e fica com a primeira que carregar. */
+  private resolverCapa(item: ItemDaLista): void {
+    if (this.tentadas.has(item.jogoId)) return;
+    this.tentadas.add(item.jogoId);
+    const m = item.jogoCapaUrl ? /\/apps\/(\d+)\//.exec(item.jogoCapaUrl) : null;
+    if (!m) return;
+    const base = `${STEAM_CDN}/${m[1]}`;
+    const candidatas = [`${base}/library_600x900_2x.jpg`, `${base}/library_600x900.jpg`];
+    const tentar = (i: number): void => {
+      if (i >= candidatas.length) return;
+      const img = new Image();
+      img.onload = () => this.capasHd.update((mapa) => ({ ...mapa, [item.jogoId]: candidatas[i] }));
+      img.onerror = () => tentar(i + 1);
+      img.src = candidatas[i];
+    };
+    tentar(0);
   }
 }
