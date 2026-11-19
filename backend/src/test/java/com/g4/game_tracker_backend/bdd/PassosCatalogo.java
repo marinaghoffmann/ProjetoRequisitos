@@ -6,7 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -14,6 +16,7 @@ import com.g4.game_tracker_backend.aplicacao.catalogo.AtualizarDesenvolvedora;
 import com.g4.game_tracker_backend.aplicacao.catalogo.AtualizarJogoManual;
 import com.g4.game_tracker_backend.aplicacao.catalogo.CadastrarJogoManual;
 import com.g4.game_tracker_backend.aplicacao.catalogo.ConsultarCatalogo;
+import com.g4.game_tracker_backend.aplicacao.catalogo.DesativarDesenvolvedora;
 import com.g4.game_tracker_backend.aplicacao.catalogo.RemoverJogo;
 import com.g4.game_tracker_backend.aplicacao.catalogo.ImportarJogo;
 import com.g4.game_tracker_backend.aplicacao.avaliacao.reviews.PublicarReview;
@@ -64,9 +67,11 @@ public class PassosCatalogo {
     private final ListaRepositorio listas;
     private final VinculosDoJogo vinculos;
     private final DadosDoCenario dados;
+    private final DesativarDesenvolvedora desativarDesenvolvedora;
 
     private Usuario usuarioAtual;
     private UUID listaDoJogador;
+    private final Map<String, UUID> desenvolvedorasDoCenario = new HashMap<>();
     private Jogo jogoAtual;
     private UUID desenvolvedoraDoFiltro;
     private List<Jogo> resultadoDaConsulta;
@@ -77,7 +82,9 @@ public class PassosCatalogo {
             DesenvolvedoraRepositorio desenvolvedoras, UsuarioRepositorio usuarios,
             CodificadorDeSenha codificadorDeSenha, ContextoDoCenario contexto, PublicarReview publicarReview,
             ReviewRepositorio reviews, GerenciarListas gerenciarListas, GerenciarItensDaLista gerenciarItens,
-            ListaRepositorio listas, VinculosDoJogo vinculos, DadosDoCenario dados) {
+            ListaRepositorio listas, VinculosDoJogo vinculos, DadosDoCenario dados,
+            DesativarDesenvolvedora desativarDesenvolvedora) {
+        this.desativarDesenvolvedora = desativarDesenvolvedora;
         this.importarJogo = importarJogo;
         this.cadastrarJogoManual = cadastrarJogoManual;
         this.atualizarJogoManual = atualizarJogoManual;
@@ -234,6 +241,31 @@ public class PassosCatalogo {
         gerenciarItens.adicionar(lista.id(), jogoAtual.id(), null);
         listaDoJogador = lista.id();
         SessaoDeTeste.autenticarComo(usuarioAtual);
+    }
+
+    // ---- RN 3: a desenvolvedora sai sempre por exclusão lógica ----
+
+    @Dado("que a desenvolvedora ativa {string} tem o jogo {string} no catálogo")
+    public void desenvolvedoraTemJogo(String nome, String titulo) {
+        Desenvolvedora estudio = desenvolvedora(nome + " " + UUID.randomUUID(), true);
+        desenvolvedorasDoCenario.put(nome, estudio.id());
+        jogoAtual = jogos.salvar(Jogo.criarManual(titulo, null, null, estudio.id(), Set.of(), null, null, null));
+    }
+
+    @Quando("o administrador desativa a desenvolvedora {string}")
+    public void administradorDesativaDesenvolvedora(String nome) {
+        contexto.obter(() -> desativarDesenvolvedora.executar(desenvolvedorasDoCenario.get(nome)));
+    }
+
+    @Entao("a desenvolvedora {string} deve continuar no banco como inativa")
+    public void desenvolvedoraDeveContinuarInativa(String nome) {
+        Desenvolvedora estudio = desenvolvedoras.buscarPorId(desenvolvedorasDoCenario.get(nome)).orElseThrow();
+        assertFalse(estudio.ativa(), "A desenvolvedora " + nome + " continua ativa");
+    }
+
+    @Entao("o jogo {string} deve continuar ativo no catálogo")
+    public void jogoDeveContinuarAtivo(String titulo) {
+        assertEquals("ATIVO", jogos.buscarPorId(jogoAtual.id()).orElseThrow().status().name());
     }
 
     @Entao("as {int} reviews do jogo devem ser preservadas")

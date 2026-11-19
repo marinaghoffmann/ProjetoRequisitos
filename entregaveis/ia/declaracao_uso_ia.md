@@ -42,7 +42,7 @@ Marque com X onde houve uso de IA. Deixe em branco onde não houve.
 - Todo código gerado ou alterado com IA passou pelo build completo (`./mvnw verify`, com JUnit, ArchUnit e os
   cenários Cucumber, além de `npm test` e `npm run build`) antes do commit.
 - As regras de negócio vêm das histórias do grupo (`entregaveis/historias/`) e dos `.feature`. A IA não
-  definiu regras novas: quando houve dúvida, ela ficou registrada em `docs/pendencias.md`.
+  definiu regras novas: quando houve dúvida, o grupo decidiu e o texto foi alinhado ao código.
 - As mudanças entram por Pull Request e passam pela revisão de pelo menos um colega (`CONTRIBUTING.md`).
 - Davi: cada funcionalidade foi conferida contra as regras de negócio da história e os cenários do `.feature`, com
   `./mvnw verify` verde antes de cada commit; o código entrou por Pull Request e o diff foi lido antes de abrir cada um.

@@ -50,7 +50,7 @@ Domain GameTracker {
 
     Subdomain CatalogoJogosSubdomain {
         type SUPPORTING_DOMAIN
-        domainVisionStatement = "Catalogo local confiavel de jogos com duas origens (base externa IGDB/RAWG e cadastro manual pelo Criador), perfis institucionais de desenvolvedoras, exclusao logica e lancamentos futuros."
+        domainVisionStatement = "Catalogo local confiavel de jogos com duas origens (base externa Steam e cadastro manual pelo Criador), perfis institucionais de desenvolvedoras, exclusao logica e lancamentos futuros."
     }
 
     Subdomain AvaliacaoComunidadeSubdomain {
@@ -169,7 +169,7 @@ BoundedContext ContextoCatalogoJogos implements CatalogoJogosSubdomain {
         ValueObject JogoId { String id }
 
         ValueObject IdentificadorExterno {
-            String fonte                                          // IGDB ou RAWG
+            String fonte                                          // Steam
             String codigo
         }
 
@@ -206,7 +206,7 @@ BoundedContext ContextoCatalogoJogos implements CatalogoJogosSubdomain {
             @Jogo cadastrar(@DadosJogo dados, @UsuarioId solicitante);
         }
 
-        // Padrao Proxy (GoF): IBaseExternaJogosGateway e a interface comum. IgdbGateway acessa a
+        // Padrao Proxy (GoF): IBaseExternaJogosGateway e a interface comum. SteamGateway acessa a
         // API real; ProxyBaseExternaJogos adiciona cache, limite de requisicoes e tratamento de falha.
         Service IBaseExternaJogosGateway {
             @DadosJogo buscarPorIdentificador(@IdentificadorExterno identificador);

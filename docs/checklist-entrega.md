@@ -9,7 +9,7 @@ Atualizado em 18/11/2026, na branch `chore/entrega-final`. Legenda: ✅ cumprido
 |---|---|---|---|
 | 1 | Artefatos publicados no GitHub; repositório público ou com acesso para @profsauloaraujo | 🟡 `TODO(grupo)` | Repositório `marinaghoffmann/ProjetoRequisitos`. Conferir a visibilidade ou o convite ao professor. |
 | 2 | Java, com Spring Boot, JPA e Angular | ✅ | `backend/pom.xml` (Java 21, Spring Boot 4.1), `frontend/` (Angular 21) |
-| 3a | Descrição do domínio com a linguagem onipresente | ✅ | `entregaveis/dominio/descricao_do_dominio.md` e o `.pdf` regerado dele em 18/11 (markdown-it + Chrome headless). Propostas de glossário para P5 e P7 em `pendencias.md` (`TODO(grupo)`). |
+| 3a | Descrição do domínio com a linguagem onipresente | ✅ | `entregaveis/dominio/descricao_do_dominio.md` e o `.pdf` regerado dele em 18/11 (markdown-it + Chrome headless). Glossário alinhado ao código (base externa Steam, imagens do fórum, médias da F-17 e exclusão lógica de desenvolvedora). |
 | 3b | Mapa de histórias do usuário | ✅ | `entregaveis/mapa/` |
 | 3c | Protótipos de alta fidelidade | 🟡 `TODO(grupo)` | `entregaveis/prototipo/prototipo.md`: falta o link **público** `*.figma.site` |
 | 3d | Modelo dos subdomínios no Context Mapper (`.cml`) | ✅ | `entregaveis/cml/game_tracker.cml`: 0 erros e 0 avisos no servidor de linguagem do Context Mapper 6.12 (só 5 sugestões informativas de Value Object). Corrigidos 3 repositórios da F-14 declarados fora da entidade raiz. |
@@ -47,7 +47,7 @@ Atualizado em 18/11/2026, na branch `chore/entrega-final`. Legenda: ✅ cumprido
 | F-21 | Reputação | Davi | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 7/7 |
 | T02 | Autenticação | grupo | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 6/6 |
 
-Total: 257 cenários executados e nenhum `@pendente` (cada linha de `Exemplos` conta como um cenário). Dúvidas de regra em [pendencias.md](pendencias.md). O [diagnostico.md](diagnostico.md) é o retrato de partida (17/11) e não é mais atualizado.
+Total: 257 cenários executados e nenhum `@pendente` (cada linha de `Exemplos` conta como um cenário). O [diagnostico.md](diagnostico.md) é o retrato de partida (17/11) e não é mais atualizado.
 
 ## 3. Padrões de projeto
 
@@ -86,5 +86,4 @@ Total: 257 cenários executados e nenhum `@pendente` (cada linha de `Exemplos` c
 - [ ] Cada integrante anexa as suas interações de IA em `entregaveis/ia/interacoes/` e completa a declaração.
 - [ ] Exportar os slides para `entregaveis/apresentacao/`.
 - [ ] Definir o **responsável** pelo Iterator (F-13) nas tabelas de padrões do README e deste checklist.
-- [ ] Decidir as pendências **P5** (Steam × IGDB/RAWG), **P7** (imagens no fórum), **P9** (base dos percentuais da F-17) e **P10** (exclusão de desenvolvedora). Há propostas de texto em [pendencias.md](pendencias.md).
 - [ ] Exportar as telas do protótipo do Figma Make para `entregaveis/prototipo/telas/` (referência da paridade; ver [front-paridade.md](front-paridade.md)).

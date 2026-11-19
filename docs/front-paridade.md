@@ -54,7 +54,7 @@ ou **pendente**.
 | 22 Checkout | `/marketplace/checkout` | adaptado | Continua como página, não como modal sobre o anúncio. Mudar exigiria mover a F-20 para dentro do anúncio; o fluxo e os campos são os mesmos. |
 | 23 Mensagens | `/marketplace/mensagens/:id` | igual | Duas colunas (rota filha `:id`); no celular, uma coluna por vez. |
 | 24 Meus pedidos | `/marketplace/pedidos` | igual | Saldo no subtítulo, abas Compras/Vendas/Concluídos/Reputação, eyebrow do status e stepper. |
-| 25 Estatísticas | `/estatisticas` | adaptado | Conclusões, wishlists e negociações mostram **só o total**, sem "%" e sem "R$": a RN 2 da F-17 não define a base do percentual e a ficha guarda a contagem de negociações, não o valor (pendência **P9**). Fichas ocultas mostram "—" (RN 3). |
+| 25 Estatísticas | `/estatisticas` | adaptado | Conclusões, wishlists e negociações mostram **só o total**, sem "%" e sem "R$": a ficha registra totais e médias (F-17 RN 2). Fichas ocultas mostram "—" (RN 3). |
 | 26 Notificações | `/notificacoes` | igual | "Marcar como lidas" marca uma a uma (não há rota em lote). |
 | 27 Busca | `/busca` | adaptado | Subtítulo "Encontre jogos do catálogo e listas da comunidade": não há busca de reviews nem de pessoas (sem consulta pública de usuários). "Buscas em alta" são atalhos para os gêneros do catálogo. |
 | Perfil, Login/Cadastro, Moderação, formulários | — | adaptado | Shell e barra superior aplicados (o perfil perdeu a barra própria). Os formulários mantêm o padrão global (rótulo acima, campo escuro). Não houve captura de referência. |
