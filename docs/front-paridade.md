@@ -6,8 +6,9 @@ branch `chore/entrega-final`.
 **Referência usada.** As capturas do protótipo (`prototipo-telas.zip`, que iria para
 `entregaveis/prototipo/telas/`) **não estavam no repositório nem na máquina** durante o trabalho. O link do
 Figma Make exige login. A paridade foi feita pela descrição tela a tela do roteiro da entrega (B1 a B3), que
-cita as medidas, os textos e os componentes de cada captura. `TODO(grupo)`: exportar as 27 telas do protótipo
-para `entregaveis/prototipo/telas/` e conferir lado a lado com `docs/front-paridade/`.
+cita as medidas, os textos e os componentes de cada captura. As 27 telas do protótipo foram capturadas depois,
+em 21/11/2026, e estão em [`entregaveis/prototipo/telas/`](../entregaveis/prototipo/telas/) com a mesma
+numeração. `TODO(grupo)`: conferir lado a lado com `docs/front-paridade/`.
 
 **Capturas do Angular:** [`docs/front-paridade/`](front-paridade/), em 1440 × 900 (mais `celular-*` em 390 px,
 `tablet-*` em 900 px e `visitante-*` sem login). Os nomes seguem a numeração das capturas do protótipo. Dados
@@ -61,6 +62,6 @@ ou **pendente**.
 
 ## Riscos e pontos de atenção
 
-- Sem as capturas do protótipo, medidas finas (espaçamentos, tamanhos de fonte de cada card) podem divergir.
+- A paridade foi feita antes de as capturas do protótipo entrarem no repositório; medidas finas (espaçamentos, tamanhos de fonte de cada card) podem divergir.
 - O `app.scss` (shell) passou de 4,6 kB para 6,2 kB e continua acima do orçamento de 4 kB por componente, como
   já estava. Nenhum arquivo novo entrou na lista de avisos (eram 7, agora são 6).
