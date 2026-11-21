@@ -8,6 +8,27 @@
 > Para publicar: no Figma Make, **Publish** → copiar o endereço `*.figma.site`. O professor precisa abrir o
 > protótipo sem conta no Figma, então o link de edição não serve como entrega.
 
+## Capturas das telas
+
+As 27 telas de referência estão em [`telas/`](telas/), capturadas da prévia do Figma Make em 21/11/2026
+(1487 × 764, sem a barra do Figma). A numeração é a mesma de [`docs/front-paridade.md`](../../docs/front-paridade.md),
+o que permite comparar lado a lado com as capturas do Angular em `docs/front-paridade/`.
+
+| Nº | Tela | Nº | Tela |
+|---|---|---|---|
+| 01–03 | [Início](telas/01-inicio.jpg), [em alta](telas/02-inicio-em-alta.jpg), [comunidade e em breve](telas/03-inicio-comunidade.jpg) | 16 | [Comunidade](telas/16-comunidade.jpg) |
+| 04 | [Descobrir](telas/04-descobrir.jpg) | 17 | [Tópico](telas/17-topico.jpg) |
+| 05 | [Jogos](telas/05-jogos.jpg) | 18 | [Lançamentos](telas/18-lancamentos.jpg) |
+| 06 | [Detalhe do jogo](telas/06-detalhe-jogo.jpg) | 19, 20 | [Marketplace](telas/19-marketplace.jpg), [anúncios](telas/20-marketplace-anuncios.jpg) |
+| 07 | [Detalhe: reviews e ficha](telas/07-detalhe-reviews-ficha.jpg) | 21 | [Anúncio](telas/21-anuncio.jpg) |
+| 08 | [Detalhe: similares](telas/08-detalhe-similares.jpg) | 22 | [Checkout](telas/22-checkout.jpg) |
+| 09 | [Listas](telas/09-listas.jpg) | 23 | [Mensagens](telas/23-mensagens.jpg) |
+| 10 | [Wishlist](telas/10-wishlist.jpg) | 24 | [Meus pedidos](telas/24-pedidos.jpg) |
+| 11 | [Em andamento](telas/11-em-andamento.jpg) | 25 | [Estatísticas](telas/25-estatisticas.jpg) |
+| 12 | [Zerados](telas/12-zerados.jpg) | 26 | [Notificações](telas/26-notificacoes.jpg) |
+| 13, 14 | [Journal](telas/13-journal.jpg), [Timeline](telas/14-timeline.jpg) | 27 | [Busca](telas/27-busca.jpg) |
+| 15 | [Nova entrada](telas/15-nova-entrada.jpg) | | |
+
 ## Telas por funcionalidade
 
 A numeração é a oficial de `entregaveis/historias/historias_game_tracker.txt`.
