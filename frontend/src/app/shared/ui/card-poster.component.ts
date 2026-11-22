@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { formatarNota, juntarMeta } from '../apresentacao-jogo';
 import { IconeComponent } from './icone.component';
+
+const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
 
 /** Dados mínimos do pôster; o VitrineService monta isso a partir do catálogo e da F-17. */
 export interface DadosPoster {
@@ -18,7 +20,7 @@ export interface DadosPoster {
 }
 
 /**
- * Card de pôster: capa 3:4 com o gênero (inferior esquerdo), a nota (inferior direito) e o coração da
+ * Card de pôster: capa 3:4 (ou 16:9 com `formato="horizontal"`) com o gênero (inferior esquerdo), a nota (inferior direito) e o coração da
  * wishlist (superior direito). Abaixo, título e "ano · plataforma". Sem resumo. Conteúdo extra (por exemplo, o
  * feedback de similaridade) entra por projeção.
  */
@@ -27,10 +29,10 @@ export interface DadosPoster {
   imports: [RouterLink, IconeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <article class="poster" [class.poster--inativo]="inativo()">
-      <a class="poster__capa" [routerLink]="['/catalogo', jogo().id]" [style.background]="jogo().capa ? null : jogo().gradiente"
+    <article class="poster" [class.poster--inativo]="inativo()" [class.poster--horizontal]="formato() === 'horizontal'">
+      <a class="poster__capa" [routerLink]="['/catalogo', jogo().id]" [style.background]="capaSrc() ? null : jogo().gradiente"
         [attr.aria-label]="jogo().titulo">
-        @if (jogo().capa; as capa) { <img [src]="capa" alt="" loading="lazy" /> }
+        @if (capaSrc(); as capa) { <img [src]="capa" alt="" loading="lazy" decoding="async" /> }
         @if (selo()) { <span class="poster__selo">{{ selo() }}</span> }
         @if (jogo().generos.length) { <span class="poster__genero">{{ jogo().generos[0] }}</span> }
         <span class="poster__nota"><gt-icone nome="estrela" [tamanho]="11" class="preenchido" />{{ nota() }}</span>
@@ -53,6 +55,7 @@ export interface DadosPoster {
     .poster--inativo { opacity: 0.55; }
     .poster__capa { position: relative; display: block; aspect-ratio: 3 / 4; overflow: hidden; border: 1px solid var(--line-soft);
       border-radius: 12px; background: var(--surface-2); transition: transform 0.2s ease, border-color 0.2s ease; }
+    .poster--horizontal .poster__capa { aspect-ratio: 16 / 9; }
     .poster__capa:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--accent) 45%, var(--line-soft)); }
     .poster__capa::after { content: ''; position: absolute; inset: auto 0 0; height: 40%; background: linear-gradient(to top, rgb(0 0 0 / 75%), transparent); }
     img { width: 100%; height: 100%; object-fit: cover; }
@@ -75,8 +78,43 @@ export class CardPosterComponent {
   readonly mostrarWishlist = input(true);
   readonly inativo = input(false);
   readonly selo = input<string | null>(null);
+  /** 'retrato' (3:4, padrão) ou 'horizontal' (16:9, com arte HD da Steam quando existir). */
+  readonly formato = input<'retrato' | 'horizontal'>('retrato');
   readonly alternarWishlist = output<DadosPoster>();
+
+  /** Capas horizontais HD da Steam já validadas, por id do jogo. */
+  private readonly capasHd = signal<Record<string, string>>({});
+  private readonly tentadas = new Set<string>();
+
+  protected readonly capaSrc = computed(() => {
+    const j = this.jogo();
+    return (this.formato() === 'horizontal' && this.capasHd()[j.id]) || j.capa;
+  });
+
+  constructor() {
+    effect(() => {
+      if (this.formato() === 'horizontal') this.resolverCapaHd(this.jogo());
+    });
+  }
 
   protected readonly nota = computed(() => formatarNota(this.jogo().nota));
   protected readonly meta = computed(() => juntarMeta(this.jogo().ano, this.jogo().plataformas[0]));
+
+  /** appid da Steam a partir da capa (.../apps/{appid}/...); testa capsule 616x353 e header.jpg. */
+  private resolverCapaHd(j: DadosPoster): void {
+    if (this.tentadas.has(j.id)) return;
+    this.tentadas.add(j.id);
+    const m = j.capa ? /\/apps\/(\d+)\//.exec(j.capa) : null;
+    if (!m) return;
+    const base = `${STEAM_CDN}/${m[1]}`;
+    const candidatas = [`${base}/capsule_616x353.jpg`, `${base}/header.jpg`];
+    const tentar = (i: number): void => {
+      if (i >= candidatas.length) return;
+      const img = new Image();
+      img.onload = () => this.capasHd.update((mapa) => ({ ...mapa, [j.id]: candidatas[i] }));
+      img.onerror = () => tentar(i + 1);
+      img.src = candidatas[i];
+    };
+    tentar(0);
+  }
 }

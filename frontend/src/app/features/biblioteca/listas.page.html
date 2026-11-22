@@ -16,20 +16,17 @@
   } @else {
     <section class="grade-listas" aria-label="Listas">
       @for (l of listas(); track l.id) {
-        <article class="lista">
-          <a class="leque" [routerLink]="['/biblioteca/listas', l.id]" [attr.aria-label]="'Abrir ' + l.titulo">
-            @for (capa of leque(l); track $index) {
-              <span class="leque__capa" [style.background]="capa.imagem ? null : capa.fundo" [style.--i]="$index">
-                @if (capa.imagem) { <img [src]="capa.imagem" alt="" loading="lazy" /> }
-              </span>
-            } @empty {
-              <span class="leque__capa leque__capa--vazia">{{ l.titulo.charAt(0) }}</span>
-            }
-          </a>
+        <article class="lista" [class.lista--fundo]="!!fundoDe(l)" [style.background]="fundoDe(l)">
           <div class="lista__corpo">
             <a class="lista__titulo" [routerLink]="['/biblioteca/listas', l.id]">{{ l.titulo }}</a>
             <p class="lista__autor">
-              <span class="lista__avatar" aria-hidden="true">{{ inicial(l.nomeDono ?? autenticacao.usuarioAtual()?.nome ?? null) }}</span>
+              <span class="lista__avatar" aria-hidden="true">
+                @if (autenticacao.usuarioAtual()?.avatarUrl; as foto) {
+                  <img [src]="foto" alt="" />
+                } @else {
+                  {{ inicial(l.nomeDono ?? autenticacao.usuarioAtual()?.nome ?? null) }}
+                }
+              </span>
               por {{ l.nomeDono ?? autenticacao.usuarioAtual()?.nome }} · {{ l.totalJogos }} {{ l.totalJogos === 1 ? 'jogo' : 'jogos' }}
             </p>
             @if (l.descricao) { <p class="lista__descricao">{{ l.descricao }}</p> }

@@ -3,20 +3,17 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 import {
-  LIMITE_DESCRICAO_LISTA, LIMITE_JOGOS_LISTA, LIMITE_TITULO_LISTA, ListaPersonalizada, ListasService,
+  ItemDaLista, LIMITE_DESCRICAO_LISTA, LIMITE_JOGOS_LISTA, LIMITE_TITULO_LISTA, ListaPersonalizada, ListasService,
 } from '../../core/api/listas.service';
 import { ErroApi } from '../../core/http/erro-api';
-
-/**
- * "Minhas listas" (F-04): as listas do usuário com o total de jogos, mais criar, renomear (título e
- * descrição) e excluir. RN 1 (título repetido) vem da API, na mensagem do erro.
- */
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { gradientePara, imagemSegura } from '../../shared/apresentacao-jogo';
 import { AvisosService } from '../../shared/ui/avisos.service';
 import { CabecalhoPaginaComponent } from '../../shared/ui/cabecalho-pagina.component';
 import { CarregandoComponent, ErroComponent, EstadoVazioComponent } from '../../shared/ui/estados.component';
 import { ModalComponent } from '../../shared/ui/modal.component';
+
+const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
 
 /**
  * "Minhas listas" (F-04): as listas do usuário com o total de jogos, mais criar, renomear (título e
@@ -42,6 +39,10 @@ export class ListasPage {
   protected readonly carregando = signal(true);
   protected readonly erro = signal<string | null>(null);
   protected readonly abertas = signal<Set<string>>(new Set());
+
+  /** Wallpapers HD da Steam já validados (carregaram de verdade), por jogo. */
+  private readonly wallpapers = signal<Record<string, string>>({});
+  private readonly wallpapersTentados = new Set<string>();
 
   /** Modal de criar (editandoId null) ou renomear. */
   protected readonly modalAberto = signal(false);
@@ -116,6 +117,16 @@ export class ListasPage {
     }));
   }
 
+  /** Fundo do card: wallpaper do primeiro jogo (ou a capa dele) sob um degradê escuro que mantém o texto legível. */
+  protected fundoDe(lista: ListaPersonalizada): string | null {
+    const primeiro = lista.itens[0];
+    if (!primeiro) return null;
+    const imagem = this.wallpapers()[primeiro.jogoId] || imagemSegura(primeiro.jogoCapaUrl);
+    if (!imagem) return null;
+    return 'linear-gradient(90deg, rgb(11 14 19 / 94%) 0%, rgb(11 14 19 / 80%) 50%, rgb(11 14 19 / 52%) 100%), '
+      + `url("${imagem}") center / cover no-repeat`;
+  }
+
   protected inicial(nome: string | null): string {
     return (nome ?? '?').charAt(0).toUpperCase();
   }
@@ -125,11 +136,29 @@ export class ListasPage {
       next: (listas) => {
         this.listas.set(listas);
         this.carregando.set(false);
+        listas.forEach((l) => l.itens[0] && this.resolverWallpaper(l.itens[0]));
       },
       error: (e: ErroApi) => {
         this.erro.set(e.mensagem);
         this.carregando.set(false);
       },
     });
+  }
+
+  private resolverWallpaper(item: ItemDaLista): void {
+    if (this.wallpapersTentados.has(item.jogoId)) return;
+    this.wallpapersTentados.add(item.jogoId);
+    const m = item.jogoCapaUrl ? /\/apps\/(\d+)\//.exec(item.jogoCapaUrl) : null;
+    if (!m) return;
+    const base = `${STEAM_CDN}/${m[1]}`;
+    const candidatas = [`${base}/library_hero.jpg`, `${base}/page_bg_generated_v6b.jpg`];
+    const tentar = (i: number): void => {
+      if (i >= candidatas.length) return;
+      const img = new Image();
+      img.onload = () => this.wallpapers.update((mapa) => ({ ...mapa, [item.jogoId]: candidatas[i] }));
+      img.onerror = () => tentar(i + 1);
+      img.src = candidatas[i];
+    };
+    tentar(0);
   }
 }

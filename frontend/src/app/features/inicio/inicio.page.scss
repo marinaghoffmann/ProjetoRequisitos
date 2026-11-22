@@ -206,7 +206,7 @@ $pad: 64px;
 }
 .hm-jogo__capa {
   position: relative;
-  aspect-ratio: 178 / 150;
+  aspect-ratio: 2 / 3; // capa vertical (library_600x900 da Steam)
   margin-bottom: 12px;
   border-radius: 12px;
   overflow: hidden;

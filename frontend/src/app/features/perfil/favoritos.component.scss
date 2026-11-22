@@ -6,8 +6,13 @@ h2 { margin: 0; font-size: 1.2rem; }
 li { min-width: 0; }
 .capa, .vazio { position: relative; display: grid; place-items: center; aspect-ratio: 2 / 3; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
 .capa img { width: 100%; height: 100%; object-fit: cover; }
+.capa__img { position: relative; transition: transform .35s ease; }
+.capa:hover .capa__img { transform: scale(1.04); }
+// arte quadrada/horizontal: aparece inteira sobre o próprio fundo desfocado, sem cortar o título
+.capa__fundo { position: absolute; inset: 0; transform: scale(1.3); filter: blur(14px) brightness(.55); }
+.capa--ajustada .capa__img { height: auto; max-height: 100%; object-fit: contain; }
 .capa img[hidden] { display: none; }
-.posicao { position: absolute; bottom: .5rem; left: .5rem; background: var(--bg); padding: .2rem .5rem; border-radius: 4px; }
+.posicao { position: absolute; z-index: 1; bottom: .5rem; left: .5rem; background: var(--bg); padding: .2rem .5rem; border-radius: 4px; }
 .titulo { display: block; color: var(--text); margin: .5rem 0; font-weight: 700; overflow-wrap: anywhere; }
 button, select { padding: .4rem .6rem; border: 1px solid var(--line); border-radius: 6px; font: inherit; color: var(--text); background: var(--surface-2); max-width: 100%; }
 button { cursor: pointer; }
