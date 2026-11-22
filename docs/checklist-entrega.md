@@ -75,7 +75,7 @@ Total: 258 cenários executados e nenhum `@pendente` (cada linha de `Exemplos` c
 | Segredos fora do Git | 🟡 `TODO(grupo)` | `.env.backup` removido e `.env*` ignorado, mas os valores continuam no histórico: **trocar** a chave JWT e a senha de admin |
 | Uploads de usuários fora do Git | ✅ | `backend/uploads/` só com `.gitkeep` |
 | Catálogo upstream dos contextos que o referenciam | ✅ | `ArquiteturaTest.catalogoNaoDependeDosContextosQueOReferenciam` (F-01 RN 3 pela porta `VinculosDoJogo`) |
-| Frontend fiel ao protótipo | 🟡 | Shell, componentes compartilhados e as 27 telas de referência tratadas: ver [front-paridade.md](front-paridade.md) (status igual/adaptado com justificativa). Falta conferir lado a lado com as capturas do protótipo, que não estavam no repositório |
+| Frontend fiel ao protótipo | 🟡 | Shell, componentes compartilhados e as 27 telas de referência tratadas: ver [front-paridade.md](front-paridade.md) (status igual/adaptado com justificativa). Falta conferir lado a lado com as capturas do protótipo, que agora estão em `entregaveis/prototipo/telas/` |
 | Builds verdes | ✅ | `./mvnw verify`, `npm test` (26 testes) e `npm run build` |
 
 ## 5. Antes de entregar (`TODO(grupo)`)
@@ -86,4 +86,4 @@ Total: 258 cenários executados e nenhum `@pendente` (cada linha de `Exemplos` c
       de admin em todo ambiente que usou os valores do antigo `.env.backup`.
 - [ ] Cada integrante anexa as suas interações de IA em `entregaveis/ia/interacoes/` e completa a declaração.
 - [ ] Exportar os slides para `entregaveis/apresentacao/`.
-- [ ] Exportar as telas do protótipo do Figma Make para `entregaveis/prototipo/telas/` (referência da paridade; ver [front-paridade.md](front-paridade.md)).
+- [x] Exportar as telas do protótipo do Figma Make para `entregaveis/prototipo/telas/` (referência da paridade; ver [front-paridade.md](front-paridade.md)).
