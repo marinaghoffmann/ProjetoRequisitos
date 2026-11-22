@@ -6,9 +6,10 @@ import { RouterLink } from '@angular/router';
 import { debounceTime, finalize, map, Observable, Subscription } from 'rxjs';
 
 import { BibliotecaService } from '../../core/api/biblioteca.service';
-import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
+import { Jogo } from '../../core/api/catalogo.service';
 import { Pagina } from '../../core/api/forum.service';
 import { EntradaJournal, JournalService } from '../../core/api/journal.service';
+import { PerfilPublicoService } from '../../core/api/perfil-publico.service';
 import { ErroApi } from '../../core/http/erro-api';
 import { ConteudoModeravelComponent } from '../moderacao/conteudo-moderavel.component';
 import { JournalEditorComponent } from './journal-editor.component';
@@ -28,7 +29,7 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
 })
 export class JournalEntradasComponent {
   private readonly api = inject(JournalService);
-  private readonly catalogo = inject(CatalogoService);
+  private readonly perfis = inject(PerfilPublicoService);
   private readonly biblioteca = inject(BibliotecaService);
   private readonly builder = inject(FormBuilder).nonNullable;
   private readonly destroyRef = inject(DestroyRef);
@@ -160,13 +161,17 @@ export class JournalEntradasComponent {
   }
 
   /**
-   * Opções do filtro "Jogo". No próprio journal: só os jogos da biblioteca do usuário.
-   * No perfil público ainda não há endpoint com a biblioteca de outra pessoa, então segue o catálogo.
+   * Opções do filtro "Jogo": sempre a biblioteca de quem é dono do journal (a sua, ou a do perfil público).
    */
   protected carregarJogos(): void {
     this.erroCatalogo.set(null);
+    const dono = this.donoId();
+    if (this.publico() && !dono) { this.jogos.set([]); return; }
     const origem: Observable<Pick<Jogo, 'id' | 'titulo'>[]> = this.publico()
-      ? this.catalogo.listarJogos()
+      ? this.perfis.biblioteca(dono!).pipe(
+          map((itens) => itens.map((i) => ({ id: i.jogoId, titulo: i.titulo }))
+            .sort((a, b) => a.titulo.localeCompare(b.titulo))),
+        )
       : this.biblioteca.listar().pipe(
           map((itens) => itens.map((i) => ({ id: i.jogoId, titulo: i.titulo }))
             .sort((a, b) => a.titulo.localeCompare(b.titulo))),

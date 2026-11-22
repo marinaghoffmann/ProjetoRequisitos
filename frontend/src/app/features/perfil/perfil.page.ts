@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { NgTemplateOutlet } from '@angular/common';
+import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { ConteudoModeravelComponent } from '../moderacao/conteudo-moderavel.component';
 import { DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -15,7 +15,7 @@ import { PerfilBibliotecaComponent } from './perfil-biblioteca.component';
 import { PerfilReviewsComponent } from './perfil-reviews.component';
 import { FavoritosComponent } from './favoritos.component';
 import { JournalEntradasComponent } from '../journal/journal-entradas.component';
-import { PerfilPublico, PerfilPublicoService } from '../../core/api/perfil-publico.service';
+import { JogoPublico, PerfilPublico, PerfilPublicoService, ZeradoPublico } from '../../core/api/perfil-publico.service';
 import { ItemWishlist, WishlistService } from '../../core/api/wishlist.service';
 import { BibliotecaService } from '../../core/api/biblioteca.service';
 import { ConclusoesService } from '../../core/api/conclusoes.service';
@@ -37,7 +37,7 @@ const GRADIENTES = [
 
 @Component({
   selector: 'app-perfil-page',
-  imports: [RouterLink, NgTemplateOutlet, ConteudoModeravelComponent, PerfilReviewsComponent, PerfilListasComponent, PerfilBibliotecaComponent, FavoritosComponent, JournalEntradasComponent],
+  imports: [RouterLink, NgTemplateOutlet, DatePipe, ConteudoModeravelComponent, PerfilReviewsComponent, PerfilListasComponent, PerfilBibliotecaComponent, FavoritosComponent, JournalEntradasComponent],
   templateUrl: './perfil.page.html',
   styleUrl: './perfil.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -67,6 +67,9 @@ export class PerfilPage implements OnInit {
   protected readonly avatar = computed(() => this.imagem(this.usuario()?.avatarUrl));
   protected readonly banner = computed(() => this.imagem(this.usuario()?.bannerUrl));
 
+  /** Biblioteca e zerados de outro usuário (visão pública). */
+  protected readonly bibliotecaPublica = signal<JogoPublico[] | null>(null);
+  protected readonly zeradosPublicos = signal<ZeradoPublico[] | null>(null);
   protected readonly emAndamento = signal<JogoEmAndamento[]>([]);
   protected readonly itensWishlist = signal<ItemWishlist[]>([]);
   protected readonly carregando = signal(true);
@@ -101,6 +104,8 @@ export class PerfilPage implements OnInit {
       this.itensWishlist.set([]);
       this.totalJogos.set(null);
       this.totalZerados.set(null);
+      this.bibliotecaPublica.set(null);
+      this.zeradosPublicos.set(null);
       this.aba.set('Atividade');
       this.carregarPerfil();
     });
@@ -113,7 +118,13 @@ export class PerfilPage implements OnInit {
     this.perfis.consultar(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (perfil) => {
         this.usuario.set(perfil);
-        if (this.podeEditar()) this.recarregar();
+        if (this.podeEditar()) {
+          this.recarregar();
+        } else {
+          this.totalJogos.set(perfil.totalJogos);
+          this.totalZerados.set(perfil.totalZerados);
+          this.carregarPublicos(id);
+        }
       },
       error: (erro: ErroApi) => this.erro.set(erro.mensagem),
     });
@@ -164,6 +175,17 @@ export class PerfilPage implements OnInit {
     this.carregarWishlist();
     this.carregarTotalBiblioteca();
     this.carregarTotalZerados();
+  }
+
+  private carregarPublicos(id: string): void {
+    this.perfis.biblioteca(id).subscribe({
+      next: (itens) => this.bibliotecaPublica.set(itens),
+      error: () => this.bibliotecaPublica.set([]),
+    });
+    this.perfis.zerados(id).subscribe({
+      next: (lista) => this.zeradosPublicos.set(lista),
+      error: () => this.zeradosPublicos.set([]),
+    });
   }
 
   private carregarTotalZerados(): void {

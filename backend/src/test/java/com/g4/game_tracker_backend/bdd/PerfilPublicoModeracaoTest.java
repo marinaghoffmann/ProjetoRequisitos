@@ -11,6 +11,9 @@ import org.junit.jupiter.api.Test;
 
 import com.g4.game_tracker_backend.aplicacao.biblioteca.perfil.ConsultarPerfilPublico;
 import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.biblioteca.acervo.BibliotecaRepositorio;
+import com.g4.game_tracker_backend.dominio.biblioteca.acervo.CatalogoDeJogos;
+import com.g4.game_tracker_backend.dominio.biblioteca.conclusoes.RegistroDeConclusaoRepositorio;
 import com.g4.game_tracker_backend.dominio.biblioteca.perfil.PerfilFavoritos;
 import com.g4.game_tracker_backend.dominio.biblioteca.perfil.PerfilFavoritosRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
@@ -31,7 +34,8 @@ class PerfilPublicoModeracaoTest {
                 null, "Biografia", "Recife", "/uploads/perfil/avatar/a.jpg", "/uploads/perfil/banner/b.jpg");
         when(usuarios.buscarPorId(id)).thenReturn(Optional.of(usuario));
         when(favoritos.buscar(id)).thenReturn(new PerfilFavoritos(id, List.of()));
-        var consulta = new ConsultarPerfilPublico(usuarios, favoritos, jogos, moderacao);
+        var consulta = new ConsultarPerfilPublico(usuarios, favoritos, jogos, moderacao,
+                mock(BibliotecaRepositorio.class), mock(CatalogoDeJogos.class), mock(RegistroDeConclusaoRepositorio.class));
 
         when(moderacao.visivel(TipoConteudo.PERFIL, id)).thenReturn(false, true);
         var oculto = consulta.consultar(id);

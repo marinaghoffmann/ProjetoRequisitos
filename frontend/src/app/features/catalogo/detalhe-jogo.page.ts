@@ -153,7 +153,7 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
           <div class="principal">
             @if (autenticacao.usuarioAtual()) {
               <section class="painel">
-                <app-conclusoes-jogo [jogoId]="j.id" (alterado)="estatisticas.recarregar()" />
+                <app-conclusoes-jogo [jogoId]="j.id" (alterado)="estatisticas.recarregar(); carregarBiblioteca()" />
               </section>
             }
             <section class="painel">
@@ -352,7 +352,7 @@ export class DetalheJogoPage {
       next: () => {
         this.escolhendoSubstituto.set(false);
         this.recarregar();
-        this.adicionarNaBiblioteca(id);
+        this.carregarBiblioteca();
       },
       error: (e: ErroApi) => this.erroJogando.set(e.mensagem),
     });
@@ -360,30 +360,10 @@ export class DetalheJogoPage {
 
   // ===== Biblioteca =====
 
-  private carregarBiblioteca(): void {
+  protected carregarBiblioteca(): void {
     this.biblioteca.listar().subscribe({
       next: (itens) => this.bibliotecaIds.set(itens.map((i) => i.jogoId)),
       error: () => {},
-    });
-  }
-
-  /** "Jogar agora" também coloca o jogo na biblioteca (se ainda não estiver). */
-  private adicionarNaBiblioteca(id: string): void {
-    this.feedbackBiblioteca.set('');
-    if (this.bibliotecaIds().includes(id)) return;
-    this.biblioteca.adicionar(id).subscribe({
-      next: () => {
-        this.bibliotecaIds.update((ids) => [...ids, id]);
-        this.feedbackBiblioteca.set('Jogo adicionado à sua biblioteca.');
-      },
-      // Pode já estar lá (ex.: a lista ainda não tinha carregado): confere antes de acusar erro.
-      error: (e: ErroApi) => this.biblioteca.listar().subscribe({
-        next: (itens) => {
-          this.bibliotecaIds.set(itens.map((i) => i.jogoId));
-          if (!itens.some((i) => i.jogoId === id)) this.erroJogando.set(e.mensagem);
-        },
-        error: () => this.erroJogando.set(e.mensagem),
-      }),
     });
   }
 

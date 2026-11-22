@@ -81,13 +81,59 @@
         <app-favoritos [favoritos]="u.favoritos" [editavel]="false" (alterado)="carregarPerfil()" />
       }
 
+      @if (!podeEditar()) {
+        <section class="pf-secao">
+          <div class="pf-secao__cab">
+            <div>
+              <h2>Biblioteca</h2>
+              <p>{{ bibliotecaPublica()?.length ?? 0 }} {{ bibliotecaPublica()?.length === 1 ? 'jogo' : 'jogos' }}</p>
+            </div>
+          </div>
+          @if (!bibliotecaPublica()?.length) {
+            <p class="pf-estado">Nenhum jogo na biblioteca.</p>
+          } @else {
+            <ul class="pf-jogando">
+              @for (item of bibliotecaPublica(); track item.jogoId; let i = $index) {
+                <li class="pf-jogo">
+                  <a class="pf-jogo__capa" [routerLink]="['/catalogo', item.jogoId]" [style.--capa]="capa(item)" [style.background]="gradiente(i)" [attr.aria-label]="'Abrir ' + item.titulo"></a>
+                  <div class="pf-jogo__corpo">
+                    <a class="pf-jogo__titulo" [routerLink]="['/catalogo', item.jogoId]">{{ item.titulo }}</a>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        <section class="pf-secao">
+          <div class="pf-secao__cab">
+            <div>
+              <h2>Zerados</h2>
+              <p>{{ zeradosPublicos()?.length ?? 0 }} {{ zeradosPublicos()?.length === 1 ? 'jogo' : 'jogos' }}</p>
+            </div>
+          </div>
+          @if (!zeradosPublicos()?.length) {
+            <p class="pf-estado">Nenhum jogo zerado registrado.</p>
+          } @else {
+            <ul>
+              @for (z of zeradosPublicos(); track z.jogoId) {
+                <li class="pf-estado">
+                  <a class="pf-jogo__titulo" [routerLink]="['/catalogo', z.jogoId]">{{ z.titulo }}</a>
+                  · {{ z.totalConclusoes }}x · última em {{ z.ultimaConclusao | date: 'dd/MM/yyyy' }}
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      }
+
       @if (visualizacaoPublica()) {
         <app-journal-entradas [publico]="true" [donoId]="u.id" [embutido]="true" />
       }
 
       @if (aba() === 'Biblioteca' && podeEditar()) {
       <app-favoritos [favoritos]="u.favoritos" [editavel]="true" (alterado)="carregarPerfil()" />
-      <app-perfil-biblioteca (totalAlterado)="totalJogos.set($event)" />
+      <app-perfil-biblioteca (totalAlterado)="totalJogos.set($event)" (removido)="carregarPerfil()" />
       } @else if (aba() === 'Reviews') {
       <app-perfil-reviews />
       } @else if (aba() === 'Listas') {

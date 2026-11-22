@@ -10,6 +10,7 @@ import java.util.UUID;
 import com.g4.game_tracker_backend.aplicacao.compartilhado.ExecutorDeTransacao;
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.aplicacao.moderacao.EstadoPublico;
+import com.g4.game_tracker_backend.dominio.biblioteca.acervo.BibliotecaRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.StatusCatalogo;
 import com.g4.game_tracker_backend.dominio.compartilhado.RecursoNaoEncontradoException;
@@ -32,10 +33,11 @@ public class GerenciarJournal {
     private final ExecutorDeTransacao transacao;
     private final Clock relogio;
     private final EstadoPublico moderacao;
+    private final BibliotecaRepositorio biblioteca;
 
     public GerenciarJournal(EntradaDeJournalRepositorio entradas, AnexoJournalRepositorio anexos,
             JogoRepositorio jogos, VerificadorDeAcesso acesso, ExecutorDeTransacao transacao, Clock relogio,
-            EstadoPublico moderacao) {
+            EstadoPublico moderacao, BibliotecaRepositorio biblioteca) {
         this.entradas = entradas;
         this.anexos = anexos;
         this.jogos = jogos;
@@ -43,12 +45,13 @@ public class GerenciarJournal {
         this.transacao = transacao;
         this.relogio = relogio;
         this.moderacao = moderacao;
+        this.biblioteca = biblioteca;
     }
 
     public EntradaDeJournal criar(DadosEntrada dados, List<ImagemDoJournal> imagens) {
         return transacao.executar(() -> {
             UUID dono = acesso.usuarioAtualId();
-            validarDados(dados, true);
+            validarDados(dono, dados, true);
             var entrada = EntradaDeJournal.criarManual(dono, dados.jogoId(),
                     dados.dataSessao().atStartOfDay(ZoneOffset.UTC).toInstant(), dados.titulo(), dados.texto(),
                     dados.tags(), dados.contemSpoiler(), relogio.instant());
@@ -67,7 +70,7 @@ public class GerenciarJournal {
             // F-14: entrada oculta ou removida pela moderação não pode ser editada.
             moderacao.exigirAtivo(TipoConteudo.JOURNAL, id);
             anterior.exigirEdicaoManual(dono);
-            validarDados(dados, dados != null && !Objects.equals(anterior.jogoId(), dados.jogoId()));
+            validarDados(dono, dados, dados != null && !Objects.equals(anterior.jogoId(), dados.jogoId()));
             var editada = anterior.editar(dono, dados.jogoId(),
                     dados.dataSessao().atStartOfDay(ZoneOffset.UTC).toInstant(), dados.titulo(), dados.texto(),
                     dados.tags(), dados.contemSpoiler(), relogio.instant());
@@ -127,15 +130,19 @@ public class GerenciarJournal {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Entrada não encontrada"));
     }
 
-    private void validarDados(DadosEntrada dados, boolean exigirAtivo) {
+    /** Entradas manuais só podem se referir a jogos da biblioteca do próprio usuário (entradas automáticas não passam aqui). */
+    private void validarDados(UUID dono, DadosEntrada dados, boolean verificarJogo) {
         if (dados == null || dados.dataSessao() == null) {
             throw new RegraDeNegocioException("A data da jogatina é obrigatória");
         }
         if (dados.jogoId() != null) {
             var jogo = jogos.buscarPorId(dados.jogoId())
                     .orElseThrow(() -> new RecursoNaoEncontradoException("Jogo não encontrado"));
-            if (exigirAtivo && jogo.status() != StatusCatalogo.ATIVO) {
+            if (verificarJogo && jogo.status() != StatusCatalogo.ATIVO) {
                 throw new RegraDeNegocioException("O jogo precisa estar ativo no catálogo");
+            }
+            if (verificarJogo && !biblioteca.existe(dono, dados.jogoId())) {
+                throw new RegraDeNegocioException("Adicione o jogo à sua biblioteca para registrar uma entrada no Journal");
             }
         }
     }

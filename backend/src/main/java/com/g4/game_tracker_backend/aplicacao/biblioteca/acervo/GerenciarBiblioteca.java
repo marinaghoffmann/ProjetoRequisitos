@@ -7,7 +7,9 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.g4.game_tracker_backend.aplicacao.compartilhado.ExecutorDeTransacao;
 import com.g4.game_tracker_backend.aplicacao.identidade.ConsultarUsuarioAtual;
+import com.g4.game_tracker_backend.dominio.biblioteca.perfil.PerfilFavoritosRepositorio;
 import com.g4.game_tracker_backend.dominio.biblioteca.acervo.BibliotecaRepositorio;
 import com.g4.game_tracker_backend.dominio.biblioteca.acervo.CatalogoDeJogos;
 import com.g4.game_tracker_backend.dominio.biblioteca.acervo.CatalogoDeJogos.JogoResumo;
@@ -26,12 +28,16 @@ public class GerenciarBiblioteca {
   private final BibliotecaRepositorio repositorio;
   private final CatalogoDeJogos catalogo;
   private final ConsultarUsuarioAtual usuarioAtual;
+  private final PerfilFavoritosRepositorio favoritos;
+  private final ExecutorDeTransacao transacao;
 
   public GerenciarBiblioteca(BibliotecaRepositorio repositorio, CatalogoDeJogos catalogo,
-      ConsultarUsuarioAtual usuarioAtual) {
+      ConsultarUsuarioAtual usuarioAtual, PerfilFavoritosRepositorio favoritos, ExecutorDeTransacao transacao) {
     this.repositorio = repositorio;
     this.catalogo = catalogo;
     this.usuarioAtual = usuarioAtual;
+    this.favoritos = favoritos;
+    this.transacao = transacao;
   }
 
   public List<Item> listar() {
@@ -53,8 +59,13 @@ public class GerenciarBiblioteca {
     return paraItem(repositorio.salvar(ItemBiblioteca.adicionar(usuarioId, jogoId)), jogo);
   }
 
+  /** Remove da biblioteca e, na mesma transação, tira o jogo dos favoritos do usuário. */
   public void remover(UUID jogoId) {
-    repositorio.remover(usuarioAtual.executar().id(), jogoId);
+    UUID usuarioId = usuarioAtual.executar().id();
+    transacao.executarSemRetorno(() -> {
+      repositorio.remover(usuarioId, jogoId);
+      favoritos.salvar(favoritos.buscarParaAlterar(usuarioId).remover(jogoId));
+    });
   }
 
   private static Item paraItem(ItemBiblioteca item, JogoResumo jogo) {

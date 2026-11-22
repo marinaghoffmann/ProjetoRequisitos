@@ -3,6 +3,7 @@ package com.g4.game_tracker_backend.aplicacao.biblioteca;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.g4.game_tracker_backend.aplicacao.biblioteca.acervo.GarantirNaBiblioteca;
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.biblioteca.JogandoAgora;
 import com.g4.game_tracker_backend.dominio.biblioteca.JogandoAgoraRepositorio;
@@ -18,11 +19,14 @@ public class MarcarJogandoAgora {
     private final JogandoAgoraRepositorio registros;
     private final JogoRepositorio jogos;
     private final VerificadorDeAcesso acesso;
+    private final GarantirNaBiblioteca garantirNaBiblioteca;
 
-    public MarcarJogandoAgora(JogandoAgoraRepositorio registros, JogoRepositorio jogos, VerificadorDeAcesso acesso) {
+    public MarcarJogandoAgora(JogandoAgoraRepositorio registros, JogoRepositorio jogos, VerificadorDeAcesso acesso,
+            GarantirNaBiblioteca garantirNaBiblioteca) {
         this.registros = registros;
         this.jogos = jogos;
         this.acesso = acesso;
+        this.garantirNaBiblioteca = garantirNaBiblioteca;
     }
 
     @Transacional
@@ -34,6 +38,8 @@ public class MarcarJogandoAgora {
         if (registros.buscarAtivo(usuarioId, jogoId).isPresent()) {
             throw new RegraDeNegocioException("Você já está jogando este jogo");
         }
+        // Jogar agora implica ter o jogo na biblioteca.
+        garantirNaBiblioteca.executar(usuarioId, jogoId);
         // RN 1 e RN 2: no limite, exige escolher qual jogo substituir antes de gravar.
         if (registros.contarAtivos(usuarioId) >= JogandoAgora.LIMITE) {
             if (substituirJogoId == null) {

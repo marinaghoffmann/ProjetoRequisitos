@@ -1,5 +1,6 @@
 package com.g4.game_tracker_backend.apresentacao.biblioteca.perfil;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.g4.game_tracker_backend.aplicacao.biblioteca.perfil.ConsultarPerfilPublico;
 import com.g4.game_tracker_backend.aplicacao.biblioteca.perfil.GerenciarFavoritos;
+import com.g4.game_tracker_backend.dominio.biblioteca.conclusoes.ResumoJogoZerado;
 import com.g4.game_tracker_backend.dominio.compartilhado.RegraDeNegocioException;
 
 @RestController
@@ -36,6 +38,16 @@ public class PerfilPublicoController {
     @GetMapping("/{id}")
     public ConsultarPerfilPublico.PerfilPublico perfil(@PathVariable UUID id) {
         return consultar.consultar(id);
+    }
+
+    @GetMapping("/{id}/biblioteca")
+    public List<ConsultarPerfilPublico.JogoPublico> biblioteca(@PathVariable UUID id) {
+        return consultar.biblioteca(id);
+    }
+
+    @GetMapping("/{id}/zerados")
+    public List<ResumoJogoZerado> zerados(@PathVariable UUID id) {
+        return consultar.zerados(id);
     }
 
     @PostMapping("/me/favoritos")

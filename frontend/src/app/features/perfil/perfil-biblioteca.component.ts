@@ -93,6 +93,8 @@ export class PerfilBibliotecaComponent implements OnInit {
 
   /** Avisa o perfil sempre que o total de jogos da biblioteca muda. */
   readonly totalAlterado = output<number>();
+  /** Avisa que um jogo saiu da biblioteca (e, no backend, também dos favoritos). */
+  readonly removido = output<void>();
 
   protected readonly gradiente = GRADIENTE;
   protected readonly itens = signal<ItemBiblioteca[]>([]);
@@ -172,7 +174,7 @@ export class PerfilBibliotecaComponent implements OnInit {
   protected remover(jogoId: string): void {
     this.erro.set(null);
     this.servico.remover(jogoId).subscribe({
-      next: () => { this.itens.update((l) => l.filter((i) => i.jogoId !== jogoId)); this.totalAlterado.emit(this.itens().length); },
+      next: () => { this.itens.update((l) => l.filter((i) => i.jogoId !== jogoId)); this.totalAlterado.emit(this.itens().length); this.removido.emit(); },
       error: (e: ErroApi) => this.erro.set(e.mensagem),
     });
   }
