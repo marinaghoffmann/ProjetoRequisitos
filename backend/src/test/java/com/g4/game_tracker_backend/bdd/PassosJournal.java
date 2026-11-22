@@ -19,6 +19,7 @@ import java.util.stream.IntStream;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.g4.game_tracker_backend.aplicacao.biblioteca.acervo.GarantirNaBiblioteca;
 import com.g4.game_tracker_backend.aplicacao.journal.ConsultarJournal;
 import com.g4.game_tracker_backend.aplicacao.journal.ConsultarTimeline;
 import com.g4.game_tracker_backend.aplicacao.journal.GerenciarJournal;
@@ -40,6 +41,7 @@ public class PassosJournal {
     private final ConsultarTimeline timeline;
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transacao;
+    private final GarantirNaBiblioteca garantir;
     private UUID entradaId;
     private UUID donoId;
     private UUID descartada;
@@ -49,15 +51,36 @@ public class PassosJournal {
     private long imagensAntes;
 
     public PassosJournal(DadosDoCenario dados, ContextoDoCenario contexto, GerenciarJournal gerenciar,
-            ConsultarJournal consultar, ConsultarTimeline timeline, JdbcTemplate jdbc, TransactionTemplate transacao) {
+            ConsultarJournal consultar, ConsultarTimeline timeline, JdbcTemplate jdbc, TransactionTemplate transacao,
+            GarantirNaBiblioteca garantir) {
         this.dados = dados; this.contexto = contexto; this.gerenciar = gerenciar;
         this.consultar = consultar; this.timeline = timeline; this.jdbc = jdbc; this.transacao = transacao;
+        this.garantir = garantir;
+    }
+
+    /** Coloca o jogo na biblioteca do jogador atual (regra: só registra no Journal jogo da biblioteca). */
+    private UUID naBiblioteca(String jogo) {
+        var id = dados.jogo(jogo).id();
+        garantir.executar(dados.jogadorAtual().id(), id);
+        return id;
     }
 
     @Quando("o jogador cria uma entrada no journal sobre {string} com as tags {string}")
     public void criarComTags(String jogo, String tags) {
-        contexto.executar(() -> guardar(gerenciar.criar(new DadosEntrada(dados.jogo(jogo).id(), LocalDate.now(),
+        contexto.executar(() -> guardar(gerenciar.criar(new DadosEntrada(naBiblioteca(jogo), LocalDate.now(),
                 "Uma descoberta", "Explorei o mundo", List.of(tags.split(",")), false), List.of())));
+    }
+
+    @Quando("o jogador cria uma entrada no journal sobre {string} sem ter o jogo na biblioteca")
+    public void criarSemBiblioteca(String jogo) {
+        contexto.executar(() -> guardar(gerenciar.criar(new DadosEntrada(dados.jogo(jogo).id(), LocalDate.now(),
+                "Uma descoberta", "Explorei o mundo", List.of(), false), List.of())));
+    }
+
+    @Quando("o jogador troca o jogo da entrada por {string} sem tê-lo na biblioteca")
+    public void trocarJogoSemBiblioteca(String jogo) {
+        contexto.executar(() -> gerenciar.editar(entradaId, new DadosEntrada(dados.jogo(jogo).id(), LocalDate.now(),
+                "Sessão de jogo", textoOriginal, List.of(), false), null, List.of()));
     }
 
     @Dado("que o jogador possui uma entrada no journal com o texto {string}")

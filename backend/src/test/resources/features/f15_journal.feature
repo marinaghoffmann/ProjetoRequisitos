@@ -106,3 +106,12 @@ Funcionalidade: F-15 Gerenciamento completo do journal individual
     Dado que o jogador "joao" possui uma entrada no journal
     Quando o jogador "marina" tenta editar a entrada de "joao"
     Então a operação deve ser recusada com a mensagem "Apenas o dono pode alterar esta entrada"
+
+  Cenário: Entrada sobre jogo fora da biblioteca é recusada
+    Quando o jogador cria uma entrada no journal sobre "Hades" sem ter o jogo na biblioteca
+    Então a operação deve ser recusada com a mensagem "Adicione o jogo à sua biblioteca para registrar uma entrada no Journal"
+
+  Cenário: Trocar o jogo da entrada por um fora da biblioteca é recusado
+    Dado que o jogador possui uma entrada no journal com o texto "Sessão"
+    Quando o jogador troca o jogo da entrada por "Hades" sem tê-lo na biblioteca
+    Então a operação deve ser recusada com a mensagem "Adicione o jogo à sua biblioteca para registrar uma entrada no Journal"

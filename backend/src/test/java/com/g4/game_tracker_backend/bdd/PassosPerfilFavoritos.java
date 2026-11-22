@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.g4.game_tracker_backend.aplicacao.biblioteca.acervo.GarantirNaBiblioteca;
 import com.g4.game_tracker_backend.aplicacao.biblioteca.perfil.ConsultarPerfilPublico;
 import com.g4.game_tracker_backend.aplicacao.biblioteca.perfil.GerenciarFavoritos;
 import com.g4.game_tracker_backend.aplicacao.identidade.EditarPerfil;
@@ -25,24 +26,33 @@ public class PassosPerfilFavoritos {
     private final ConsultarPerfilPublico consultar;
     private final EditarPerfil editarPerfil;
     private final UsuarioRepositorio usuarios;
+    private final GarantirNaBiblioteca garantir;
     private ConsultarPerfilPublico.PerfilPublico consultado;
     private String bioEsperada;
     private String capaEsperada;
 
     public PassosPerfilFavoritos(DadosDoCenario dados, ContextoDoCenario contexto,
             GerenciarFavoritos favoritos, ConsultarPerfilPublico consultar,
-            EditarPerfil editarPerfil, UsuarioRepositorio usuarios) {
+            EditarPerfil editarPerfil, UsuarioRepositorio usuarios, GarantirNaBiblioteca garantir) {
         this.dados = dados;
         this.contexto = contexto;
         this.favoritos = favoritos;
         this.consultar = consultar;
         this.editarPerfil = editarPerfil;
         this.usuarios = usuarios;
+        this.garantir = garantir;
+    }
+
+    /** Coloca o jogo na biblioteca do jogador atual (regra: só jogos da biblioteca viram favoritos). */
+    private UUID naBiblioteca(String jogo) {
+        var id = dados.jogo(jogo).id();
+        garantir.executar(dados.jogadorAtual().id(), id);
+        return id;
     }
 
     @Quando("o jogador fixa o jogo {string} no slot {int}")
     public void fixaJogo(String jogo, int slot) {
-        contexto.executar(() -> favoritos.adicionar(dados.jogo(jogo).id(), slot));
+        contexto.executar(() -> favoritos.adicionar(naBiblioteca(jogo), slot));
     }
 
     @Dado("que o jogador tem os 4 slots de favoritos ocupados")
@@ -52,25 +62,25 @@ public class PassosPerfilFavoritos {
 
     @Quando("o jogador fixa o jogo {string} como favorito sem escolher slot")
     public void fixaSemSlot(String jogo) {
-        contexto.executar(() -> favoritos.adicionar(dados.jogo(jogo).id(), null));
+        contexto.executar(() -> favoritos.adicionar(naBiblioteca(jogo), null));
     }
 
     @Dado("que o jogador tem os favoritos {string} no slot 1, {string} no slot 2, {string} no slot 3 e {string} no slot 4")
     public void prepararQuatro(String a, String b, String c, String d) {
         for (String jogo : List.of(a, b, c, d)) {
-            favoritos.adicionar(dados.jogo(jogo).id(), null);
+            favoritos.adicionar(naBiblioteca(jogo), null);
         }
     }
 
     @Dado("que o jogador tem os favoritos {string} no slot 2 e {string} no slot 1")
     public void prepararDois(String segundo, String primeiro) {
-        favoritos.adicionar(dados.jogo(primeiro).id(), 1);
-        favoritos.adicionar(dados.jogo(segundo).id(), 2);
+        favoritos.adicionar(naBiblioteca(primeiro), 1);
+        favoritos.adicionar(naBiblioteca(segundo), 2);
     }
 
     @Dado("que o jogador tem o jogo {string} no slot {int}")
     public void possuiJogo(String jogo, int slot) {
-        favoritos.adicionar(dados.jogo(jogo).id(), slot);
+        favoritos.adicionar(naBiblioteca(jogo), slot);
     }
 
     @Quando("o jogador move o favorito {string} para o slot {int}")
@@ -85,6 +95,16 @@ public class PassosPerfilFavoritos {
 
     @Quando("o jogador substitui o slot {int} pelo jogo {string}")
     public void substitui(int slot, String jogo) {
+        contexto.executar(() -> favoritos.substituir(slot, naBiblioteca(jogo)));
+    }
+
+    @Quando("o jogador tenta fixar o jogo {string} sem tê-lo na biblioteca")
+    public void fixaSemBiblioteca(String jogo) {
+        contexto.executar(() -> favoritos.adicionar(dados.jogo(jogo).id(), null));
+    }
+
+    @Quando("o jogador substitui o slot {int} pelo jogo {string} sem tê-lo na biblioteca")
+    public void substituiSemBiblioteca(int slot, String jogo) {
         contexto.executar(() -> favoritos.substituir(slot, dados.jogo(jogo).id()));
     }
 
