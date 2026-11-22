@@ -3,8 +3,9 @@ import { Component, DestroyRef, computed, effect, inject, input, signal, untrack
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { debounceTime, finalize, Subscription } from 'rxjs';
+import { debounceTime, finalize, map, Observable, Subscription } from 'rxjs';
 
+import { BibliotecaService } from '../../core/api/biblioteca.service';
 import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
 import { Pagina } from '../../core/api/forum.service';
 import { EntradaJournal, JournalService } from '../../core/api/journal.service';
@@ -28,14 +29,17 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
 export class JournalEntradasComponent {
   private readonly api = inject(JournalService);
   private readonly catalogo = inject(CatalogoService);
+  private readonly biblioteca = inject(BibliotecaService);
   private readonly builder = inject(FormBuilder).nonNullable;
   private readonly destroyRef = inject(DestroyRef);
   private readonly avisos = inject(AvisosService);
   private consulta?: Subscription;
   readonly publico = input(false);
   readonly donoId = input<string | null>(null);
+  /** true quando exibido dentro do perfil: cabeçalho compacto, no padrão das outras seções. */
+  readonly embutido = input(false);
   protected readonly editor = viewChild(JournalEditorComponent);
-  protected readonly jogos = signal<Jogo[]>([]);
+  protected readonly jogos = signal<Pick<Jogo, 'id' | 'titulo'>[]>([]);
   protected readonly tags = signal<string[]>([]);
   protected readonly pagina = signal<Pagina<EntradaJournal> | null>(null);
   protected readonly carregando = signal(true);
@@ -47,16 +51,23 @@ export class JournalEntradasComponent {
   /** Wallpapers HD da Steam já validados (carregaram de verdade), por jogo. */
   private readonly wallpapers = signal<Record<string, string>>({});
   private readonly wallpapersTentados = new Set<string>();
+  /** Artes verticais HD da Steam já validadas, por jogo (capa em retrato do card). */
+  private readonly capasVerticais = signal<Record<string, string>>({});
+  private readonly capasVerticaisTentadas = new Set<string>();
   protected readonly filtros = this.builder.group({ jogoId: [''], tag: [''], inicio: [''], fim: [''], origem: [''] });
 
   constructor() {
     effect(() => {
       this.publico(); this.donoId();
-      untracked(() => { this.carregar(1); this.carregarTags(); });
+      untracked(() => { this.carregar(1); this.carregarTags(); this.carregarJogos(); });
     });
-    this.carregarJogos();
     // Busca o wallpaper dos jogos que aparecem na página atual.
-    effect(() => { for (const entrada of this.pagina()?.itens ?? []) this.resolverWallpaper(entrada); });
+    effect(() => {
+      for (const entrada of this.pagina()?.itens ?? []) {
+        this.resolverWallpaper(entrada);
+        this.resolverCapaVertical(entrada);
+      }
+    });
     // Filtros aplicados na hora, sem botão "Filtrar".
     this.filtros.valueChanges.pipe(debounceTime(250), takeUntilDestroyed()).subscribe(() => this.carregar(1));
   }
@@ -74,7 +85,7 @@ export class JournalEntradasComponent {
 
   /** A capa do jogo ou, sem jogo, a primeira imagem da sessão (exceto spoiler mascarado). */
   protected capaDe(entrada: EntradaJournal): string | null {
-    const capa = imagemSegura(entrada.jogoCapaUrl);
+    const capa = (entrada.jogoId && this.capasVerticais()[entrada.jogoId]) || imagemSegura(entrada.jogoCapaUrl);
     if (capa) return capa;
     return entrada.anexos.length && !entrada.mascarada ? this.imagem(entrada, entrada.anexos[0].id) : null;
   }
@@ -99,6 +110,24 @@ export class JournalEntradasComponent {
       if (i >= candidatas.length) return;
       const img = new Image();
       img.onload = () => this.wallpapers.update((mapa) => ({ ...mapa, [jogoId]: candidatas[i] }));
+      img.onerror = () => tentar(i + 1);
+      img.src = candidatas[i];
+    };
+    tentar(0);
+  }
+
+  private resolverCapaVertical(entrada: EntradaJournal): void {
+    const jogoId = entrada.jogoId;
+    if (!jogoId || this.capasVerticaisTentadas.has(jogoId)) return;
+    this.capasVerticaisTentadas.add(jogoId);
+    const m = entrada.jogoCapaUrl ? /\/apps\/(\d+)\//.exec(entrada.jogoCapaUrl) : null;
+    if (!m) return;
+    const base = `${STEAM_CDN}/${m[1]}`;
+    const candidatas = [`${base}/library_600x900_2x.jpg`, `${base}/library_600x900.jpg`];
+    const tentar = (i: number): void => {
+      if (i >= candidatas.length) return;
+      const img = new Image();
+      img.onload = () => this.capasVerticais.update((mapa) => ({ ...mapa, [jogoId]: candidatas[i] }));
       img.onerror = () => tentar(i + 1);
       img.src = candidatas[i];
     };
@@ -130,9 +159,19 @@ export class JournalEntradasComponent {
       });
   }
 
+  /**
+   * Opções do filtro "Jogo". No próprio journal: só os jogos da biblioteca do usuário.
+   * No perfil público ainda não há endpoint com a biblioteca de outra pessoa, então segue o catálogo.
+   */
   protected carregarJogos(): void {
     this.erroCatalogo.set(null);
-    this.catalogo.listarJogos().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    const origem: Observable<Pick<Jogo, 'id' | 'titulo'>[]> = this.publico()
+      ? this.catalogo.listarJogos()
+      : this.biblioteca.listar().pipe(
+          map((itens) => itens.map((i) => ({ id: i.jogoId, titulo: i.titulo }))
+            .sort((a, b) => a.titulo.localeCompare(b.titulo))),
+        );
+    origem.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (jogos) => this.jogos.set(jogos),
       error: (erro: ErroApi) => this.erroCatalogo.set(erro.mensagem),
     });

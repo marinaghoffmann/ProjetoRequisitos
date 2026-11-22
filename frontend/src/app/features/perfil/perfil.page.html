@@ -42,8 +42,8 @@
           </p>
 
           <ul class="pf-stats">
-            @for (s of estatisticas; track s) {
-              <li><b>–</b> {{ s }}</li>
+            @for (s of estatisticas(); track s.rotulo) {
+              <li><b>{{ s.valor ?? '–' }}</b> {{ s.rotulo }}</li>
             }
             <li><span class="pf-fazendo">Fazendo</span></li>
           </ul>
@@ -72,24 +72,28 @@
         <button type="button" class="pf-aba" [class.pf-aba--ativa]="aba() === 'Reviews'" (click)="aba.set('Reviews')">Reviews</button>
         <button type="button" class="pf-aba" [class.pf-aba--ativa]="aba() === 'Listas'" (click)="aba.set('Listas')">Listas</button>
         <button type="button" class="pf-aba" [class.pf-aba--ativa]="aba() === 'Journal'" (click)="aba.set('Journal')">Journal</button>
-        @for (a of abas; track a) {
-          <span class="pf-aba pf-aba--breve" title="Fazendo">{{ a }} <i>Fazendo</i></span>
-        }
+        <button type="button" class="pf-aba" [class.pf-aba--ativa]="aba() === 'Biblioteca'" (click)="aba.set('Biblioteca')">Biblioteca</button>
       </nav>
       }
 
-      <app-favoritos [favoritos]="u.favoritos" [editavel]="podeEditar()" (alterado)="carregarPerfil()" />
-
-      @if (visualizacaoPublica()) {
-        <app-journal-entradas [publico]="true" [donoId]="u.id" />
+      <!-- Perfil público: favoritos direto. No meu perfil, ficam só dentro da aba Biblioteca. -->
+      @if (!podeEditar()) {
+        <app-favoritos [favoritos]="u.favoritos" [editavel]="false" (alterado)="carregarPerfil()" />
       }
 
-      @if (aba() === 'Reviews') {
+      @if (visualizacaoPublica()) {
+        <app-journal-entradas [publico]="true" [donoId]="u.id" [embutido]="true" />
+      }
+
+      @if (aba() === 'Biblioteca' && podeEditar()) {
+      <app-favoritos [favoritos]="u.favoritos" [editavel]="true" (alterado)="carregarPerfil()" />
+      <app-perfil-biblioteca (totalAlterado)="totalJogos.set($event)" />
+      } @else if (aba() === 'Reviews') {
       <app-perfil-reviews />
       } @else if (aba() === 'Listas') {
       <app-perfil-listas />
       } @else if (aba() === 'Journal' && podeEditar()) {
-      <app-journal-entradas />
+      <app-journal-entradas [embutido]="true" />
       } @else {
       @if (podeEditar()) {
       <!-- Jogando agora (dados reais) -->

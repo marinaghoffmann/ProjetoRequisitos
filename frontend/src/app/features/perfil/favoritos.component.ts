@@ -3,11 +3,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { finalize, Observable } from 'rxjs';
 
-import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
+import { BibliotecaService } from '../../core/api/biblioteca.service';
 import { Favorito, PerfilPublicoService } from '../../core/api/perfil-publico.service';
 import { ErroApi } from '../../core/http/erro-api';
 
 const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
+
+/** Opção do seletor: só jogos que o usuário tem na biblioteca. */
+interface OpcaoJogo { id: string; titulo: string; }
 
 @Component({
   selector: 'app-favoritos',
@@ -18,7 +21,7 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
 })
 export class FavoritosComponent {
   private readonly api = inject(PerfilPublicoService);
-  private readonly catalogo = inject(CatalogoService);
+  private readonly biblioteca = inject(BibliotecaService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly dialogo = viewChild.required<ElementRef<HTMLDialogElement>>('dialogo');
 
@@ -27,7 +30,7 @@ export class FavoritosComponent {
   readonly alterado = output<void>();
 
   protected readonly slots = [1, 2, 3, 4];
-  protected readonly jogos = signal<Jogo[] | null>(null);
+  protected readonly jogos = signal<OpcaoJogo[] | null>(null);
   protected readonly erro = signal<string | null>(null);
   protected readonly erroCatalogo = signal<string | null>(null);
   protected readonly ocupada = signal(false);
@@ -72,15 +75,18 @@ export class FavoritosComponent {
     this.dialogo().nativeElement.close();
   }
 
+  /** Carrega a biblioteca a cada abertura (ela pode ter mudado desde a última vez). */
   protected carregarJogos(): void {
-    if (this.jogos() || this.carregando()) return;
+    if (this.carregando()) return;
     this.carregando.set(true);
     this.erroCatalogo.set(null);
-    this.catalogo.listarJogos().pipe(
+    this.biblioteca.listar().pipe(
       takeUntilDestroyed(this.destroyRef),
       finalize(() => this.carregando.set(false)),
     ).subscribe({
-      next: (jogos) => this.jogos.set(jogos),
+      next: (itens) => this.jogos.set(
+        itens.map((i) => ({ id: i.jogoId, titulo: i.titulo })).sort((a, b) => a.titulo.localeCompare(b.titulo)),
+      ),
       error: (erro: ErroApi) => this.erroCatalogo.set(erro.mensagem),
     });
   }

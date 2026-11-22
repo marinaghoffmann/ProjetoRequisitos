@@ -11,11 +11,14 @@ import {
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { ErroApi } from '../../core/http/erro-api';
 import { PerfilListasComponent } from './perfil-listas.component';
+import { PerfilBibliotecaComponent } from './perfil-biblioteca.component';
 import { PerfilReviewsComponent } from './perfil-reviews.component';
 import { FavoritosComponent } from './favoritos.component';
 import { JournalEntradasComponent } from '../journal/journal-entradas.component';
 import { PerfilPublico, PerfilPublicoService } from '../../core/api/perfil-publico.service';
 import { ItemWishlist, WishlistService } from '../../core/api/wishlist.service';
+import { BibliotecaService } from '../../core/api/biblioteca.service';
+import { ConclusoesService } from '../../core/api/conclusoes.service';
 
 const ROTULOS_PAPEL: Record<string, string> = {
   COMUM: 'Player',
@@ -34,7 +37,7 @@ const GRADIENTES = [
 
 @Component({
   selector: 'app-perfil-page',
-  imports: [RouterLink, NgTemplateOutlet, ConteudoModeravelComponent, PerfilReviewsComponent, PerfilListasComponent, FavoritosComponent, JournalEntradasComponent],
+  imports: [RouterLink, NgTemplateOutlet, ConteudoModeravelComponent, PerfilReviewsComponent, PerfilListasComponent, PerfilBibliotecaComponent, FavoritosComponent, JournalEntradasComponent],
   templateUrl: './perfil.page.html',
   styleUrl: './perfil.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,6 +47,8 @@ export class PerfilPage implements OnInit {
   private readonly jogando = inject(JogandoAgoraService);
   private readonly perfis = inject(PerfilPublicoService);
   private readonly wishlist = inject(WishlistService);
+  private readonly biblioteca = inject(BibliotecaService);
+  private readonly conclusoes = inject(ConclusoesService);
   private readonly rota = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly idPerfil = signal<string | null>(null);
@@ -72,10 +77,18 @@ export class PerfilPage implements OnInit {
   protected readonly rotulos = ROTULOS_PROGRESSO;
 
   // ===== Ainda não existe backend para estes blocos (aparecem como "Fazendo") =====
-  protected readonly abas = ['Biblioteca'];
   /** Aba exibida: "Atividade" (padrão) ou uma das que já funcionam (Reviews, F-02; Listas, F-04). */
   protected readonly aba = signal('Atividade');
-  protected readonly estatisticas = ['jogos', 'zerados', 'seguidores', 'seguindo'];
+  /** Total de jogos na biblioteca (só conhecido no próprio perfil). */
+  protected readonly totalJogos = signal<number | null>(null);
+  /** Jogos distintos com ao menos um registro de zerado (mesma contagem da página Zerados). */
+  protected readonly totalZerados = signal<number | null>(null);
+  protected readonly estatisticas = computed(() => [
+    { rotulo: this.totalJogos() === 1 ? 'jogo' : 'jogos', valor: this.totalJogos() },
+    { rotulo: this.totalZerados() === 1 ? 'zerado' : 'zerados', valor: this.totalZerados() },
+    { rotulo: 'seguidores', valor: null },
+    { rotulo: 'seguindo', valor: null },
+  ]);
   protected readonly atividades = [1, 2];
   protected readonly barras = [30, 48, 36, 62, 44, 70, 40, 52, 60, 38, 66, 46];
 
@@ -86,6 +99,8 @@ export class PerfilPage implements OnInit {
       this.usuario.set(null);
       this.emAndamento.set([]);
       this.itensWishlist.set([]);
+      this.totalJogos.set(null);
+      this.totalZerados.set(null);
       this.aba.set('Atividade');
       this.carregarPerfil();
     });
@@ -147,6 +162,22 @@ export class PerfilPage implements OnInit {
       },
     });
     this.carregarWishlist();
+    this.carregarTotalBiblioteca();
+    this.carregarTotalZerados();
+  }
+
+  private carregarTotalZerados(): void {
+    this.conclusoes.listarRegistros().subscribe({
+      next: (registros) => this.totalZerados.set(new Set(registros.map((r) => r.jogoId)).size),
+      error: () => this.totalZerados.set(null),
+    });
+  }
+
+  private carregarTotalBiblioteca(): void {
+    this.biblioteca.listar().subscribe({
+      next: (itens) => this.totalJogos.set(itens.length),
+      error: () => this.totalJogos.set(null),
+    });
   }
 
   private carregarWishlist(): void {

@@ -1,9 +1,10 @@
 import { Component, DestroyRef, ElementRef, computed, inject, output, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { finalize, map } from 'rxjs';
 
-import { CatalogoService, Jogo } from '../../core/api/catalogo.service';
+import { BibliotecaService } from '../../core/api/biblioteca.service';
+import { Jogo } from '../../core/api/catalogo.service';
 import { AnexoJournal, EntradaJournal, JournalService } from '../../core/api/journal.service';
 import { ErroApi } from '../../core/http/erro-api';
 
@@ -15,14 +16,15 @@ import { ErroApi } from '../../core/http/erro-api';
 })
 export class JournalEditorComponent {
   private readonly api = inject(JournalService);
-  private readonly catalogo = inject(CatalogoService);
+  private readonly biblioteca = inject(BibliotecaService);
   private readonly builder = inject(FormBuilder).nonNullable;
   private readonly destroyRef = inject(DestroyRef);
   private readonly dialogo = viewChild.required<ElementRef<HTMLDialogElement>>('dialogo');
   readonly salvo = output<void>();
 
   protected readonly entrada = signal<EntradaJournal | null>(null);
-  protected readonly jogos = signal<Jogo[]>([]);
+  /** Só jogos da biblioteca do usuário. */
+  protected readonly jogos = signal<Pick<Jogo, 'id' | 'titulo'>[]>([]);
   protected readonly jogoAusente = computed(() => !!this.entrada()?.jogoId
     && !this.jogos().some((jogo) => jogo.id === this.entrada()?.jogoId));
   protected readonly carregandoJogos = signal(false);
@@ -64,8 +66,12 @@ export class JournalEditorComponent {
     if (this.carregandoJogos()) return;
     this.carregandoJogos.set(true);
     this.erroJogos.set(null);
-    this.catalogo.listarJogos().pipe(takeUntilDestroyed(this.destroyRef),
-      finalize(() => this.carregandoJogos.set(false))).subscribe({
+    this.biblioteca.listar().pipe(
+      map((itens) => itens.map((i) => ({ id: i.jogoId, titulo: i.titulo }))
+        .sort((a, b) => a.titulo.localeCompare(b.titulo))),
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.carregandoJogos.set(false)),
+    ).subscribe({
       next: (jogos) => this.jogos.set(jogos),
       error: (erro: ErroApi) => this.erroJogos.set(erro.mensagem),
     });
