@@ -11,7 +11,7 @@ Atualizado em 18/11/2026, na branch `chore/entrega-final`. Legenda: ✅ cumprido
 | 2 | Java, com Spring Boot, JPA e Angular | ✅ | `backend/pom.xml` (Java 21, Spring Boot 4.1), `frontend/` (Angular 21) |
 | 3a | Descrição do domínio com a linguagem onipresente | ✅ | `entregaveis/dominio/descricao_do_dominio.md` e o `.pdf` regerado dele em 18/11 (markdown-it + Chrome headless). Glossário alinhado ao código (base externa Steam, imagens do fórum, médias da F-17 e exclusão lógica de desenvolvedora). |
 | 3b | Mapa de histórias do usuário | ✅ | `entregaveis/mapa/` |
-| 3c | Protótipos de alta fidelidade | 🟡 `TODO(grupo)` | `entregaveis/prototipo/prototipo.md`: falta o link **público** `*.figma.site` |
+| 3c | Protótipos de alta fidelidade | ✅ | Publicado em https://pearl-spent-94260914.figma.site/ (sem login); links e as 27 telas em `entregaveis/prototipo/prototipo.md` |
 | 3d | Modelo dos subdomínios no Context Mapper (`.cml`) | ✅ | `entregaveis/cml/game_tracker.cml`: 0 erros e 0 avisos no servidor de linguagem do Context Mapper 6.12 (só 5 sugestões informativas de Value Object). Corrigidos 3 repositórios da F-14 declarados fora da entidade raiz. |
 | 3e | Cenários de teste BDD | ✅ | 20 `.feature` em `backend/src/test/resources/features/`: 258 cenários, nenhum `@pendente` |
 | 3f | Automação dos cenários com Cucumber | ✅ | `backend/src/test/java/.../bdd/` (`PassosXxx`, com os novos `PassosWishlist` e `PassosCurrentlyPlaying`): os 258 cenários executam e passam. Relatório em `backend/target/cucumber-relatorio.html` |
@@ -81,7 +81,7 @@ Total: 258 cenários executados e nenhum `@pendente` (cada linha de `Exemplos` c
 ## 5. Antes de entregar (`TODO(grupo)`)
 
 - [ ] Conferir se o repositório está **público** ou com acesso para **@profsauloaraujo**.
-- [ ] **Publicar o Figma Make** e colar o link `*.figma.site` em `entregaveis/prototipo/prototipo.md`.
+- [x] **Publicar o Figma Make** e colar o link `*.figma.site` em `entregaveis/prototipo/prototipo.md` (https://pearl-spent-94260914.figma.site/).
 - [ ] **Trocar os segredos vazados**: gerar outra `APP_SECURITY_JWT_SECRET` (`openssl rand -base64 32`) e outra senha
       de admin em todo ambiente que usou os valores do antigo `.env.backup`.
 - [ ] Cada integrante anexa as suas interações de IA em `entregaveis/ia/interacoes/` e completa a declaração.

@@ -2,11 +2,10 @@
 
 | | Link |
 |---|---|
-| **Protótipo publicado (público, sem login)** | `TODO(grupo)`: publicar o Figma Make e colar aqui o link `https://<nome>.figma.site/` |
+| **Protótipo publicado (público, sem login)** | https://pearl-spent-94260914.figma.site/ |
 | Arquivo de edição no Figma Make (exige login) | https://www.figma.com/make/Hbid18iRVvTGOqfX2p4UNW/Game-Tracker-MVP-Development--Copy-?p=f&t=fS3NxPLv3Ov3KmNI-0 |
 
-> Para publicar: no Figma Make, **Publish** → copiar o endereço `*.figma.site`. O professor precisa abrir o
-> protótipo sem conta no Figma, então o link de edição não serve como entrega.
+> O link publicado abre sem conta no Figma e é o que vale para a entrega. O de edição fica só para o grupo.
 
 ## Capturas das telas
 

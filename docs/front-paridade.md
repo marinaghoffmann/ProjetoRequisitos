@@ -5,7 +5,7 @@ branch `chore/entrega-final`.
 
 **Referência usada.** As capturas do protótipo (`prototipo-telas.zip`, que iria para
 `entregaveis/prototipo/telas/`) **não estavam no repositório nem na máquina** durante o trabalho. O link do
-Figma Make exige login. A paridade foi feita pela descrição tela a tela do roteiro da entrega (B1 a B3), que
+Figma Make exigia login (o protótipo hoje está publicado em https://pearl-spent-94260914.figma.site/). A paridade foi feita pela descrição tela a tela do roteiro da entrega (B1 a B3), que
 cita as medidas, os textos e os componentes de cada captura. As 27 telas do protótipo foram capturadas depois,
 em 21/11/2026, e estão em [`entregaveis/prototipo/telas/`](../entregaveis/prototipo/telas/) com a mesma
 numeração. `TODO(grupo)`: conferir lado a lado com `docs/front-paridade/`.

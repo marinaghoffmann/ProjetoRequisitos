@@ -505,7 +505,7 @@ casos de uso com um instante fixo. Frontend: a seção “Em breve” de `/inici
 - Frontend: `/forum` é a Comunidade, com editor na própria página, filtros por categoria, status e jogo,
   abas Recentes/Em alta e paginação de 5 tópicos. `/forum/{id}` traz cartões de autor, curtidas e respostas
   encadeadas com editor inline. `/forum/novo` e `/forum/{id}/editar` permanecem para compatibilidade.
-  As telas seguem a [referência visual da Comunidade no Figma Make](https://www.figma.com/make/Hbid18iRVvTGOqfX2p4UNW/Game-Tracker-MVP-Development--Copy-?t=zTCKnJrVlLNDiCpq-1).
+  As telas seguem a [referência visual da Comunidade no protótipo publicado](https://pearl-spent-94260914.figma.site/).
 - Cenários BDD em `f13_forum.feature`, com steps em `PassosForum`. Jogadores e jogos de apoio ficam em `DadosDoCenario`,
   compartilhado entre as classes de steps; o step `o jogador "<nome>" autenticado` agora fica em `PassosComuns`.
 
