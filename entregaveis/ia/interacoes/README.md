@@ -28,7 +28,7 @@ Cada arquivo tem:
 |---|---|
 | Marina Hoffmann | [marina-claude-code-2026-11-17.md](marina-claude-code-2026-11-17.md) · `TODO(grupo)`: outras sessões, se houver |
 | Lavínia Maranhão | `TODO(grupo)` |
-| Caio Ferreira | `TODO(grupo)` |
+| Caio Ferreira | [caio-claude-2026-11-22.md](caio-claude-2026-11-22.md) · `TODO(Caio)`: exportar a conversa completa |
 | Davi Marques | [davi-claude-2026-10-a-11.md](davi-claude-2026-10-a-11.md) |
 | Henrique Brito | `TODO(grupo)` |
 | Bruno Mayer | `TODO(grupo)` |

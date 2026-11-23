@@ -348,11 +348,15 @@ export class DetalheJogoPage {
       return;
     }
     this.erroJogando.set(null);
+    this.feedbackBiblioteca.set('');
+    // O backend coloca o jogo na biblioteca ao marcar "Jogar agora"; o aviso só aparece se ele ainda não estava lá.
+    const jaNaBiblioteca = this.bibliotecaIds().includes(id);
     this.jogando.marcar(id, substituir).subscribe({
       next: () => {
         this.escolhendoSubstituto.set(false);
         this.recarregar();
         this.carregarBiblioteca();
+        if (!jaNaBiblioteca) this.feedbackBiblioteca.set('Jogo adicionado à sua biblioteca.');
       },
       error: (e: ErroApi) => this.erroJogando.set(e.mensagem),
     });

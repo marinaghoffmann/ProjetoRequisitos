@@ -1,4 +1,4 @@
-package com.g4.game_tracker_backend.infraestrutura.persistencia.biblioteca.acervo;
+package com.g4.game_tracker_backend.infraestrutura.configuracao;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

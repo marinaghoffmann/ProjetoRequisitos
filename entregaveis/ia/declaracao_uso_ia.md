@@ -14,7 +14,7 @@ descritas abaixo. As interações registradas ficam em [`interacoes/`](interacoe
 |---|---|---|
 | Claude Code (Anthropic) | Marina Hoffmann | Diagnóstico da entrega, refatoração da camada de aplicação da F-19 e da F-20, padrões Proxy e Template Method, correção do CML, Docker e documentação (ver [registro de 17/11/2026](interacoes/marina-claude-code-2026-11-17.md)) |
 | `TODO(grupo)` | Lavínia Maranhão | `TODO(grupo)` |
-| `TODO(grupo)` | Caio Ferreira | `TODO(grupo)` |
+| Claude (Anthropic), pelo navegador | Caio Ferreira | F-01 (catálogo e importação), F-06 (wishlist), F-07 (Currently Playing), biblioteca no perfil e ajustes de CSS (ver [registro](interacoes/caio-claude-2026-11-22.md)) |
 | Claude (Anthropic) e Claude Code | Davi Marques | Backend, steps BDD, telas e documentação da F-18 (anúncios), da F-13 (fórum), da F-17 (estatísticas), da F-16 (journal automático) e da F-21 (reputação); ligação da wishlist (F-06) às estatísticas (ver [registro](interacoes/davi-claude-2026-10-a-11.md)) |
 | Figma e Figma Make | Davi Marques | Protótipo e exportação do protótipo funcional |
 | `TODO(grupo)` | Henrique Brito | `TODO(grupo)` |
