@@ -42,6 +42,16 @@ Funcionalidade: F-08 Gerenciamento de jogos favoritos e personalização do perf
     Quando o jogador fixa o jogo "Hollow Knight" no slot 2
     Então a operação deve ser recusada com a mensagem "Este jogo já está entre os seus favoritos"
 
+  # RN 4 - favoritos só da biblioteca
+  Cenário: Jogo fora da biblioteca não pode ser favorito
+    Quando o jogador tenta fixar o jogo "Celeste" sem tê-lo na biblioteca
+    Então a operação deve ser recusada com a mensagem "Adicione o jogo à sua biblioteca antes de torná-lo favorito"
+
+  Cenário: Substituição também exige o jogo na biblioteca
+    Dado que o jogador tem os favoritos "A" no slot 1, "B" no slot 2, "C" no slot 3 e "D" no slot 4
+    Quando o jogador substitui o slot 2 pelo jogo "E" sem tê-lo na biblioteca
+    Então a operação deve ser recusada com a mensagem "Adicione o jogo à sua biblioteca antes de torná-lo favorito"
+
   # RN 3 - sanitização da biografia e mídias do perfil
   Cenário: Biografia com até 500 caracteres é salva
     Quando o jogador edita a biografia com um texto de 500 caracteres

@@ -150,7 +150,7 @@ Gerenciamento completo de jogos favoritos e personalização do perfil público
 Descrição
 Permite que o usuário selecione, organize e altere a ordem dos seus jogos favoritos fixados no perfil público (slots de 1 a 4), defina uma capa de perfil personalizada e edite a biografia. Permite a remoção, substituição e reordenação dos itens a qualquer momento.
 Entidades envolvidas
-Usuário, Jogo, JogoFavorito, PerfilPublico
+Usuário, Jogo, JogoFavorito, PerfilPublico, ItemBiblioteca
 RN 1
 Título
 limite e reordenação dos slots de favoritos
@@ -166,6 +166,11 @@ Título
 sanitização da biografia e mídias do perfil
 Descrição
 A edição de biografia possui limite de 500 caracteres, e as URLs de imagens de capa personalizadas passam por validação de formato e extensão de mídia permitida (.png, .jpg, .webp).
+RN 4
+Título
+favoritos somente da biblioteca
+Descrição
+O sistema só aceita como favorito (ao adicionar ou substituir um slot) um jogo que esteja na biblioteca do usuário. Marcar "Jogar agora" ou registrar um "zerado" coloca o jogo na biblioteca automaticamente, e remover um jogo da biblioteca o retira também dos favoritos.
 Consultas
 consultar os dados públicos do perfil do usuário, incluindo biografia, capa e os favoritos ordenados do slot 1 ao 4
 Funcionalidade 10
@@ -320,6 +325,11 @@ Título
 controle e mascaramento de spoilers
 Descrição
 Entradas marcadas com a tag contem_spoiler = true são salvas com sinalização específica no banco e exigem ação explícita de clique do leitor para exibição no perfil público.
+RN 4
+Título
+journal manual somente com jogos da biblioteca
+Descrição
+Uma entrada manual só pode ser associada a um jogo que esteja na biblioteca do usuário, ao criar ou ao trocar o jogo da entrada. Entradas automáticas da timeline (F-16) não passam por essa regra, e uma entrada antiga mantém o jogo mesmo que ele saia da biblioteca.
 Consultas
 consultar as entradas de journal do usuário filtrando por jogo, tag ou intervalo de datas
 Complexidade

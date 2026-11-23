@@ -1,7 +1,17 @@
 <section class="journal">
-  <gt-cabecalho-pagina [titulo]="publico() ? 'Journal' : 'Meu Journal'" subtitulo="Memórias, descobertas e histórias das suas sessões.">
-    @if (!publico()) { <button acao type="button" (click)="editor()?.abrir()">＋ Nova entrada</button> }
-  </gt-cabecalho-pagina>
+  @if (embutido()) {
+    <header class="cab">
+      <div>
+        <h2>{{ publico() ? 'Journal' : 'Meu Journal' }}</h2>
+        <p>Memórias, descobertas e histórias das suas sessões.</p>
+      </div>
+      @if (!publico()) { <button type="button" class="cab__novo" (click)="editor()?.abrir()">＋ Nova entrada</button> }
+    </header>
+  } @else {
+    <gt-cabecalho-pagina [titulo]="publico() ? 'Journal' : 'Meu Journal'" subtitulo="Memórias, descobertas e histórias das suas sessões.">
+      @if (!publico()) { <button acao type="button" (click)="editor()?.abrir()">＋ Nova entrada</button> }
+    </gt-cabecalho-pagina>
+  }
 
   <form class="linha-filtros" [formGroup]="filtros" (submit)="$event.preventDefault()" aria-label="Filtros do journal">
     <label>Origem <select formControlName="origem"><option value="">Todas</option><option value="MANUAL">Manuais</option><option value="AUTOMATICO">Automáticas</option></select></label>

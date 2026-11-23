@@ -15,6 +15,19 @@ export interface PerfilPublico {
   avatarUrl: string | null;
   bannerUrl: string | null;
   favoritos: Favorito[];
+  totalJogos: number;
+  totalZerados: number;
+}
+export interface JogoPublico {
+  jogoId: string;
+  titulo: string;
+  capaUrl: string | null;
+}
+export interface ZeradoPublico {
+  jogoId: string;
+  titulo: string;
+  totalConclusoes: number;
+  ultimaConclusao: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -24,6 +37,12 @@ export class PerfilPublicoService {
 
   consultar(id: string) {
     return this.http.get<PerfilPublico>(`${this.base}/${id}`);
+  }
+  biblioteca(id: string) {
+    return this.http.get<JogoPublico[]>(`${this.base}/${id}/biblioteca`);
+  }
+  zerados(id: string) {
+    return this.http.get<ZeradoPublico[]>(`${this.base}/${id}/zerados`);
   }
   adicionar(jogoId: string, slot?: number) {
     return this.http.post<void>(`${this.base}/me/favoritos`, { jogoId, slot });

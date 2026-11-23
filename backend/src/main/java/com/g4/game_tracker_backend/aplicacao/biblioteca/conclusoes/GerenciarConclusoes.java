@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
+import com.g4.game_tracker_backend.aplicacao.biblioteca.acervo.GarantirNaBiblioteca;
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
 import com.g4.game_tracker_backend.dominio.avaliacao.estatisticas.MetricasDoJogoAlteradas;
 import com.g4.game_tracker_backend.dominio.biblioteca.conclusoes.RegistroDeConclusao;
@@ -28,19 +29,23 @@ public class GerenciarConclusoes {
     private final JogoRepositorio jogos;
     private final VerificadorDeAcesso acesso;
     private final PublicadorDeEventos eventos;
+    private final GarantirNaBiblioteca garantirNaBiblioteca;
 
     public GerenciarConclusoes(RegistroDeConclusaoRepositorio registros, JogoRepositorio jogos,
-            VerificadorDeAcesso acesso, PublicadorDeEventos eventos) {
+            VerificadorDeAcesso acesso, PublicadorDeEventos eventos, GarantirNaBiblioteca garantirNaBiblioteca) {
         this.registros = registros;
         this.jogos = jogos;
         this.acesso = acesso;
         this.eventos = eventos;
+        this.garantirNaBiblioteca = garantirNaBiblioteca;
     }
 
     @Transacional
     public RegistroDeConclusao registrar(UUID jogoId, Dados dados) {
         UUID jogadorId = acesso.usuarioAtualId();
         exigirJogoExistente(jogoId);
+        // Marcar zerado implica ter o jogo na biblioteca.
+        garantirNaBiblioteca.executar(jogadorId, jogoId);
 
         Instant agora = Instant.now();
         ZoneId fusoServidor = ZoneId.systemDefault();

@@ -743,6 +743,35 @@ BoundedContext ContextoPerfilJogador implements BibliotecaPessoalSubdomain {
         }
     }
 
+    // Biblioteca: jogos do catalogo que o jogador declara ter (base da RN 4 da F-08 e da RN 4 da F-15)
+    Aggregate Biblioteca {
+
+        Entity ItemBiblioteca {
+            aggregateRoot
+            - @ItemBibliotecaId     itemId
+            - @UsuarioId            usuarioId
+            - @JogoId               jogoId                        // um jogo aparece uma unica vez por usuario
+            DateTime                adicionadoEm
+
+            Repository IBibliotecaRepository {
+                @ItemBiblioteca salvar(@ItemBiblioteca item);
+                Boolean existe(@UsuarioId usuarioId, @JogoId jogoId);
+                void remover(@UsuarioId usuarioId, @JogoId jogoId);
+                List<@ItemBiblioteca> listarPorUsuario(@UsuarioId usuarioId);
+            }
+        }
+
+        ValueObject ItemBibliotecaId { String id }
+
+        // "Jogar agora" (F-07) e "zerado" (F-11) garantem o jogo na biblioteca.
+        Service BibliotecaService {
+            @ItemBiblioteca adicionar(@UsuarioId usuarioId, @JogoId jogoId);
+            void garantirNaBiblioteca(@UsuarioId usuarioId, @JogoId jogoId);
+            void remover(@UsuarioId usuarioId, @JogoId jogoId);    // tambem retira dos favoritos
+            List<@ItemBiblioteca> listar(@UsuarioId usuarioId);
+        }
+    }
+
     // F-08 Gerenciamento de jogos favoritos e personalizacao do perfil publico
     Aggregate PerfilPublico {
 
@@ -752,7 +781,7 @@ BoundedContext ContextoPerfilJogador implements BibliotecaPessoalSubdomain {
             - @UsuarioId            usuarioId
             String                  biografia                     // RN 3: ate 500 caracteres
             - @UrlImagemCapa        capa                          // RN 3: .png, .jpg ou .webp
-            - List<@JogoFavorito>   favoritos                     // RN 1: no maximo 4
+            - List<@JogoFavorito>   favoritos                     // RN 1: no maximo 4; RN 4: so jogos da biblioteca
             DateTime                atualizadoEm
 
             Repository IPerfilPublicoRepository {

@@ -5,6 +5,7 @@ import { CatalogoService, Captura, Desenvolvedora, Genero, Jogo } from '../../co
 import {
   JogandoAgoraService, JogoEmAndamento, LIMITE_JOGANDO_AGORA, Progresso, ROTULOS_PROGRESSO,
 } from '../../core/api/jogando-agora.service';
+import { BibliotecaService } from '../../core/api/biblioteca.service';
 import { AutenticacaoService } from '../../core/auth/autenticacao.service';
 import { PerfilPublicoService } from '../../core/api/perfil-publico.service';
 import { ItemWishlist, WishlistService } from '../../core/api/wishlist.service';
@@ -106,6 +107,7 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
             </div>
 
             @if (erroJogando(); as m) { <p class="erro" role="alert">{{ m }}</p> }
+            @if (feedbackBiblioteca(); as m) { <p role="status">{{ m }}</p> }
             @if (erroFavorito(); as mensagem) { <p class="erro" role="alert">{{ mensagem }}</p> }
             @if (erroWishlist(); as mensagem) { <p class="erro" role="alert">{{ mensagem }}</p> }
             @if (feedbackFavorito(); as mensagem) { <p role="status">{{ mensagem }}</p> }
@@ -151,7 +153,7 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
           <div class="principal">
             @if (autenticacao.usuarioAtual()) {
               <section class="painel">
-                <app-conclusoes-jogo [jogoId]="j.id" (alterado)="estatisticas.recarregar()" />
+                <app-conclusoes-jogo [jogoId]="j.id" (alterado)="estatisticas.recarregar(); carregarBiblioteca()" />
               </section>
             }
             <section class="painel">
@@ -179,11 +181,15 @@ export class DetalheJogoPage {
   private readonly jogando = inject(JogandoAgoraService);
   private readonly perfis = inject(PerfilPublicoService);
   private readonly wishlist = inject(WishlistService);
+  private readonly biblioteca = inject(BibliotecaService);
   protected readonly favoritosIds = signal<string[]>([]);
   protected readonly salvandoFavorito = signal(false);
   protected readonly erroFavorito = signal<string | null>(null);
   protected readonly feedbackFavorito = signal('');
   protected readonly wishlistIds = signal<string[]>([]);
+  /** Jogos que o usuário já tem na biblioteca. */
+  private readonly bibliotecaIds = signal<string[]>([]);
+  protected readonly feedbackBiblioteca = signal('');
   protected readonly salvandoWishlist = signal(false);
   protected readonly erroWishlist = signal<string | null>(null);
 
@@ -257,6 +263,7 @@ export class DetalheJogoPage {
         if (usuario) {
           this.recarregar();
           this.carregarWishlist();
+          this.carregarBiblioteca();
           this.perfis.consultar(usuario.id).subscribe({
             next: (perfil) => this.favoritosIds.set(perfil.favoritos.map((favorito) => favorito.jogoId)),
             error: (erro: ErroApi) => this.erroFavorito.set(erro.mensagem),
@@ -341,9 +348,26 @@ export class DetalheJogoPage {
       return;
     }
     this.erroJogando.set(null);
+    this.feedbackBiblioteca.set('');
+    // O backend coloca o jogo na biblioteca ao marcar "Jogar agora"; o aviso só aparece se ele ainda não estava lá.
+    const jaNaBiblioteca = this.bibliotecaIds().includes(id);
     this.jogando.marcar(id, substituir).subscribe({
-      next: () => { this.escolhendoSubstituto.set(false); this.recarregar(); },
+      next: () => {
+        this.escolhendoSubstituto.set(false);
+        this.recarregar();
+        this.carregarBiblioteca();
+        if (!jaNaBiblioteca) this.feedbackBiblioteca.set('Jogo adicionado à sua biblioteca.');
+      },
       error: (e: ErroApi) => this.erroJogando.set(e.mensagem),
+    });
+  }
+
+  // ===== Biblioteca =====
+
+  protected carregarBiblioteca(): void {
+    this.biblioteca.listar().subscribe({
+      next: (itens) => this.bibliotecaIds.set(itens.map((i) => i.jogoId)),
+      error: () => {},
     });
   }
 

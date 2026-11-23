@@ -425,7 +425,9 @@ Consultas públicas não incluem email, senha ou identificadores de autenticaç�
 
 | Método | Rota | Objetivo |
 |---|---|---|
-| `GET` | `/api/perfis/{id}` | Perfil público e favoritos em ordem |
+| `GET` | `/api/perfis/{id}` | Perfil público, favoritos em ordem, `totalJogos` (biblioteca) e `totalZerados` |
+| `GET` | `/api/perfis/{id}/biblioteca` | Biblioteca de outro jogador (título e capa); vazia se o perfil estiver oculto pela moderação |
+| `GET` | `/api/perfis/{id}/zerados` | Jogos zerados de outro jogador, com total de conclusões e a última data |
 | `POST` | `/api/perfis/me/favoritos` | Adicionar `{ jogoId, slot? }` |
 | `PATCH` | `/api/perfis/me/favoritos/{jogoId}/posicao` | Mover com `{ slot }` |
 | `PUT` | `/api/perfis/me/favoritos/slots/{slot}` | Substituir com `{ jogoId }` |
@@ -434,6 +436,19 @@ Consultas públicas não incluem email, senha ou identificadores de autenticaç�
 As escritas operam exclusivamente sobre o usuário autenticado. O bloqueio da linha do dono serializa
 alterações simultâneas, inclusive na primeira inclusão. As referências a jogos são UUIDs.
 Os cenários de aceitação estão em `f08_perfil_favoritos.feature`, usando os casos de uso e persistência reais.
+
+### Biblioteca
+
+A biblioteca é o conjunto de jogos do catálogo que o jogador declara ter, mostrado na aba do perfil. Só jogos
+da biblioteca podem virar favoritos (RN 4 da F-08) ou ser associados a uma entrada manual do Journal (RN 4 da
+F-15). "Jogar agora" (F-07) e o registro de "zerado" (F-11) colocam o jogo na biblioteca automaticamente, e
+remover um jogo da biblioteca também o tira dos favoritos.
+
+| Método | Rota | Objetivo | Quem pode |
+|---|---|---|---|
+| `GET` | `/api/biblioteca` | Biblioteca do usuário autenticado, da inclusão mais recente para a mais antiga | autenticado |
+| `POST` | `/api/biblioteca/{jogoId}` | Adicionar um jogo (422 se já estiver lá ou se não existir no catálogo) | autenticado |
+| `DELETE` | `/api/biblioteca/{jogoId}` | Remover o jogo da biblioteca e dos favoritos | autenticado |
 
 ## Lançamentos futuros e alertas (F-12)
 

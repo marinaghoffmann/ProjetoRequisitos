@@ -3,6 +3,7 @@ package com.g4.game_tracker_backend.aplicacao.biblioteca.perfil;
 import java.util.UUID;
 
 import com.g4.game_tracker_backend.aplicacao.identidade.VerificadorDeAcesso;
+import com.g4.game_tracker_backend.dominio.biblioteca.acervo.BibliotecaRepositorio;
 import com.g4.game_tracker_backend.dominio.biblioteca.perfil.PerfilFavoritosRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.JogoRepositorio;
 import com.g4.game_tracker_backend.dominio.catalogo.StatusCatalogo;
@@ -16,11 +17,14 @@ public class GerenciarFavoritos {
     private final PerfilFavoritosRepositorio perfis;
     private final JogoRepositorio jogos;
     private final VerificadorDeAcesso acesso;
+    private final BibliotecaRepositorio biblioteca;
 
-    public GerenciarFavoritos(PerfilFavoritosRepositorio perfis, JogoRepositorio jogos, VerificadorDeAcesso acesso) {
+    public GerenciarFavoritos(PerfilFavoritosRepositorio perfis, JogoRepositorio jogos, VerificadorDeAcesso acesso,
+            BibliotecaRepositorio biblioteca) {
         this.perfis = perfis;
         this.jogos = jogos;
         this.acesso = acesso;
+        this.biblioteca = biblioteca;
     }
 
     @Transacional
@@ -28,6 +32,7 @@ public class GerenciarFavoritos {
         var perfil = perfis.buscarParaAlterar(acesso.usuarioAtualId());
         var atualizado = perfil.adicionar(jogoId, slot);
         exigirJogoAtivo(jogoId);
+        exigirNaBiblioteca(jogoId);
         perfis.salvar(atualizado);
     }
 
@@ -42,6 +47,7 @@ public class GerenciarFavoritos {
         var perfil = perfis.buscarParaAlterar(acesso.usuarioAtualId());
         var atualizado = perfil.substituir(slot, jogoId);
         exigirJogoAtivo(jogoId);
+        exigirNaBiblioteca(jogoId);
         perfis.salvar(atualizado);
     }
 
@@ -49,6 +55,13 @@ public class GerenciarFavoritos {
     public void remover(UUID jogoId) {
         var perfil = perfis.buscarParaAlterar(acesso.usuarioAtualId());
         perfis.salvar(perfil.remover(jogoId));
+    }
+
+    /** Favoritos só podem ser jogos da biblioteca do próprio usuário. */
+    private void exigirNaBiblioteca(UUID jogoId) {
+        if (!biblioteca.existe(acesso.usuarioAtualId(), jogoId)) {
+            throw new RegraDeNegocioException("Adicione o jogo à sua biblioteca antes de torná-lo favorito");
+        }
     }
 
     private void exigirJogoAtivo(UUID jogoId) {

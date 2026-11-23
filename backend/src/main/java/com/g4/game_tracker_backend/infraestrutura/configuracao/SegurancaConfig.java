@@ -49,6 +49,8 @@ public class SegurancaConfig {
                         .requestMatchers(HttpMethod.GET, "/api/estatisticas", "/api/busca").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/perfis/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/perfis/*/jogando-agora").permitAll()
+                        // Biblioteca e zerados de outro jogador, para o perfil público
+                        .requestMatchers(HttpMethod.GET, "/api/perfis/*/biblioteca", "/api/perfis/*/zerados").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/perfis/me/wishlist").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/perfis/*/wishlist").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/perfis/*/journal", "/api/perfis/*/journal/*").permitAll()
