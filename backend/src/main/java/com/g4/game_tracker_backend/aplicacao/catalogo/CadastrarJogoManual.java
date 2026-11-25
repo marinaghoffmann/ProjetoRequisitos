@@ -17,7 +17,10 @@ import com.g4.game_tracker_backend.dominio.identidade.UsuarioRepositorio;
 import com.g4.game_tracker_backend.aplicacao.compartilhado.CasoDeUso;
 import com.g4.game_tracker_backend.aplicacao.compartilhado.Transacional;
 
-/** F-01 RN 1 e RN 2: cadastro manual feito por um desenvolvedor vinculado a uma desenvolvedora ativa. */
+/**
+ * F-01 RN 1 e RN 2: cadastro manual feito por um desenvolvedor vinculado a uma
+ * desenvolvedora ativa.
+ */
 @CasoDeUso
 public class CadastrarJogoManual {
 

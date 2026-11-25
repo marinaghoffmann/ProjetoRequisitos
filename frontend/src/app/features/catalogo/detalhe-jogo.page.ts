@@ -27,9 +27,9 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
     SimilaresJogoComponent, ConclusoesJogoComponent,
   ],
   template: `
-    <!-- Fundo do jogo (arte HD da Steam; sem appid cai na capa desfocada) -->
+    <!-- Fundo do jogo (arte HD da Steam; banner do cadastro manual; sem nenhum, a capa desfocada) -->
     @if (fundo(); as f) {
-      <div class="fundo" [class.fundo--capa]="!imagens()['hero']" [style.background-image]="f" aria-hidden="true"></div>
+      <div class="fundo" [class.fundo--capa]="!imagens()['hero'] && !bannerUrl()" [style.background-image]="f" aria-hidden="true"></div>
     }
 
     <div class="conteudo">
@@ -134,9 +134,9 @@ const STEAM_CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps';
           <a routerLink="/forum" [queryParams]="{ jogo: j.id }">Fórum</a>
         </nav>
 
-        @if (capturas().length) {
+        @if (galeria().length) {
           <section class="galeria">
-            @for (c of capturas(); track c.completa) {
+            @for (c of galeria(); track c.completa) {
               <button type="button" (click)="ampliada.set(c.completa)">
                 <img [src]="c.miniatura" alt="Captura de tela" loading="lazy" />
               </button>
@@ -215,6 +215,27 @@ export class DetalheJogoPage {
     () => this.emAndamento().find((e) => e.jogoId === this.jogo()?.id) ?? null,
   );
 
+  private readonly metadados = computed(() => {
+    try { return JSON.parse(this.jogo()?.metadadosJson || '{}'); } catch { return {}; }
+  });
+
+  /** Banner do cadastro manual (metadados.bannerUrl); vazio se não houver ou se o formato for inválido. */
+  protected readonly bannerUrl = computed(() => this.imagemUrl(this.metadados()['bannerUrl']));
+
+  /** Screenshots do cadastro manual (metadados.galerias), no mesmo formato de Captura. */
+  protected readonly capturasManuais = computed<Captura[]>(() => {
+    const lista = this.metadados()['galerias'];
+    if (!Array.isArray(lista)) return [];
+    return lista
+      .map((u) => this.imagemUrl(String(u)))
+      .filter(Boolean)
+      .map((url) => ({ miniatura: url, completa: url }));
+  });
+
+  /** Steam: as da API; manual: as da galeria. */
+  protected readonly galeria = computed(() =>
+    this.capturas().length ? this.capturas() : this.capturasManuais());
+
   // ===== Derivados para a tela =====
   protected readonly ano = computed(() => {
     const d = this.jogo()?.dataLancamento;
@@ -244,21 +265,23 @@ export class DetalheJogoPage {
   protected readonly logo = computed(() => this.imagens()['logo'] ?? '');
   protected readonly capaSrc = computed(() => this.imagens()['capa'] || this.imagemUrl(this.jogo()?.capaUrl));
 
-  /** CSS `background-image` do fundo: arte HD, ou a capa (desfocada via CSS) como plano B. */
+  /** CSS `background-image` do fundo: arte HD da Steam, banner do cadastro manual ou a capa (desfocada via CSS). */
   protected readonly fundo = computed(() => {
-    const img = this.imagens()['hero'] || this.imagemUrl(this.jogo()?.capaUrl);
+    const img = this.imagens()['hero']
+      || this.bannerUrl()
+      || this.imagemUrl(this.jogo()?.capaUrl);
     return img ? `url("${img}")` : null;
   });
 
   constructor() {
     const id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
-    inject(EstatisticasService).consultar(id).subscribe({ next: (f) => this.ficha.set(f), error: () => {} });
+    inject(EstatisticasService).consultar(id).subscribe({ next: (f) => this.ficha.set(f), error: () => { } });
 
     this.catalogo.buscarJogo(id).subscribe({
       next: (j) => {
         this.jogo.set(j);
         this.resolverImagensSteam(j);
-        this.catalogo.capturas(j.id).subscribe({ next: (c) => this.capturas.set(c), error: () => {} });
+        this.catalogo.capturas(j.id).subscribe({ next: (c) => this.capturas.set(c), error: () => { } });
         const usuario = this.autenticacao.usuarioAtual();
         if (usuario) {
           this.recarregar();
@@ -274,8 +297,8 @@ export class DetalheJogoPage {
     });
 
     // Só enfeitam a tela; se falharem, a informação simplesmente não aparece.
-    this.catalogo.listarGeneros().subscribe({ next: (g) => this.generos.set(g), error: () => {} });
-    this.catalogo.listarDesenvolvedoras().subscribe({ next: (d) => this.desenvolvedoras.set(d), error: () => {} });
+    this.catalogo.listarGeneros().subscribe({ next: (g) => this.generos.set(g), error: () => { } });
+    this.catalogo.listarDesenvolvedoras().subscribe({ next: (d) => this.desenvolvedoras.set(d), error: () => { } });
   }
 
   @HostListener('document:keydown.escape')
@@ -367,7 +390,7 @@ export class DetalheJogoPage {
   protected carregarBiblioteca(): void {
     this.biblioteca.listar().subscribe({
       next: (itens) => this.bibliotecaIds.set(itens.map((i) => i.jogoId)),
-      error: () => {},
+      error: () => { },
     });
   }
 
@@ -407,7 +430,7 @@ export class DetalheJogoPage {
   private carregarWishlist(): void {
     this.wishlist.listar().subscribe({
       next: (itens: ItemWishlist[]) => this.wishlistIds.set(itens.map((i) => i.jogoId)),
-      error: () => {},
+      error: () => { },
     });
   }
 

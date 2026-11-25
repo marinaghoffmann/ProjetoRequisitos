@@ -9,3 +9,5 @@
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 26px 20px;
 }
+
+.acoes-cabecalho { display: flex; flex-wrap: wrap; gap: .5rem; }

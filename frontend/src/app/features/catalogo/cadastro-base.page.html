@@ -1,0 +1,69 @@
+<main class="pagina-catalogo">
+  <a class="voltar" routerLink="/catalogo">← Catálogo</a>
+  <h1>Desenvolvedoras e gêneros</h1>
+  <p class="introducao">Cadastre as desenvolvedoras que serão vinculadas a contas de desenvolvedor e os gêneros usados nos jogos.</p>
+
+  @if (erro(); as mensagem) { <p class="mensagem-erro" role="alert">{{ mensagem }}</p> }
+  @if (sucesso(); as mensagem) { <p class="mensagem-sucesso" role="status">{{ mensagem }}</p> }
+
+  @if (carregando()) {
+    <p>Carregando…</p>
+  } @else {
+    <section aria-labelledby="titulo-dev">
+      <h2 id="titulo-dev">Nova desenvolvedora</h2>
+      <form [formGroup]="formDev" (ngSubmit)="cadastrarDesenvolvedora()">
+        <label for="devNome">Nome *</label>
+        <input id="devNome" type="text" formControlName="nome" maxlength="160" />
+
+        <label for="devPais">País</label>
+        <input id="devPais" type="text" formControlName="pais" />
+
+        <label for="devSite">Site</label>
+        <input id="devSite" type="url" formControlName="site" placeholder="https://" />
+
+        <label for="devRedes">Redes sociais</label>
+        <input id="devRedes" type="text" formControlName="redesSociais" />
+
+        <label for="devBio">Biografia</label>
+        <textarea id="devBio" rows="4" formControlName="biografia" maxlength="2000"></textarea>
+
+        <button type="submit" [disabled]="formDev.invalid || salvandoDev()">
+          {{ salvandoDev() ? 'Salvando…' : 'Cadastrar desenvolvedora' }}
+        </button>
+      </form>
+
+      <h3>Desenvolvedoras ({{ desenvolvedoras().length }})</h3>
+      <ul class="lista-simples">
+        @for (d of desenvolvedoras(); track d.id) {
+          <li>
+            <strong>{{ d.nome }}</strong>
+            @if (d.pais) { <span> · {{ d.pais }}</span> }
+            @if (d.ativa) {
+              <button type="button" (click)="desativar(d)">Desativar</button>
+            } @else {
+              <em> (inativa)</em>
+            }
+          </li>
+        } @empty {
+          <li>Nenhuma desenvolvedora cadastrada.</li>
+        }
+      </ul>
+    </section>
+
+    <section aria-labelledby="titulo-genero">
+      <h2 id="titulo-genero">Novo gênero</h2>
+      <form [formGroup]="formGenero" (ngSubmit)="cadastrarGenero()">
+        <label for="generoNome">Nome *</label>
+        <input id="generoNome" type="text" formControlName="nome" maxlength="80" />
+        <button type="submit" [disabled]="formGenero.invalid || salvandoGenero()">
+          {{ salvandoGenero() ? 'Salvando…' : 'Cadastrar gênero' }}
+        </button>
+      </form>
+
+      <h3>Gêneros ({{ generos().length }})</h3>
+      <div class="chips">
+        @for (g of generos(); track g.id) { <span class="chip">{{ g.nome }}</span> }
+      </div>
+    </section>
+  }
+</main>

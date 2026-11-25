@@ -29,22 +29,40 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/identidade/cadastro-privilegiado.page').then((m) => m.CadastroPrivilegiadoPage),
   },
-  { path: 'catalogo/novo', loadComponent: () => import('./features/catalogo/cadastro-jogo.page').then((m) => m.CadastroJogoPage) },
+  {
+    path: 'admin/catalogo/base',
+    canActivate: [papelGuard('ADMINISTRADOR')],
+    loadComponent: () => import('./features/catalogo/cadastros-base.page').then((m) => m.CadastrosBasePage),
+  },
+  {
+    path: 'catalogo/novo',
+    canActivate: [papelGuard('DESENVOLVEDOR', 'ADMINISTRADOR')],
+    loadComponent: () => import('./features/catalogo/cadastro-jogo.page').then((m) => m.CadastroJogoPage),
+  },
   { path: 'catalogo/:id/editar', loadComponent: () => import('./features/catalogo/editar-jogo.page').then((m) => m.EditarJogoPage) },
   { path: 'catalogo/:id', loadComponent: () => import('./features/catalogo/detalhe-jogo.page').then((m) => m.DetalheJogoPage) },
   { path: 'catalogo', loadComponent: () => import('./features/catalogo/catalogo.page').then((m) => m.CatalogoPage) },
   { path: 'marketplace', loadChildren: () => import('./features/marketplace/marketplace.routes') },
-  { path: 'moderacao', canActivate: [papelGuard('MODERADOR', 'ADMINISTRADOR')],
-    loadComponent: () => import('./features/moderacao/moderacao.page').then((m) => m.ModeracaoPage) },
+  {
+    path: 'moderacao', canActivate: [papelGuard('MODERADOR', 'ADMINISTRADOR')],
+    loadComponent: () => import('./features/moderacao/moderacao.page').then((m) => m.ModeracaoPage)
+  },
   { path: 'forum', loadChildren: () => import('./features/forum/forum.routes') },
   { path: 'lancamentos', loadComponent: () => import('./features/lancamentos/lancamentos.page').then(m => m.LancamentosPage) },
-  { path: 'lancamentos/novo', canActivate: [papelGuard('ADMINISTRADOR', 'DESENVOLVEDOR')],
-    loadComponent: () => import('./features/lancamentos/lancamento-form.page').then(m => m.LancamentoFormPage) },
-  { path: 'lancamentos/:id/editar', canActivate: [papelGuard('ADMINISTRADOR', 'DESENVOLVEDOR')],
-    loadComponent: () => import('./features/lancamentos/lancamento-form.page').then(m => m.LancamentoFormPage) },
-  { path: 'notificacoes', canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
-    loadComponent: () => import('./features/notificacoes/notificacoes.page').then(m => m.NotificacoesPage) },
-  { path: 'biblioteca/jogando-agora',
+  {
+    path: 'lancamentos/novo', canActivate: [papelGuard('ADMINISTRADOR', 'DESENVOLVEDOR')],
+    loadComponent: () => import('./features/lancamentos/lancamento-form.page').then(m => m.LancamentoFormPage)
+  },
+  {
+    path: 'lancamentos/:id/editar', canActivate: [papelGuard('ADMINISTRADOR', 'DESENVOLVEDOR')],
+    loadComponent: () => import('./features/lancamentos/lancamento-form.page').then(m => m.LancamentoFormPage)
+  },
+  {
+    path: 'notificacoes', canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
+    loadComponent: () => import('./features/notificacoes/notificacoes.page').then(m => m.NotificacoesPage)
+  },
+  {
+    path: 'biblioteca/jogando-agora',
     canActivate: [papelGuard('COMUM', 'DESENVOLVEDOR', 'MODERADOR', 'ADMINISTRADOR')],
     loadComponent: () => import('./features/biblioteca/jogando-agora.page').then((m) => m.JogandoAgoraPage),
   },
