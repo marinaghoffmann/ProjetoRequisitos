@@ -110,7 +110,10 @@ public class CatalogoController {
                 request.capaUrl(), request.trailerUrl(), serializarMetadados(request.metadados())));
     }
 
-    /** F-01 RN 3: definitiva sem vínculos, lógica com vínculos; a resposta diz qual das duas aconteceu. */
+    /**
+     * F-01 RN 3: definitiva sem vínculos, lógica com vínculos; a resposta diz qual
+     * das duas aconteceu.
+     */
     @DeleteMapping("/jogos/{id}")
     public RemocaoJogoResponse excluir(@PathVariable UUID id) {
         RemoverJogo.Resultado resultado = removerJogo.executar(id);
@@ -122,7 +125,8 @@ public class CatalogoController {
     }
 
     private String serializarMetadados(java.util.Map<String, Object> metadados) {
-        if (metadados == null || metadados.isEmpty()) return "";
+        if (metadados == null || metadados.isEmpty())
+            return "";
         try {
             return objectMapper.writeValueAsString(metadados);
         } catch (JacksonException e) {

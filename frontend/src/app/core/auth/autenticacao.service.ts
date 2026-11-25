@@ -101,6 +101,10 @@ export class AutenticacaoService {
     this.usuarioAtual.set(null);
   }
 
+  vincularDesenvolvedora(usuarioId: string, desenvolvedoraId: string) {
+    return this.http.patch<UsuarioAutenticado>(`/api/usuarios/${usuarioId}/desenvolvedora`, { desenvolvedoraId });
+  }
+
   private guardarUsuario(usuario: UsuarioAutenticado): void {
     sessionStorage.setItem(this.chaveUsuario, JSON.stringify(usuario));
     this.usuarioAtual.set(usuario);

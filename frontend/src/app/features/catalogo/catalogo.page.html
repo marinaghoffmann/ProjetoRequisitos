@@ -2,13 +2,20 @@
   <gt-cabecalho-pagina [eyebrow]="gerenciando() ? 'Gestão do catálogo' : 'Catálogo'"
     [titulo]="gerenciando() ? 'Gerenciar catálogo' : 'Todos os jogos'"
     [subtitulo]="visiveis().length + (visiveis().length === 1 ? ' jogo' : ' jogos') + ' · importados da API ou cadastrados pelo criador'">
-    @if (podeCadastrar()) { <a acao class="botao" routerLink="/catalogo/novo">+ Cadastrar jogo</a> }
+    <div acao class="acoes-cabecalho">
+      @if (podeCadastrar()) { <a class="botao" routerLink="/catalogo/novo">+ Cadastrar jogo</a> }
+      @if (gerenciando() && autenticacao.temPapel('ADMINISTRADOR')) {
+      <a class="botao" routerLink="/admin/catalogo/base">Desenvolvedoras e gêneros</a>
+      <a class="botao" routerLink="/admin/usuarios/novo">Criar conta de desenvolvedor</a>
+      }
+    </div>
   </gt-cabecalho-pagina>
 
   <gt-chips class="generos" [opcoes]="chipsDeGenero()" [(selecionado)]="genero" rotulo="Gêneros" />
 
   <div class="linha-filtros">
-    <label>Título <input type="search" [ngModel]="titulo()" (ngModelChange)="titulo.set($event)" placeholder="Filtrar pelo título" /></label>
+    <label>Título <input type="search" [ngModel]="titulo()" (ngModelChange)="titulo.set($event)"
+        placeholder="Filtrar pelo título" /></label>
     <label>Desenvolvedora
       <select [ngModel]="desenvolvedoraId()" (ngModelChange)="desenvolvedoraId.set($event); carregar()">
         <option value="">Todas</option>
@@ -23,41 +30,42 @@
       </select>
     </label>
     @if (autenticacao.temPapel('ADMINISTRADOR')) {
-      <label>Status
-        <select [ngModel]="status()" (ngModelChange)="status.set($event); carregar()">
-          <option value="ATIVO">Ativos</option>
-          <option value="INATIVO">Inativos</option>
-        </select>
-      </label>
+    <label>Status
+      <select [ngModel]="status()" (ngModelChange)="status.set($event); carregar()">
+        <option value="ATIVO">Ativos</option>
+        <option value="INATIVO">Inativos</option>
+      </select>
+    </label>
     }
     <label class="linha-filtros__fim"><span class="sr-only">Ordenar por</span>
       <select [ngModel]="ordem()" (ngModelChange)="ordem.set($event)">
-        @for (opcao of opcoesDeOrdenacao; track opcao.valor) { <option [value]="opcao.valor">{{ opcao.rotulo }}</option> }
+        @for (opcao of opcoesDeOrdenacao; track opcao.valor) { <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+        }
       </select>
     </label>
   </div>
 
   @if (carregando()) {
-    <gt-carregando tipo="cards" [quantidade]="12" />
+  <gt-carregando tipo="cards" [quantidade]="12" />
   } @else if (erro(); as mensagem) {
-    <gt-erro [mensagem]="mensagem" />
+  <gt-erro [mensagem]="mensagem" />
   } @else if (!visiveis().length) {
-    <gt-estado-vazio icone="jogos" titulo="Nenhum jogo encontrado" texto="Ajuste os filtros para ver outros jogos." />
+  <gt-estado-vazio icone="jogos" titulo="Nenhum jogo encontrado" texto="Ajuste os filtros para ver outros jogos." />
   } @else {
-    <section class="grade-posters grade-posters--horizontal" aria-label="Jogos do catálogo">
-      @for (jogo of visiveis(); track jogo.id) {
-        <gt-card-poster formato="horizontal" [jogo]="jogo" [inativo]="jogo.jogo.status !== 'ATIVO'"
-          [selo]="jogo.jogo.status !== 'ATIVO' ? 'Inativo' : null" (alternarWishlist)="alternarWishlist($event)">
-          @if (podeEditar(jogo)) {
-            <div class="gestao">
-              <a class="botao-texto" [routerLink]="['/catalogo', jogo.id, 'editar']">Editar</a>
-              @if (autenticacao.temPapel('ADMINISTRADOR') && jogo.jogo.status === 'ATIVO') {
-                <button type="button" class="botao-texto gestao__remover" (click)="excluir(jogo)">Remover</button>
-              }
-            </div>
-          }
-        </gt-card-poster>
+  <section class="grade-posters grade-posters--horizontal" aria-label="Jogos do catálogo">
+    @for (jogo of visiveis(); track jogo.id) {
+    <gt-card-poster formato="horizontal" [jogo]="jogo" [inativo]="jogo.jogo.status !== 'ATIVO'"
+      [selo]="jogo.jogo.status !== 'ATIVO' ? 'Inativo' : null" (alternarWishlist)="alternarWishlist($event)">
+      @if (podeEditar(jogo)) {
+      <div class="gestao">
+        <a class="botao-texto" [routerLink]="['/catalogo', jogo.id, 'editar']">Editar</a>
+        @if (autenticacao.temPapel('ADMINISTRADOR') && jogo.jogo.status === 'ATIVO') {
+        <button type="button" class="botao-texto gestao__remover" (click)="excluir(jogo)">Remover</button>
+        }
+      </div>
       }
-    </section>
+    </gt-card-poster>
+    }
+  </section>
   }
 </main>

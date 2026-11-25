@@ -1,7 +1,7 @@
 <main class="pagina-catalogo">
   <a class="voltar" routerLink="/">← Game Tracker</a>
   <h1>Cadastrar jogo</h1>
-  <p class="introducao">Escolha entre importar um jogo da Steam ou preencher o cadastro manualmente.</p>
+  <p class="introducao">Desenvolvedores fazem o cadastro manual; administradores importam jogos da Steam.</p>
 
   @if (!autenticacao.temPapel('DESENVOLVEDOR', 'ADMINISTRADOR')) {
     <p class="mensagem-erro" role="alert">
@@ -11,100 +11,249 @@
   } @else if (carregando()) {
     <p>Carregando desenvolvedoras e gêneros…</p>
   } @else {
-    @if (autenticacao.temPapel('ADMINISTRADOR')) {
-    <section class="secao-importacao" aria-labelledby="titulo-importacao">
-      <h2 id="titulo-importacao">Cadastrar via Steam</h2>
-      <p>Pesquise pelo nome do jogo. Os dados encontrados serão gravados diretamente no catálogo.</p>
-      <label for="termoSteam">Nome ou termo de busca</label>
-      <input
-        id="termoSteam"
-        type="search"
-        [formControl]="termoSteam"
-        placeholder="Ex.: Elden Ring"
-        (keydown.enter)="importarDaSteam(); $event.preventDefault()"
-      />
-      <button
-        type="button"
-        [disabled]="termoSteam.invalid || importandoSteam()"
-        (click)="importarDaSteam()"
-      >
-        {{ importandoSteam() ? 'Buscando na Steam…' : 'Importar da Steam' }}
-      </button>
-    </section>
-    @if (erro(); as mensagem) {
-      <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+    @if (ehAdmin()) {
+      <section class="secao-importacao" aria-labelledby="titulo-importacao">
+        <h2 id="titulo-importacao">Cadastrar via Steam</h2>
+        <p>Pesquise pelo nome do jogo. Os dados encontrados serão gravados diretamente no catálogo.</p>
+        <label for="termoSteam">Nome ou termo de busca</label>
+        <input id="termoSteam" type="search" [formControl]="termoSteam" placeholder="Ex.: Elden Ring"
+          (keydown.enter)="importarDaSteam(); $event.preventDefault()" />
+        <button type="button" [disabled]="termoSteam.invalid || importandoSteam()" (click)="importarDaSteam()">
+          {{ importandoSteam() ? 'Buscando na Steam…' : 'Importar da Steam' }}
+        </button>
+        <p><small>O cadastro manual é feito por contas de desenvolvedor.</small></p>
+      </section>
     }
-    @if (sucesso(); as mensagem) {
-      <p class="mensagem-sucesso" role="status">{{ mensagem }}</p>
-    }
-    }
+
+    @if (erro(); as mensagem) { <p class="mensagem-erro" role="alert">{{ mensagem }}</p> }
+    @if (sucesso(); as mensagem) { <p class="mensagem-sucesso" role="status">{{ mensagem }}</p> }
 
     @if (autenticacao.temPapel('DESENVOLVEDOR')) {
-    <form [formGroup]="formulario" (ngSubmit)="cadastrar()">
-      <label for="titulo">Título do jogo *</label>
-      <input id="titulo" type="text" formControlName="titulo" />
+      <section class="wizard" aria-labelledby="titulo-wizard">
+        <h2 id="titulo-wizard">Cadastro manual · etapa {{ etapa() }} de 4</h2>
 
-      <label for="tituloOriginal">Título original</label>
-      <input id="tituloOriginal" type="text" formControlName="tituloOriginal" />
+        <ol class="etapas">
+          @for (nome of nomesEtapas; track nome; let i = $index) {
+            <li>
+              <button type="button" class="etapa" [class.ativa]="etapa() === i + 1"
+                [class.concluida]="etapa() > i + 1" (click)="irParaEtapa(i + 1)">
+                <span class="numero">{{ etapa() > i + 1 ? '✓' : i + 1 }}</span> {{ nome }}
+              </button>
+            </li>
+          }
+        </ol>
 
-      <label for="resumo">Resumo</label>
-      <textarea id="resumo" rows="4" formControlName="resumo"></textarea>
+        <form [formGroup]="formulario" (ngSubmit)="cadastrar()" (keydown.enter)="$event.preventDefault()">
 
-      <p class="desenvolvedora-vinculada">
-        Desenvolvedora:
-        @if (desenvolvedoraVinculada(); as desenvolvedora) {
-          <strong>{{ desenvolvedora.nome }}</strong>
-        } @else {
-          <strong>nenhuma desenvolvedora ativa vinculada</strong> (peça a um administrador para vincular sua conta)
-        }
-      </p>
+          @switch (etapa()) {
+            @case (1) {
+              <label for="titulo">Título *</label>
+              <input id="titulo" type="text" formControlName="titulo" maxlength="180" />
+              <small>{{ formulario.controls.titulo.value.length }}/180</small>
 
-      <fieldset>
-        <legend>Gêneros</legend>
-        @for (genero of generos(); track genero.id) {
-          <label class="opcao">
-            <input
-              type="checkbox"
-              [checked]="formulario.controls.generosIds.value.includes(genero.id)"
-              (change)="alternarGenero(genero.id, $event)"
-            />
-            {{ genero.nome }}
-          </label>
-        } @empty {
-          <span>Nenhum gênero cadastrado.</span>
-        }
-      </fieldset>
+              <div class="linha">
+                <div>
+                  <label>Desenvolvedora</label>
+                  <p class="desenvolvedora-vinculada">
+                    @if (desenvolvedoraVinculada(); as d) { <strong>{{ d.nome }}</strong> }
+                    @else { <strong>nenhuma desenvolvedora ativa vinculada</strong> (peça a um administrador) }
+                  </p>
+                </div>
+                <div>
+                  <label for="publicadora">Editora (publisher)</label>
+                  <input id="publicadora" type="text" formControlName="publicadora" placeholder="Opcional" />
+                </div>
+              </div>
 
-      <label for="dataLancamento">Data de lançamento</label>
-      <input id="dataLancamento" type="date" formControlName="dataLancamento" />
+              <div class="linha">
+                <div>
+                  <label for="generoId">Gênero principal *</label>
+                  <select id="generoId" formControlName="generoId">
+                    <option value="">Selecione…</option>
+                    @for (g of generos(); track g.id) { <option [value]="g.id">{{ g.nome }}</option> }
+                  </select>
+                </div>
+                <div>
+                  <label for="dataLancamento">Data de lançamento *</label>
+                  <input id="dataLancamento" type="date" formControlName="dataLancamento" />
+                </div>
+              </div>
 
-      <label for="capaArquivo">Imagem da capa</label>
-      <input
-        id="capaArquivo"
-        type="file"
-        accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
-        (change)="selecionarCapa($event)"
-      />
-      @if (enviandoImagem()) {
-        <small>Enviando imagem…</small>
-      } @else if (nomeImagem(); as nome) {
-        <small>Imagem selecionada: {{ nome }}</small>
-      }
+              <fieldset>
+                <legend>Plataformas *</legend>
+                <div class="chips">
+                  @for (p of plataformasOpcoes; track p) {
+                    <button type="button" class="chip" [class.ativo]="marcado('plataformas', p)"
+                      [attr.aria-pressed]="marcado('plataformas', p)" (click)="alternar('plataformas', p)">{{ p }}</button>
+                  }
+                </div>
+              </fieldset>
+            }
 
-      <label for="trailerUrl">URL do trailer</label>
-      <input id="trailerUrl" type="url" formControlName="trailerUrl" />
+            @case (2) {
+              <fieldset>
+                <legend>Modos de jogo *</legend>
+                <div class="chips">
+                  @for (m of modosOpcoes; track m) {
+                    <button type="button" class="chip" [class.ativo]="marcado('modosJogo', m)"
+                      [attr.aria-pressed]="marcado('modosJogo', m)" (click)="alternar('modosJogo', m)">{{ m }}</button>
+                  }
+                </div>
+              </fieldset>
 
-      @if (erro(); as mensagem) {
-        <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
-      }
-      @if (sucesso(); as mensagem) {
-        <p class="mensagem-sucesso" role="status">{{ mensagem }}</p>
-      }
+              <fieldset>
+                <legend>Classificação etária *</legend>
+                <div class="chips">
+                  @for (c of classificacoes; track c) {
+                    <button type="button" class="chip" [class.ativo]="formulario.controls.classificacao.value === c"
+                      (click)="escolherClassificacao(c)">{{ c }}</button>
+                  }
+                </div>
+              </fieldset>
 
-      <button type="submit" [disabled]="formulario.invalid || enviando()">
-        {{ enviando() ? 'Cadastrando…' : 'Cadastrar jogo' }}
-      </button>
-    </form>
+              <fieldset>
+                <legend>Idiomas disponíveis *</legend>
+                <div class="chips">
+                  @for (i of idiomasOpcoes; track i) {
+                    <button type="button" class="chip" [class.ativo]="marcado('idiomas', i)"
+                      [attr.aria-pressed]="marcado('idiomas', i)" (click)="alternar('idiomas', i)">{{ i }}</button>
+                  }
+                </div>
+              </fieldset>
+
+              <label for="preco">Preço (R$)</label>
+              <div class="linha-preco">
+                <label class="opcao"><input type="checkbox" formControlName="gratuito" /> Gratuito</label>
+                <input id="preco" type="number" min="0" step="0.01" formControlName="preco"
+                  [attr.disabled]="formulario.controls.gratuito.value ? '' : null" />
+              </div>
+
+              <label for="entradaTag">Tags ({{ formulario.controls.tags.value.length }}/{{ maxTags }})</label>
+              <div class="chips">
+                @for (t of formulario.controls.tags.value; track t) {
+                  <button type="button" class="chip ativo" (click)="removerTag(t)" [attr.aria-label]="'Remover tag ' + t">#{{ t }} ×</button>
+                }
+              </div>
+              <input id="entradaTag" type="text" [formControl]="entradaTag" (keydown.enter)="adicionarTag($event)"
+                placeholder="Digite uma tag e pressione Enter (ex.: pixel art, soulslike)" />
+
+              <label for="resumo">Descrição</label>
+              <textarea id="resumo" rows="5" formControlName="resumo" maxlength="600"></textarea>
+              <small>{{ formulario.controls.resumo.value.length }}/600</small>
+
+              <div class="linha">
+                <div>
+                  <label for="siteOficial">Site oficial</label>
+                  <input id="siteOficial" type="url" formControlName="siteOficial" placeholder="https://" />
+                </div>
+                <div>
+                  <label for="trailerUrl">Trailer (URL)</label>
+                  <input id="trailerUrl" type="url" formControlName="trailerUrl" placeholder="https://youtube.com/…" />
+                </div>
+              </div>
+            }
+
+            @case (3) {
+              <fieldset>
+                <legend>Capa</legend>
+                <div class="midia">
+                  <div class="previa">
+                    @if (formulario.controls.capaUrl.value; as url) { <img [src]="url" alt="Prévia da capa" /> }
+                    @else { <span>Sem imagem</span> }
+                  </div>
+                  <div>
+                    <input type="url" formControlName="capaUrl" placeholder="https://… (URL da imagem)" aria-label="URL da capa" />
+                    <input type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+                      (change)="enviarArquivo($event, 'capa')" aria-label="Enviar arquivo da capa" />
+                    @if (enviandoImagem() === 'capa') { <small>Enviando capa…</small> }
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>Banner</legend>
+                <div class="midia">
+                  <div class="previa larga">
+                    @if (formulario.controls.bannerUrl.value; as url) { <img [src]="url" alt="Prévia do banner" /> }
+                    @else { <span>Sem imagem</span> }
+                  </div>
+                  <div>
+                    <input type="url" formControlName="bannerUrl" placeholder="https://… (URL da imagem)" aria-label="URL do banner" />
+                    <input type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+                      (change)="enviarArquivo($event, 'banner')" aria-label="Enviar arquivo do banner" />
+                    @if (enviandoImagem() === 'banner') { <small>Enviando banner…</small> }
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>Screenshots ({{ formulario.controls.screenshots.value.length }}/{{ maxScreenshots }})</legend>
+                <div class="galeria">
+                  @for (url of formulario.controls.screenshots.value; track url) {
+                    <figure>
+                      <img [src]="url" alt="Screenshot" />
+                      <button type="button" (click)="removerScreenshot(url)">Remover</button>
+                    </figure>
+                  }
+                </div>
+                <div class="linha-preco">
+                  <input type="url" [formControl]="entradaScreenshot" placeholder="https://… (URL da imagem)"
+                    (keydown.enter)="adicionarScreenshot()" aria-label="URL da screenshot" />
+                  <button type="button" (click)="adicionarScreenshot()">Adicionar</button>
+                </div>
+                <input type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+                  (change)="enviarArquivo($event, 'screenshot')" aria-label="Enviar screenshot" />
+                @if (enviandoImagem() === 'screenshot') { <small>Enviando imagem…</small> }
+              </fieldset>
+            }
+
+            @case (4) {
+              @let f = formulario.getRawValue();
+              <div class="revisao-topo">
+                <div class="previa">
+                  @if (f.capaUrl) { <img [src]="f.capaUrl" alt="Capa" /> } @else { <span>Sem capa</span> }
+                </div>
+                <div>
+                  <h3>{{ f.titulo }}</h3>
+                  <p>{{ nomeDesenvolvedora() }}{{ f.publicadora ? ' · ' + f.publicadora : '' }}</p>
+                </div>
+              </div>
+
+              <dl class="revisao">
+                <div><dt>Gênero</dt><dd>{{ nomeGenero() }}</dd><button type="button" (click)="irParaEtapa(1)">Editar</button></div>
+                <div><dt>Lançamento</dt><dd>{{ f.dataLancamento }}</dd><button type="button" (click)="irParaEtapa(1)">Editar</button></div>
+                <div><dt>Plataformas</dt><dd>{{ juntar(f.plataformas) }}</dd><button type="button" (click)="irParaEtapa(1)">Editar</button></div>
+                <div><dt>Modos</dt><dd>{{ juntar(f.modosJogo) }}</dd><button type="button" (click)="irParaEtapa(2)">Editar</button></div>
+                <div><dt>Classificação</dt><dd>{{ f.classificacao === 'Livre' ? 'Livre' : f.classificacao + '+' }}</dd><button type="button" (click)="irParaEtapa(2)">Editar</button></div>
+                <div><dt>Idiomas</dt><dd>{{ juntar(f.idiomas) }}</dd><button type="button" (click)="irParaEtapa(2)">Editar</button></div>
+                <div><dt>Preço</dt><dd>{{ textoPreco() }}</dd><button type="button" (click)="irParaEtapa(2)">Editar</button></div>
+                <div><dt>Tags</dt><dd>{{ f.tags.length ? '#' + f.tags.join(' #') : '—' }}</dd><button type="button" (click)="irParaEtapa(2)">Editar</button></div>
+                <div><dt>Site</dt><dd>{{ f.siteOficial || '—' }}</dd><button type="button" (click)="irParaEtapa(2)">Editar</button></div>
+                <div><dt>Trailer</dt><dd>{{ f.trailerUrl || '—' }}</dd><button type="button" (click)="irParaEtapa(2)">Editar</button></div>
+                <div><dt>Banner</dt><dd>{{ f.bannerUrl || '—' }}</dd><button type="button" (click)="irParaEtapa(3)">Editar</button></div>
+                <div><dt>Screenshots</dt><dd>{{ f.screenshots.length || '—' }}</dd><button type="button" (click)="irParaEtapa(3)">Editar</button></div>
+              </dl>
+
+              @if (f.resumo) { <p class="descricao-revisao">{{ f.resumo }}</p> }
+              <p class="aviso-origem">Origem registrada como "Manual/Criador" e vinculada à sua desenvolvedora.</p>
+            }
+          }
+
+          @if (erroEtapa(); as mensagem) { <p class="mensagem-erro" role="alert">{{ mensagem }}</p> }
+
+          <div class="acoes">
+            @if (etapa() > 1) { <button type="button" class="secundario" (click)="voltar()">Voltar</button> }
+            <button type="button" class="secundario" (click)="limparRascunho()">Limpar rascunho</button>
+            @if (etapa() < 4) {
+              <button type="button" (click)="continuar()">Continuar</button>
+            } @else {
+              <button type="submit" [disabled]="enviando() || enviandoImagem() !== null">
+                {{ enviando() ? 'Cadastrando…' : 'Cadastrar jogo' }}
+              </button>
+            }
+          </div>
+        </form>
+      </section>
     }
   }
 </main>

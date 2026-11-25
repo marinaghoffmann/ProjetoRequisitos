@@ -132,4 +132,16 @@ export class CatalogoService {
     }
     return this.http.get<Jogo[]>('/api/catalogo/jogos', { params });
   }
+
+  cadastrarDesenvolvedora(dados: Omit<Desenvolvedora, 'id' | 'ativa'>): Observable<Desenvolvedora> {
+    return this.http.post<Desenvolvedora>('/api/catalogo/desenvolvedoras', dados);
+  }
+
+  cadastrarGenero(nome: string): Observable<Genero> {
+    return this.http.post<Genero>('/api/catalogo/generos', { nome });
+  }
+
+  excluirGenero(id: string) {
+    return this.http.delete<void>(`/api/generos/${id}`);
+  }
 }

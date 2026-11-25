@@ -20,11 +20,24 @@
       <option value="ADMINISTRADOR">Administrador</option>
     </select>
 
+    @if (ehDesenvolvedor()) {
+    <label for="desenvolvedoraId">Desenvolvedora *</label>
+    <select id="desenvolvedoraId" formControlName="desenvolvedoraId">
+      <option value="">Selecione…</option>
+      @for (d of desenvolvedoras(); track d.id) {
+      <option [value]="d.id">{{ d.nome }}</option>
+      }
+    </select>
+    @if (desenvolvedoras().length === 0) {
+    <small>Nenhuma desenvolvedora ativa. <a routerLink="/admin/catalogo/base">Cadastre uma primeiro</a>.</small>
+    }
+    }
+
     @if (erro(); as mensagem) {
-      <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
+    <p class="mensagem-erro" role="alert">{{ mensagem }}</p>
     }
     @if (sucesso(); as mensagem) {
-      <p role="status">{{ mensagem }}</p>
+    <p role="status">{{ mensagem }}</p>
     }
 
     <button type="submit" [disabled]="formulario.invalid || carregando()">

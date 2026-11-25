@@ -42,7 +42,8 @@ import io.cucumber.java.pt.Entao;
 import io.cucumber.java.pt.Quando;
 
 /**
- * Steps da F-01 (catálogo). O banco H2 é compartilhado entre os cenários, por isso os dados
+ * Steps da F-01 (catálogo). O banco H2 é compartilhado entre os cenários, por
+ * isso os dados
  * de apoio são buscados pelo nome antes de serem criados.
  */
 public class PassosCatalogo {
@@ -216,7 +217,10 @@ public class PassosCatalogo {
         contexto.obter(() -> removerJogo.executar(jogoDeApoio(titulo).id()));
     }
 
-    /** Cada review é de um jogador diferente (F-02 RN 1). O administrador volta a ser o autenticado. */
+    /**
+     * Cada review é de um jogador diferente (F-02 RN 1). O administrador volta a
+     * ser o autenticado.
+     */
     @Dado("que o jogo {string} possui {int} reviews")
     public void jogoPossuiReviews(String titulo, int quantidade) {
         jogoAtual = jogoDeApoio(titulo);
@@ -307,7 +311,8 @@ public class PassosCatalogo {
 
     @Dado("que o catálogo possui {int} jogos de origem {string} e {int} de origem {string}")
     public void catalogoPossuiJogosPorOrigem(int qtdA, String origemA, int qtdB, String origemB) {
-        // Desenvolvedora exclusiva do cenário, para não contar jogos criados por outros cenários.
+        // Desenvolvedora exclusiva do cenário, para não contar jogos criados por outros
+        // cenários.
         Desenvolvedora estudio = desenvolvedoras.salvar(Desenvolvedora.criar("Filtro " + UUID.randomUUID(),
                 null, null, null, null));
         desenvolvedoraDoFiltro = estudio.id();

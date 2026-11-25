@@ -265,3 +265,366 @@ button {
     padding: 1.25rem;
   }
 }
+
+// Botões que não devem herdar o estilo lima padrão de `button`
+.secundario,
+.revisao button,
+.btn-secundario,
+.chip-remover {
+  min-height: 0;
+  margin-top: 0;
+  background: none;
+  color: inherit;
+  font-weight: 600;
+}
+
+// ---------- Wizard de cadastro de jogo ----------
+.etapas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.etapa {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 0;
+  margin-top: 0;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--borda);
+  border-radius: 0.6rem;
+  background: transparent;
+  color: var(--texto);
+
+  .numero {
+    display: inline-grid;
+    place-items: center;
+    width: 1.3rem;
+    height: 1.3rem;
+    border: 1px solid currentcolor;
+    border-radius: 50%;
+    font-size: 0.75rem;
+  }
+
+  &.ativa {
+    border-color: var(--destaque);
+    background: var(--destaque);
+    color: var(--destaque-texto);
+  }
+
+  &.concluida {
+    border-color: var(--destaque);
+    color: var(--destaque);
+  }
+}
+
+.linha {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+
+  @media (max-width: 40rem) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.campo {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.linha-preco {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  input[type='number'],
+  input[type='url'] {
+    flex: 1;
+  }
+}
+
+.midia {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.previa {
+  display: grid;
+  place-items: center;
+  width: 8rem;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 1px solid var(--borda);
+  border-radius: 0.6rem;
+  font-size: 0.8rem;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &.larga {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+.galeria {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+
+  figure {
+    margin: 0;
+
+    img {
+      width: 100%;
+      border-radius: 0.5rem;
+    }
+  }
+}
+
+.revisao-topo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.revisao {
+  margin: 0 0 1rem;
+
+  > div {
+    display: grid;
+    grid-template-columns: 9rem 1fr auto;
+    gap: 1rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--borda);
+  }
+
+  dt {
+    color: var(--texto-suave);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  button {
+    padding: 0;
+    border: 0;
+    text-decoration: underline;
+  }
+}
+
+.aviso-origem {
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+
+  button:last-child {
+    margin-left: auto;
+  }
+
+  .secundario {
+    padding: 0 0.5rem;
+    border: 0;
+    opacity: 0.8;
+  }
+}
+
+// ---------- Chips (wizard e cadastros-base) ----------
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 0;
+  margin-top: 0;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 4%);
+  color: var(--texto);
+  font-size: 0.85rem;
+  font-weight: 500;
+
+  &.ativo {
+    border-color: var(--destaque);
+    background: var(--destaque);
+    color: var(--destaque-texto);
+    font-weight: 700;
+  }
+}
+
+// Chip com botão de remover (span, não botão)
+span.chip {
+  padding: 0.3rem 0.4rem 0.3rem 0.9rem;
+  border-color: rgb(212 255 58 / 30%);
+  background: rgb(212 255 58 / 8%);
+}
+
+.chip-remover {
+  display: grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--texto-suave);
+  font-size: 1.1rem;
+  line-height: 1;
+
+  &:hover {
+    background: var(--perigo);
+    color: #fff;
+  }
+}
+
+// ---------- Página de cadastros-base ----------
+.cartao {
+  padding: 1.75rem;
+  border: 1px solid var(--borda);
+  border-radius: 1.25rem;
+  background: var(--bg-card);
+
+  // O formulário já está dentro de um card
+  form {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+  }
+
+  h2 {
+    margin: 0 0 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--borda);
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1.75rem 0 0.75rem;
+    color: var(--texto-suave);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+}
+
+.contador {
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  background: rgb(212 255 58 / 12%);
+  color: var(--destaque);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.lista-cards {
+  display: grid;
+  gap: 0.5rem;
+  max-height: 26rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--borda);
+  border-radius: 0.6rem;
+  background: var(--bg-campo);
+
+  &.inativa {
+    opacity: 0.55;
+  }
+}
+
+.item-info {
+  display: grid;
+  min-width: 0;
+
+  strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.meta {
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+}
+
+.selo {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  color: var(--texto-suave);
+  font-size: 0.75rem;
+}
+
+.btn-secundario {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--destaque);
+  border-radius: 0.5rem;
+  color: var(--destaque);
+  font-size: 0.8rem;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--destaque);
+    color: var(--destaque-texto);
+  }
+}
+
+.vazio {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.lista-simples {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+  }
+}
